@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft 1, for review |
+| Status | Draft 2: M0 decisions folded in (ADRs 0001–0005) |
 | Date | 2026-10-11 |
 | Kernel | [GSSK](https://github.com/energese-project/GSSK-Giannantoni), consumed as a pinned WebAssembly artefact |
 | Runtime | Browser only. Static site, no backend |
@@ -68,7 +68,7 @@ rules, superannuation). Multi-currency holdings (BTC, USD, EUR) are first-class.
 | UC-01 | load several months of bank transactions in CDR format and see them categorised. |
 | UC-02 | correct a category once and have similar transactions follow. |
 | UC-03 | see actual vs budget per category, per week/month/year, for each spending tier. |
-| UC-04 | import my existing budget workbook so I do not re-enter it. |
+| UC-04 | import my existing budget workbook (exported sheet by sheet as CSV) so I do not re-enter it. |
 | UC-05 | keep a register of capital items (asset, cost, purchase date, expected life) and see when replacements fall due and what they cost per week. |
 | UC-06 | have new large purchases detected in the bank data and offered as CAPEX register entries. |
 | UC-07 | see forecast OPEX and CAPEX for the next 1–5 years with uncertainty bands. |
@@ -88,9 +88,9 @@ rules, superannuation). Multi-currency holdings (BTC, USD, EUR) are first-class.
 │                                                                                │
 │  UI (main thread)                                                              │
 │   Ledger · Budget · CAPEX · Forecast · Freedom · Scenarios · Advisor · Settings │
-│        │ Comlink RPC                                                           │
+│        │ typed postMessage RPC (in-house)                                      │
 │  ┌─────▼──────────────────── Web Workers ───────────────────────────────────┐  │
-│  │ ingest      CDR JSON → canonical; xlsx → budget/CAPEX/goals              │  │
+│  │ ingest      CDR JSON → canonical; CSV → budget/CAPEX/goals               │  │
 │  │ classify    rules → merchant memory → in-browser ML → (optional) LLM     │  │
 │  │ forecast    ml-core.wasm: ETS, Croston, bootstrap, Weibull, quantiles    │  │
 │  │ modelgen    canonical state → GSSK model JSON (pure function)            │  │
@@ -109,7 +109,7 @@ rules, superannuation). Multi-currency holdings (BTC, USD, EUR) are first-class.
 Every worker exposes a typed, promise-based interface. The UI never touches WASM memory directly.
 
 **Why GSSK rather than plain JavaScript arithmetic.** GSSK gives the app: an explicit stock-and-flow
-model whose money conservation is checked every step (`GSSK_GetCarrierConservationError`); a
+model whose money balance is checked every step (FR-SIM-003); a
 mutation log that records *why* each rate changed (`cause`), so every policy decision in a run is
 auditable and replayable (`GSSK_Replay`); gradient calibration of behavioural rates against actual
 balances (`GSSK_CalibrateGradient`); and room to add non-money carriers later (household energy,
@@ -266,10 +266,11 @@ Each response carries `links` (`self`, `first`, `prev`, `next`, `last`) and `met
 
 ### 6.2 Workbook import (FR-ING-010)
 
-Import an existing budget workbook (`.xlsx`, parsed in the browser with SheetJS) through a
+Import an existing budget workbook as **CSV**: one CSV file per sheet, exported by the user from
+their spreadsheet program. The app does not read `.xlsx` (ADR 0003). Import goes through a
 **mapping wizard**, not a hard-coded layout. Built-in presets recognise the common layout:
 
-| Sheet type | Recognised columns | Maps to |
+| Sheet (CSV file) type | Recognised columns | Maps to |
 |---|---|---|
 | OPEX budget | Category (section header rows), Item, Cost, Unit (period code), Start Date, Renew Date, tier multipliers (e.g. *Fin. Secure / Fin. Indepnt / Fin. Luxury*), Sub-category, Notes | `BudgetCategory`, `BudgetLine`, `Tier` |
 | CAPEX register | Source Year, Item, Forecast Spend, Paid?, Date Paid, Actual Spend, Expected Life, Replacement Year, Product URL | `Asset` |
@@ -279,14 +280,14 @@ Import an existing budget workbook (`.xlsx`, parsed in the browser with SheetJS)
 
 | ID | Requirement |
 |---|---|
-| FR-ING-011 | Use cached cell values. Never evaluate formulas. Report cells whose cached value is an error (`#DIV/0!`, `#REF!`) and skip them. |
+| FR-ING-011 | Parse CSV as RFC 4180 text (quoted fields, embedded commas and newlines, UTF-8 with or without BOM). Values are taken as given, so no formula is ever evaluated. Report cells holding a spreadsheet error literal (`#DIV/0!`, `#REF!`, `#VALUE!`, `#N/A`) and skip them. |
 | FR-ING-012 | Period codes are mapped through a user-editable table (`d`, `w`, `f`, `m`, `q`, `y`, `Ny`, `v` = visits/year, …), with the per-week normaliser shown, so imported per-week figures can be checked against the sheet's own. |
-| FR-ING-013 | Every imported record keeps `source: { sheet, row }` so a value can be traced back to its cell. |
-| FR-ING-014 | The import is previewed (counts, totals per tier per week) before commit. The totals SHOULD match the workbook's own totals line within 0.5 %. A mismatch is shown, not hidden. |
+| FR-ING-013 | Every imported record keeps `source: { file, row }` so a value can be traced back to its row in the exported CSV. |
+| FR-ING-014 | The import is previewed (counts, totals per tier per week) before commit. The totals SHOULD match the CSV's own totals row within 0.5 %. A mismatch is shown, not hidden. |
 
 ### 6.3 Later formats (not v1)
 
-CSV adapters per bank (column-mapping presets), OFX/QFX, QIF. Each adapter converts to the canonical
+Bank transaction CSV adapters (column-mapping presets per bank), OFX/QFX, QIF. Each adapter converts to the canonical
 `Txn` and is held to the same FR-ING-002…008.
 
 ---
@@ -309,12 +310,13 @@ fixtures/syn-42/
   balances.json                       # CDR BankingBalance snapshots (monthly)
   transactions/<accountId>/page-N.json # CDR BankingTransaction pages, with links/meta
   truth.json                          # per transactionId: kind, categoryId, assetId, transferPairId
-  workbook.xlsx                       # matching synthetic budget workbook (§6.2 layout)
+  workbook/<sheet>.csv                # matching synthetic budget workbook, one CSV per sheet (§6.2)
   manifest.json                       # generator version, persona hash, seed, x-synthetic: true
 ```
 
-Every synthetic file carries a top-level `"x-synthetic": { "generator": "...", "seed": "..." }` key
-(ignored by the importer, required by the CI data-hygiene check, §16.4). Account IDs begin `SYN-`,
+Every synthetic JSON file carries a top-level `"x-synthetic": { "generator": "...", "seed": "..." }` key,
+and every synthetic CSV starts with a `# x-synthetic: generator=..., seed=...` line. The importer
+ignores both. The CI data-hygiene check requires them (§16.4). Account IDs begin `SYN-`,
 masked numbers end `SYN`, and merchant names come from a fictional list.
 
 ### 7.2 Persona (config)
@@ -502,6 +504,11 @@ FX enters through their return paths.
 Gains and losses are separate edges so that no flow rate is ever negative. (Whether the kernel accepts
 a negative `k` is not relied on; see KR-3.)
 
+A `sink`'s Q accumulates the cumulative offtake into it (∫ flow dt), so a sink's `value` is its
+opening accumulator. `modelgen` emits `"value": 0` for every sink at scenario start. GSSK 5.3.0
+rejects a sink without `value`. Sink Q then reads directly as cumulative OPEX, CAPEX, tax and
+market losses for the run (ADR 0005).
+
 ### 11.2 Policy controller and Monte-Carlo runner (FR-SIM-002)
 
 The kernel integrates; the app decides. Each month the controller, in the `sim` worker:
@@ -538,7 +545,7 @@ labelled `assumed`).
 
 | ID | Requirement |
 |---|---|
-| FR-SIM-003 | `|GSSK_GetCarrierConservationError(money)|` ≤ 1e-9 at every step of every run; otherwise the run is marked invalid and shown as such. |
+| FR-SIM-003 | **Money balance**, checked at every step of every run: the change in total `money` held in storages and sinks (sinks accumulate their offtake) minus the inflow from sources over the step (source outflows × dt) is within 1e-9 of zero, in absolute value relative to total storage. Otherwise the run is marked invalid and shown as such. `GSSK_GetCarrierConservationError` alone cannot check this: for a model with sources or sinks it reports the relative net boundary flow, not leakage (ADR 0005). Source outflows are read with `GSSK_GetFlows`. If that turns out not to match the integrator's stages, sources and sinks are modelled as zero-initialised storages, which closes the model so the kernel's own conservation error applies. KR-6 asks for a kernel-side accessor. |
 | FR-SIM-004 | Every run stores its GSSK version, wasm SHA-256, model hash, inputs hash and seed. Any run can be replayed exactly from those (`GSSK_Replay` with the exported mutation log, or re-execution). |
 | FR-SIM-005 | 1000 runs × 40 years (480 steps) of the default model complete in ≤ 10 s on a 2022 mid-range laptop, using `navigator.hardwareConcurrency − 1` workers. |
 | FR-SIM-006 | A `fixed` return model with one run reproduces a single-path spreadsheet projection (same inputs) to within AUD 1 per year. This is the bridge test from the user's existing workbook. |
@@ -585,7 +592,7 @@ uncertain.
 | Screen | Contents |
 |---|---|
 | **Start** | "Try synthetic data" (persona picker) or "Import my data". Privacy statement. |
-| **Import** | Drop zone for CDR JSON/ZIP and xlsx. Per-file results (FR-ING-006). Mapping wizard for workbooks. Undo import. |
+| **Import** | Drop zone for CDR JSON/ZIP and budget CSV files. Per-file results (FR-ING-006). Mapping wizard for CSV sheets. Undo import. |
 | **Ledger** | Transactions table: filter, search, bulk re-categorise, review queue, CAPEX proposals, transfer pairs. |
 | **Budget** | Lines by category with tier columns; actual vs budget; run-rate; period switch (wk/mth/yr). |
 | **CAPEX** | Asset register; replacement timeline (P10–P90 bars); sinking fund; wish-list decisions. |
@@ -593,6 +600,7 @@ uncertain.
 | **Freedom** | Goal editor; pSuccess gauge per tier; capital fan chart in real terms with floor line; example paths; years to freedom; project runway; shortfall drivers. |
 | **Scenarios** | Side-by-side comparison (up to 4); optimiser; diff of decisions. |
 | **Advisor** | Optional chat (§13). Every answer links to run IDs and screens. |
+| **Kernel** | Pinned GSSK version, commit and SHA-256 verification status. Runs GSSK's household example model in the `sim` worker as a smoke test (M0). |
 | **Settings** | Timezone, currency, CPI, period table, categories, rules, tax tables, return models, API providers and keys, encryption, export/import, delete all data. |
 
 ---
@@ -648,8 +656,8 @@ Tools exposed to the model: `get_scenario(id)`, `list_metrics(id)`, `propose_sce
 | NFR-STO-003 | **Export** everything (records + settings + optional runs) as one file, `.budgetapp`, a ZIP of JSON, encrypted with a passphrase. **Import** restores it. Round-trip is lossless (tested). |
 | NFR-STO-004 | "Delete all data" removes IndexedDB, OPFS, caches and service-worker storage for the origin. |
 | NFR-STO-005 | Works offline after first load (service worker, precached assets including `gssk.wasm` and `ml-core.wasm`). |
-| NFR-SEC-001 | No third-party scripts at runtime. All dependencies are bundled at build time. No analytics, no telemetry. |
-| NFR-SEC-002 | Imported files are parsed in workers with size limits (50 MB per file) and never evaluated. Workbook formulas are never evaluated (FR-ING-011). |
+| NFR-SEC-001 | **No third-party runtime code.** The shipped app contains only this repository's code and the pinned GSSK kernel; npm packages are build and test tooling only (ADR 0007). No third-party scripts at runtime, no analytics, no telemetry. |
+| NFR-SEC-002 | Imported files are parsed in workers with size limits (50 MB per file) and never evaluated. Imported text is rendered with DOM text APIs, never interpolated into HTML. |
 
 ---
 
@@ -659,19 +667,20 @@ Tools exposed to the model: `get_scenario(id)`, `list_metrics(id)`, `propose_sce
 
 | Concern | Choice |
 |---|---|
-| Language | TypeScript (strict) |
+| Language | TypeScript 7 (`tsgo`, the native compiler), strict, erasable syntax only, explicit `.ts` imports; runs unchanged in Node ≥ 22.18 and Vite (ADR 0007) |
 | Build / dev | Vite |
-| UI | Preact + signals (or Svelte; decide at M0 and record an ADR) — small bundle |
-| Charts | Hand-written SVG components, or uPlot for dense series |
-| Workers / RPC | Web Workers + Comlink |
-| xlsx | SheetJS (community edition, installed from the SheetJS CDN tarball per their instructions) |
-| Validation | JSON Schema (Ajv, precompiled) for CDR files, models, scenarios |
-| Storage | IndexedDB (idb), OPFS |
+| UI | Native web components in the [Boba](https://github.com/sholtomaud/boba) pattern (ADR 0001): one folder per custom element (`.html`, `.css` with `:host` scoping, `.ts`), a small `BaseComponent`, an `EventTarget` store and a History-API router. No UI framework, no CSS framework. |
+| Charts | Hand-written SVG components (ADR 0007) |
+| Workers / RPC | Web Workers + an in-house typed `postMessage` RPC (`src/workers/rpc.ts`, ADR 0007) |
+| CSV | In-house RFC 4180 parser in the `ingest` worker. No xlsx support and no SheetJS (ADR 0003). |
+| Validation | In-house validators for CDR files, models and scenarios, checked against the pinned JSON Schemas in tests (ADR 0007) |
+| Storage | IndexedDB (thin in-house typed wrapper), OPFS |
 | Kernel | `gssk.wasm` + `gssk.js` loader from GSSK `dist/`, pinned (§15.3) |
 | ML / numerics | `ml-core.wasm` (§15.2); TS reference implementations for tests |
-| Optional ML | ONNX Runtime Web (embeddings, pretrained forecasters); WebLLM (in-browser LLM on WebGPU) |
-| Tests | Vitest (unit, property via fast-check), Playwright (e2e, network assertions) |
-| Lint / format | ESLint, Prettier; `cargo fmt` / `clippy` for `ml-core` |
+| Optional ML | Later, and only by ADR: ONNX Runtime Web (embeddings, pretrained forecasters), WebLLM (in-browser LLM on WebGPU). These would be the only third-party runtime code, loaded only after the user opts in (ADR 0007). |
+| Tests | Vitest (unit, kernel; property tests with in-house seeded generators on SplitMix64), Playwright (components, e2e, network assertions) (ADRs 0006, 0007) |
+| Documentation | VitePress site built from `docs/` (guides, ADRs, this spec) (ADR 0006) |
+| Lint / format | `tsc` with strict and unused-code checks, Prettier; `cargo fmt` / `clippy` for `ml-core` (ADR 0007) |
 
 ### 15.2 `ml-core` (WASM)
 
@@ -692,11 +701,14 @@ Until `ml-core` lands (M4), the TS reference implementations are used directly.
 
 ### 15.3 GSSK integration
 
-- `vendor/gssk/` holds `gssk.wasm`, `gssk.js`, `gssk.h` (for reference), and `GSSK_PIN.json`:
+- `vendor/gssk/` holds `gssk.wasm`, `gssk.js`, `gssk.d.ts`, `gssk.schema.json`, `gssk.h` (for reference), and `GSSK_PIN.json`:
   `{ "repo": "...", "commit": "...", "tag": "...", "sha256": { "gssk.wasm": "...", "gssk.js": "..." } }`.
-- `npm run gssk:update -- <commit-or-tag>` builds GSSK in a container at that commit
-  (`make wasm` with its pinned WASI SDK), copies `dist/`, and rewrites `GSSK_PIN.json`.
-- At load the `sim` worker computes the wasm SHA-256 and refuses to run on mismatch.
+- The vendored files come from GSSK's `dist` branch, the output of GSSK's own release CI
+  (`make wasm` with its pinned WASI SDK). `GSSK_PIN.json` names the dist commit (ADR 0004).
+- `npm run gssk:update -- <dist-commit>` copies the files from that commit of the `dist` branch and
+  rewrites `GSSK_PIN.json`. `npm run gssk:verify` and the kernel tests check every file against it.
+- At load the `sim` worker computes the wasm SHA-256 and refuses to run on mismatch, or if the kernel
+  reports a version other than the pinned one.
 - A thin typed wrapper `src/sim/gssk.ts` owns all pointer handling: string marshalling
   (`stringToUTF8`), `GSSK_Init` out-pointer, `HEAPF64` state views, freeing. Nothing else touches
   WASM memory.
@@ -737,22 +749,33 @@ transactions ≤ 3 s; classification of 10 000 ≤ 2 s; FR-SIM-005 for Monte-Car
 
 ### 16.4 CI and data hygiene
 
-CI runs on `pull_request`: lint, typecheck, unit + property, golden, kernel, e2e, eval thresholds,
-`ml-core` build + tests, bundle size.
+CI (`.github/workflows/ci.yml`) runs on every pull request and push, in three parallel jobs:
+**build** (data-hygiene gate, GSSK pin check, format check, typecheck, app build, bundle size, docs build;
+later also `ml-core` build), **test** (Vitest: unit, property, golden, kernel; later also
+eval thresholds and `ml-core` tests) and **e2e** (Playwright, including privacy tests).
 
 **Data-hygiene gate (NFR-PRIV-002)**, run in CI and as a pre-commit hook:
 
-- `.gitignore` excludes `data/`, `private/`, `*.budgetapp`, `*.xlsx` outside `fixtures/`, `*.ofx`, `*.qif`.
-- Every JSON/XLSX under `fixtures/` must carry the `x-synthetic` marker (or, for xlsx, a `_synthetic`
-  sheet with the generator manifest).
+- `.gitignore` excludes `data/`, `private/`, `*.budgetapp`, `*.xlsx`/`*.xls` (everywhere), `*.csv` outside
+  `fixtures/`, `*.ofx`, `*.qfx`, `*.qif`. The gate also rejects those file types if they are force-added.
+- Every JSON under `fixtures/` must carry the top-level `x-synthetic` key. Every CSV under `fixtures/`
+  must start with a `# x-synthetic: …` line.
 - Any committed file containing a CDR-shaped `accountId` not starting `SYN-`, a BSB-and-account-number
-  pattern, or an Australian TFN pattern fails the build.
+  pattern, or an Australian TFN pattern (formatted, with a valid ATO check digit) fails the build.
 
 ### 16.5 Contribution workflow
 
 `AGENTS.md` is the canonical standard (as in GSSK). Work lands through PRs with green CI; the author
 does not merge their own PR. ADRs live in `docs/adr/` for decisions such as the UI framework, the
 quantile accumulator, and every deviation from this spec.
+
+### 16.6 Deployment
+
+The app and the documentation are published to **GitHub Pages** by the same workflow. A `deploy`
+job runs only on pushes to `main`, and only after `build`, `test` and `e2e` pass. The app is served
+at `/<repo>/` (built with `BASE_PATH`, with a `404.html` copy of the shell for deep links). The
+VitePress docs are served at `/<repo>/docs/`. Pages is a static host, which matches §1.1: no
+server-side code, and nothing but the app's own static assets.
 
 ---
 
@@ -768,6 +791,7 @@ deliberate pin update.
 | KR-3 | A documented position on negative edge `k` (allowed or rejected). | Paired gain/loss edges, never negative. |
 | KR-4 | A git tag per release, so the pin can name a tag rather than a commit. | Pin by commit SHA. |
 | KR-5 | Optional distribution families for `jitter` (normal/lognormal/Student-t), seeded per run. | Controller-set `k` from app-sampled paths. |
+| KR-6 | A per-carrier boundary-flux accessor (inflow from sources per step, consistent with the integrator's stages), so conservation can be checked for open models. `GSSK_GetCarrierConservationError` reports the relative change in storage, which for an open model is net flow, not leakage. Also: `gssk.h` comments sinks as `dQ/dt = 0`, but sink Q accumulates its inflow. Document or correct this. | App-side balance check (FR-SIM-003, ADR 0005). |
 
 ---
 
@@ -777,12 +801,15 @@ deliberate pin update.
 budget-app/
 ├─ AGENTS.md  CLAUDE.md  README.md  SPEC.md  LICENSE
 ├─ docs/
-│  ├─ adr/                       0001-ui-framework.md, …
+│  ├─ .vitepress/config.ts        VitePress site config
+│  ├─ adr/                       0001-ui-framework.md … 0007-no-third-party-runtime.md
+│  ├─ guide/                     getting-started, architecture, testing, deployment
+│  ├─ spec.md                    includes ../SPEC.md
 │  └─ user-guide.md
 ├─ data/                         # git-ignored; local scratch only
 ├─ fixtures/                     # synthetic only, x-synthetic marked
 │  ├─ personas/                  frugal-renter.json, default.json, high-capex-crypto.json
-│  └─ syn-<persona>-<seed>/      generated CDR files + truth.json + workbook.xlsx
+│  └─ syn-<persona>-<seed>/      generated CDR files + truth.json + workbook/*.csv
 ├─ schemas/
 │  ├─ cdr/                       pinned Consumer Data Standards JSON Schemas
 │  ├─ persona.schema.json  scenario.schema.json  goal.schema.json
@@ -790,11 +817,11 @@ budget-app/
 │  ├─ tax/au-2025-26.json        source URL, verifiedBy, verifiedOn
 │  ├─ mcc-categories.json
 │  └─ asset-lifetimes.json       default life + Weibull shape per category
-├─ vendor/gssk/                  gssk.wasm, gssk.js, gssk.h, GSSK_PIN.json
+├─ vendor/gssk/                  gssk.wasm, gssk.js, gssk.d.ts, gssk.schema.json, gssk.h, GSSK_PIN.json
 ├─ ml-core/                      Rust crate → ml-core.wasm
 ├─ src/
-│  ├─ app/                       UI shell, routes, screens
-│  ├─ ingest/                    cdr/, xlsx/, dedupe.ts, transfers.ts
+│  ├─ app/                       core/ (BaseComponent, Store, Router), components/<tag>/ (.html .css .ts)
+│  ├─ ingest/                    cdr/, csv/, dedupe.ts, transfers.ts
 │  ├─ synth/                     generator.ts, cli.ts
 │  ├─ classify/                  rules.ts, memory.ts, model.ts, llm.ts
 │  ├─ budget/                    periods.ts, tiers.ts, actuals.ts, capex.ts
@@ -803,9 +830,11 @@ budget-app/
 │  ├─ goals/                     metrics.ts, optimise.ts
 │  ├─ advisor/                   tools.ts, providers/, redact.ts
 │  ├─ store/                     db.ts, crypto.ts, export.ts, migrations/
+│  ├─ sw/                        service-worker template (precache list filled at build)
 │  └─ workers/                   one entry per worker
-├─ tests/                        unit/, property/, golden/, kernel/, e2e/, privacy/
-├─ scripts/                      gssk-update.sh, data-hygiene.mjs
+├─ tests/                        unit/, property/, golden/, kernel/, e2e/ (privacy tests live in e2e/)
+├─ scripts/                      gssk-update.sh, gssk-verify.ts, data-hygiene.ts, bundle-size.ts (run by Node directly)
+├─ .githooks/                    pre-commit (data-hygiene gate on staged files)
 └─ .github/workflows/ci.yml
 ```
 
@@ -818,10 +847,10 @@ data.
 
 | M | Scope | Acceptance |
 |---|---|---|
-| **M0 Skeleton** | Repo, AGENTS.md, CI, data-hygiene gate, Vite app shell, vendored GSSK with pin check, ADR for UI framework | CI green; app loads offline; `gssk.wasm` hash verified; household example model runs in a worker |
+| **M0 Skeleton** | Repo, AGENTS.md, CI, data-hygiene gate, Vite app shell, vendored GSSK with pin check, ADR for UI framework, VitePress docs, GitHub Pages deployment | CI green; app loads offline; `gssk.wasm` hash verified; household example model runs in a worker |
 | **M1 Synthetic + ingest** | Persona schema, generator (CLI + in-app), three personas, CDR schemas + importer, dedupe, pending→posted, transfers, reconciliation | FR-SYN-001…006; FR-ING-001…008; FR-REC-001; property tests pass |
 | **M2 Ledger + classification** | Ledger UI, rules, merchant memory, MCC map, NB/LR model, CAPEX proposals, refunds | FR-CLS-001…005 thresholds met in CI |
-| **M3 Budget + workbook + CAPEX register** | xlsx mapping wizard and presets, tiers, actual vs budget, CAPEX register, sinking fund | FR-ING-010…014 on synthetic workbook; FR-BUD-001; FR-CAP-001…005 |
+| **M3 Budget + workbook + CAPEX register** | CSV mapping wizard and presets, tiers, actual vs budget, CAPEX register, sinking fund | FR-ING-010…014 on the synthetic workbook CSVs; FR-BUD-001; FR-CAP-001…005 |
 | **M4 Forecasting + ml-core** | OPEX and CAPEX forecasters, backtests, fan charts; `ml-core` crate with WASM/TS parity | FR-FC-001, FR-FC-010; §16.2 forecast thresholds |
 | **M5 Freedom simulation** | modelgen, controller, tax tables, withdrawal strategies, return models, Monte-Carlo, metrics, Freedom screen | FR-SIM-001…006; FR-GOAL metrics; FR-SIM-006 bridge test |
 | **M6 Scenarios + optimiser** | Scenario compare, optimiser, Pareto view, shortfall drivers | FR-OPT-001; monotonicity property tests |
@@ -833,7 +862,7 @@ data.
 
 ## 20. Open questions
 
-1. **UI framework**: Preact vs Svelte (M0 ADR).
+1. ~~**UI framework**: Preact vs Svelte (M0 ADR).~~ Resolved: native web components, Boba pattern (ADR 0001).
 2. **Superannuation**: model as a holding with `accessibleFrom` only, or with contribution caps and
    Div 293/296 rules? (Proposed: holding + preservation age in M5; caps and Div 296 as a later tax
    table extension.)
@@ -911,10 +940,10 @@ data.
     { "id": "bank",        "type": "storage", "carrier": "money", "value": 12000 },
     { "id": "etf",         "type": "storage", "carrier": "money", "value": 250000 },
     { "id": "btc",         "type": "storage", "carrier": "money", "value": 180000 },
-    { "id": "opex_housing","type": "sink",    "carrier": "money" },
-    { "id": "capex",       "type": "sink",    "carrier": "money" },
-    { "id": "tax",         "type": "sink",    "carrier": "money" },
-    { "id": "market_loss", "type": "sink",    "carrier": "money" }
+    { "id": "opex_housing","type": "sink",    "carrier": "money", "value": 0 },
+    { "id": "capex",       "type": "sink",    "carrier": "money", "value": 0 },
+    { "id": "tax",         "type": "sink",    "carrier": "money", "value": 0 },
+    { "id": "market_loss", "type": "sink",    "carrier": "money", "value": 0 }
   ],
   "edges": [
     { "id": "pay", "origin": "wages", "target": "bank", "carrier": "money", "logic": "constant",

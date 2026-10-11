@@ -1,0 +1,48 @@
+<section class="screen">
+  <h1>Freedom capital, measured</h1>
+  <p class="lede">
+    See what you actually spend, forecast what you will spend, including lumpy capital purchases,
+    and simulate whether your capital can fund a chosen standard of living, and with what
+    probability.
+  </p>
+
+  <div class="choices">
+    <article class="card">
+      <h2>Try synthetic data</h2>
+      <p>
+        Explore every screen with a generated household before loading anything real. Every number
+        is labelled <span class="prov" data-prov="illustrative">illustrative</span>.
+      </p>
+      <button type="button" disabled aria-describedby="synth-note">Choose a persona</button>
+      <p class="note" id="synth-note">The synthetic generator arrives in milestone M1.</p>
+    </article>
+    <article class="card">
+      <h2>Import my data</h2>
+      <p>
+        Load Open Banking (CDR) exports and a CSV of your budget. Files are parsed on this device.
+      </p>
+      <a class="button" href="/import" data-route="/import">Go to Import</a>
+    </article>
+  </div>
+
+  <article class="card privacy" aria-labelledby="privacy-h">
+    <h2 id="privacy-h">Privacy</h2>
+    <ul>
+      <li>Your data stays in this browser. There is no server, no account and no cloud sync.</li>
+      <li>
+        The app makes no network request except to load its own files, unless you configure an
+        external service and confirm each call.
+      </li>
+      <li>No analytics and no third-party scripts.</li>
+      <li>
+        This is not financial advice. The app simulates the consequences of your own assumptions,
+        and shows every assumption it uses.
+      </li>
+    </ul>
+  </article>
+
+  <p class="kernel-status" role="status">
+    Simulation kernel: <span class="kstate">checking…</span>
+    <a href="/kernel" data-route="/kernel">details</a>
+  </p>
+</section>

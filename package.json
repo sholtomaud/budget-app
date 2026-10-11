@@ -1,0 +1,47 @@
+{
+  "name": "budget-app",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local-first household budget and freedom-capital simulator, running on the GSSK kernel in the browser.",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "scripts": {
+    "dev": "vite --host",
+    "start": "vite --host",
+    "build": "vite build",
+    "preview": "vite preview --port 4173 --strictPort",
+    "typecheck": "tsc --noEmit",
+    "lint": "prettier --check .",
+    "format": "prettier --write .",
+    "test": "vitest run",
+    "test:unit": "vitest run tests/unit",
+    "test:kernel": "vitest run tests/kernel",
+    "e2e": "playwright test",
+    "hygiene": "node scripts/data-hygiene.ts",
+    "bundle-size": "node scripts/bundle-size.ts",
+    "gssk:verify": "node scripts/gssk-verify.ts",
+    "gssk:update": "sh scripts/gssk-update.sh",
+    "hooks:install": "git config core.hooksPath .githooks",
+    "test:watch": "vitest",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1",
+    "@types/node": "22.20.5",
+    "prettier": "3.9.10",
+    "typescript": "7.0.2",
+    "vite": "8.1.4",
+    "vitepress": "1.6.4",
+    "vitest": "5.0.3"
+  },
+  "overrides": {
+    "vitepress": {
+      "vite": "6.4.4"
+    }
+  }
+}
