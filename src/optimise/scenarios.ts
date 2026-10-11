@@ -11,7 +11,7 @@ export interface SavedScenario {
   id: string;
   name: string;
   createdAt: string;
-  source: 'freedom' | 'optimiser';
+  source: 'freedom' | 'optimiser' | 'advisor';
   setup: FreedomSetup;
   /** For optimiser results: the simulation it came from. */
   runId?: string;

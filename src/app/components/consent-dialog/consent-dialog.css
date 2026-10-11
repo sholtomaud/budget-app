@@ -1,0 +1,37 @@
+:host dialog {
+  max-width: min(48rem, 95vw);
+  width: 100%;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  padding: var(--space-4);
+}
+:host dialog::backdrop {
+  background: rgb(0 0 0 / 0.45);
+}
+:host h2 {
+  margin-top: 0;
+}
+:host .payload {
+  max-height: 50vh;
+  overflow: auto;
+  background: var(--surface-2);
+  padding: var(--space-2);
+  border-radius: var(--radius);
+  font-size: 0.75rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+:host .note:empty {
+  display: none;
+}
+:host .actions {
+  display: flex;
+  gap: var(--space-2);
+}
+:host .check {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}

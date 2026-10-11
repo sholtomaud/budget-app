@@ -1,4 +1,5 @@
 import { BaseComponent, define } from '../../core/base-component.ts';
+import { suggestCategories } from '../../llm-actions.ts';
 import {
   addRule,
   confirmCapex,
@@ -51,6 +52,21 @@ export class LedgerPage extends BaseComponent {
   }
 
   override init(): void {
+    this.$<HTMLButtonElement>('.suggest').onclick = async () => {
+      const v = data.getState().view;
+      if (!v) return;
+      const b = this.$<HTMLButtonElement>('.suggest');
+      const status = this.$('.ai-status');
+      b.disabled = true;
+      status.textContent = 'Asking…';
+      try {
+        status.textContent = await suggestCategories(v);
+      } catch (err) {
+        status.textContent = err instanceof Error ? err.message : String(err);
+      } finally {
+        b.disabled = false;
+      }
+    };
     for (const a of this.querySelectorAll<HTMLAnchorElement>('a[data-route]')) {
       a.href = import.meta.env.BASE_URL + (a.dataset.route ?? '/').replace(/^\//, '');
     }
@@ -205,6 +221,7 @@ export class LedgerPage extends BaseComponent {
       b.setAttribute('aria-selected', String(tab === this.tab));
       b.textContent = `${b.textContent!.replace(/\s*\(\d[\d,]*\)$/, '')} (${count(counts[tab])})`;
     }
+    this.$('.ai-suggest').hidden = this.tab !== 'review' || v.reviewQueue.length === 0;
     this.renderFilters(v);
     this.renderRows(v);
     this.renderManage(v);

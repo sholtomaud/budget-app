@@ -16,7 +16,7 @@ import type { QuantileKey } from '../forecast/ref/stats.ts';
 import type { GsskInstance } from './gssk.ts';
 import type { Holding, Scenario, SpendingInput } from './model.ts';
 import { monthsBetween, POOLS, type ModelLayout } from './modelgen.ts';
-import { sampleReturnPaths } from './returns.ts';
+import { sampleReturnPaths, syntheticHistories } from './returns.ts';
 import { taxableGain, taxTable, totalTax, type TaxTable } from './tax.ts';
 
 /** Which stochastic inputs a run freezes at their median (shortfall drivers, FR-GOAL). */
@@ -109,6 +109,16 @@ export function sampleCapexPath(
     }
   }
   return out;
+}
+
+/** The built-in illustrative histories plus the user's imported ones. */
+function withImported(h: Scenario['histories']): Record<string, Float64Array> {
+  const base = syntheticHistories();
+  if (!h) return base;
+  return {
+    ...base,
+    ...Object.fromEntries(Object.entries(h).map(([k, v]) => [k, Float64Array.from(v)])),
+  };
 }
 
 /** Everything about a scenario the monthly loop needs, prepared once. */
@@ -317,7 +327,10 @@ export function runOnce(
   w.lastK.fill(NaN);
   inst.clearMutationLog();
 
-  const paths = sampleReturnPaths(s.returnModels, n, runSeed, { frozen: freeze.returns });
+  const paths = sampleReturnPaths(s.returnModels, n, runSeed, {
+    frozen: freeze.returns,
+    histories: withImported(s.histories),
+  });
   const pathOf = s.holdings.map((h) => {
     const p = paths[h.returnModelId];
     if (!p) throw new Error(`Holding ${h.id} names unknown return model ${h.returnModelId}`);

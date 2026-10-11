@@ -10,7 +10,13 @@ import lifetimes from '../../data-tables/asset-lifetimes.json' with { type: 'jso
 import { defaultCategories, kindOfCategory, type Category } from './categories.ts';
 import { recall, remember, memoryId, type MemoryEntry } from './memory.ts';
 import { merchantKey } from './normalise.ts';
-import { classifyAll, needsReview, type ClassifyResult, type UserLabel } from './pipeline.ts';
+import {
+  classifyAll,
+  needsReview,
+  type ClassifyResult,
+  type LlmLabel,
+  type UserLabel,
+} from './pipeline.ts';
 import type { Rule } from './rules.ts';
 
 export interface ClassifyState {
@@ -19,6 +25,8 @@ export interface ClassifyState {
   rules: Rule[];
   customCategories: Category[];
   assets: Asset[];
+  /** LLM suggestions by txn key (M8); optional so older saved states load. */
+  llmLabels?: [string, LlmLabel][];
 }
 
 export interface StateStore {
@@ -48,6 +56,7 @@ export class Classifier {
   private readonly store: StateStore;
   private userLabels = new Map<string, UserLabel>();
   private memory = new Map<string, MemoryEntry>();
+  private llmLabels = new Map<string, LlmLabel>();
   rules: Rule[] = [];
   customCategories: Category[] = [];
   assets: Asset[] = [];
@@ -65,6 +74,7 @@ export class Classifier {
     this.rules = s.rules;
     this.customCategories = s.customCategories;
     this.assets = s.assets;
+    this.llmLabels = new Map(s.llmLabels ?? []);
   }
 
   private async save(): Promise<void> {
@@ -74,7 +84,16 @@ export class Classifier {
       rules: this.rules,
       customCategories: this.customCategories,
       assets: this.assets,
+      llmLabels: [...this.llmLabels],
     });
+  }
+
+  /** Store LLM suggestions (stage 6). A user's own label still wins (FR-CLS-004). */
+  async setLlmLabels(labels: { key: string; categoryId: string }[], model: string): Promise<void> {
+    const known = new Set(this.categories().map((c) => c.id));
+    for (const l of labels)
+      if (known.has(l.categoryId)) this.llmLabels.set(l.key, { categoryId: l.categoryId, model });
+    await this.save();
   }
 
   categories(): Category[] {
@@ -92,6 +111,7 @@ export class Classifier {
       rules: this.rules,
       memory: this.memory,
       userLabels: this.userLabels,
+      llmLabels: this.llmLabels,
     });
     for (const t of txns) {
       const c = r.byKey.get(txnKey(t.accountId, t.id));

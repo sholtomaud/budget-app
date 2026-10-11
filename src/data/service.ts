@@ -13,6 +13,8 @@ import type { MemoryEntry } from '../classify/memory.ts';
 import type { Rule } from '../classify/rules.ts';
 import { IngestService, type ImportStore, type InputFile } from '../ingest/service.ts';
 import type { LedgerView } from '../ingest/view.ts';
+import { txnKey } from '../ingest/ids.ts';
+import { merchantKey } from '../classify/normalise.ts';
 
 export interface DataView extends LedgerView {
   categories: Category[];
@@ -107,6 +109,33 @@ export class DataService {
 
   async correct(keys: string[], categoryId: string, rememberMerchant: boolean) {
     await this.classifier.correct(this.txns(), keys, categoryId, rememberMerchant);
+    this.reclassify();
+  }
+
+  /** Review-queue transactions for an LLM to suggest categories for (§8 stage 6), biggest first. */
+  llmCandidates(
+    limit = 40
+  ): { key: string; merchant: string; description: string; amount: number }[] {
+    const queue = new Set(this.view().reviewQueue);
+    return this.txns()
+      .filter((t) => queue.has(txnKey(t.accountId, t.id)))
+      .sort((a, b) =>
+        Number((b.amount < 0n ? -b.amount : b.amount) - (a.amount < 0n ? -a.amount : a.amount))
+      )
+      .slice(0, limit)
+      .map((t) => ({
+        key: txnKey(t.accountId, t.id),
+        merchant: merchantKey(t),
+        description: t.description,
+        amount: Number(t.amount) / 100,
+      }));
+  }
+
+  async applyLlmLabels(
+    labels: { key: string; categoryId: string }[],
+    model: string
+  ): Promise<void> {
+    await this.classifier.setLlmLabels(labels, model);
     this.reclassify();
   }
 

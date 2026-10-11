@@ -1,0 +1,20 @@
+<dialog class="consent" aria-labelledby="consent-title">
+  <form method="dialog">
+    <h2 id="consent-title">Send this to <span class="provider"></span>?</h2>
+    <p class="purpose"></p>
+    <p class="muted">
+      To <code class="url"></code>. This is exactly what will be sent. Your API key is added to the
+      request but not shown, and it is never stored.
+    </p>
+    <p class="note muted"></p>
+    <pre class="payload" tabindex="0"></pre>
+    <label class="check"
+      ><input name="remember" type="checkbox" /> Don't ask again for this until the app
+      reloads</label
+    >
+    <p class="actions">
+      <button value="send" class="send">Send</button>
+      <button value="cancel" class="secondary cancel">Don't send</button>
+    </p>
+  </form>
+</dialog>

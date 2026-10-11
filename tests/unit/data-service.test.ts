@@ -34,4 +34,25 @@ describe('DataService', () => {
     expect(back.classification).toMatchObject({ by: 'user', categoryId: 'housing.rent' });
     expect(again.view().memory.map((m) => m.key)).toContain('HARBOURSIDE REALTY');
   });
+
+  test('LLM suggestions place review-queue items, and a user label still wins (§8 stage 6)', async () => {
+    const svc = new DataService(new MemoryImportStore(), new MemoryStateStore());
+    await svc.importFiles(cdrInputs(await synth('default')));
+    const before = svc.view().reviewQueue.length;
+    const cands = svc.llmCandidates(5);
+    expect(cands.length).toBeGreaterThan(0);
+    const key = cands[0]!.key;
+    await svc.applyLlmLabels([{ key, categoryId: 'food.groceries' }], 'test-model');
+    const v = svc.view();
+    const t = v.txns.find((x) => `${x.accountId}\u001f${x.id}` === key)!;
+    expect(t.classification).toMatchObject({
+      by: 'llm',
+      categoryId: 'food.groceries',
+      confidence: 0.7,
+    });
+    expect(v.reviewQueue.length).toBeLessThan(before);
+    await svc.correct([key], 'housing.rent', false);
+    const t2 = svc.view().txns.find((x) => `${x.accountId}\u001f${x.id}` === key)!;
+    expect(t2.classification).toMatchObject({ by: 'user', categoryId: 'housing.rent' });
+  });
 });

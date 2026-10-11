@@ -19,7 +19,19 @@ import {
 } from '../sim/inputs.ts';
 import type { Scenario, SpendingInput } from '../sim/model.ts';
 import { runPool, type PoolResult } from './sim-pool.ts';
-import { forecast } from './workers.ts';
+import {
+  historyModel,
+  historySeriesId,
+  realLogReturns,
+  type PriceHistory,
+} from '../sim/history.ts';
+import { forecast, sim } from './workers.ts';
+
+export async function loadHistories(): Promise<PriceHistory[]> {
+  return ((await sim().loadKv('histories')) as PriceHistory[] | null) ?? [];
+}
+
+export const saveHistories = (h: PriceHistory[]) => sim().saveKv('histories', h);
 
 const cache = new WeakMap<DataView, Map<string, Promise<Quantiles | null>>>();
 
@@ -57,11 +69,22 @@ export async function inputsFor(
     spendingFrom(v, tier, await ratioFor(v, tier)),
     setup.levers
   );
-  const scenario = scenarioFrom(
+  const base = scenarioFrom(
     { ...setup, goal: { ...setup.goal, tier } },
     asOfFor(v.txns),
     v.budget.settings.cpi
   );
+  // Imported price histories become bootstrap return models (deflated to real terms).
+  const hist = await loadHistories();
+  const scenario = hist.length
+    ? {
+        ...base,
+        returnModels: [...base.returnModels, ...hist.map(historyModel)],
+        histories: Object.fromEntries(
+          hist.map((h) => [historySeriesId(h), realLogReturns(h, base.cpi)])
+        ),
+      }
+    : base;
   return { scenario, spending };
 }
 
