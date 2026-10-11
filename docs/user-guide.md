@@ -100,6 +100,57 @@ the darker band holds half the likely outcomes, the lighter one 90 %. Capital sp
 simulating your CAPEX register thousands of times. Switch between today's dollars and dollars of
 the day (inflated by your CPI assumption).
 
+## Freedom
+
+When could you stop working for money, and how sure can you be?
+
+**Setting up.** The screen starts from your data:
+
+- Your bank balance and savings accounts are filled in from your accounts.
+- Money you've paid into investments starts at what you paid in. Edit it to today's market
+  value.
+- Take-home pay is your average over the last year.
+
+Set the goal:
+
+- the tier you want to live at;
+- when freedom starts, and for how many years;
+- a floor your capital must never fall below;
+- the probability you're aiming for.
+
+Then choose a withdrawal strategy:
+
+- **fixed real:** spend what the tier needs;
+- **percent:** a share of capital each year;
+- **guardrails:** cut or raise spending when withdrawals drift;
+- **skim:** live only on returns above a threshold;
+- **hold:** never sell, say, your Bitcoin.
+
+Mark super as locked until your preservation date.
+
+**Simulate** runs 1,000 possible futures on the GSSK kernel. Each future has its own investment
+returns, spending and replacement costs, all in today's dollars. Tax follows the 2025-26
+Australian resident rates, Medicare levy and capital-gains discount. That table is labelled
+_assumed_ until a maintainer has checked it against the ATO.
+
+**Results:**
+
+- **Chance of success:** the share of futures where capital stays above your floor and the tier's
+  spending is always met. The same figure is shown for each tier.
+- **Freedom number:** two versions.
+  - The spreadsheet rule: a year's need, grossed up for tax, at a withdrawal rate. Labelled
+    _assumed_.
+  - **Find**: the smallest starting capital that succeeds at your target probability. Finding it
+    also shows **years to freedom** if you keep working and saving as now.
+- **Project runway:** how long you could fund chosen work at this tier from money you can reach
+  today.
+- **Capital in today's dollars:** a fan with 20 example futures and your floor.
+- **What drives shortfalls:** freezes each uncertain input in turn, to show which carries the
+  risk.
+
+Under **Reproducibility**, each result records the kernel version, the wasm hash, the model and
+inputs hashes, and the seed, so the same numbers can be produced again.
+
 ## Screens
 
 | Screen    | What it is for                                                                   | Milestone |

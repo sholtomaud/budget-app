@@ -29,14 +29,7 @@ export const screens: Screen[] = [
   { path: '/budget', nav: 'Budget', title: 'Budget', component: 'budget-page' },
   { path: '/capex', nav: 'CAPEX', title: 'CAPEX register', component: 'capex-page' },
   { path: '/forecast', nav: 'Forecast', title: 'Forecast', component: 'forecast-page' },
-  planned(
-    '/freedom',
-    'Freedom',
-    'Freedom',
-    '§11',
-    'M5',
-    'Goal editor, pSuccess per tier, real-terms capital fan with floor line, years to freedom and project runway.'
-  ),
+  { path: '/freedom', nav: 'Freedom', title: 'Freedom', component: 'freedom-page' },
   planned(
     '/scenarios',
     'Scenarios',

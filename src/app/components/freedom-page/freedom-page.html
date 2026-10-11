@@ -1,0 +1,198 @@
+<section class="screen wide">
+  <h1>Freedom</h1>
+  <p class="lede">
+    When could you stop working for money, and how sure can you be? Thousands of simulated futures,
+    each with its own investment returns, spending and replacement costs, all in today's dollars.
+  </p>
+  <p class="empty muted" hidden>
+    Nothing to simulate yet. <a href="/" data-route="/">Load synthetic data</a> or
+    <a href="/import" data-route="/import">import your own</a>.
+  </p>
+
+  <div class="setup" hidden>
+    <form class="goal card" aria-label="Goal">
+      <h2>Goal</h2>
+      <div class="fields">
+        <label
+          >Tier
+          <select name="tier"></select
+        ></label>
+        <label>Freedom starts <input name="start" type="month" required /></label>
+        <label
+          >Years of freedom <input name="horizon" type="number" min="1" max="60" step="1"
+        /></label>
+        <label
+          >Never below (floor, $) <input name="floor" type="number" min="0" step="1000"
+        /></label>
+        <label
+          >Target probability (%) <input name="target" type="number" min="50" max="99" step="1"
+        /></label>
+        <label
+          >Project income ($ a year) <input name="project" type="number" min="0" step="1000"
+        /></label>
+      </div>
+      <h3>Work and pay</h3>
+      <div class="fields">
+        <label
+          >Take-home pay ($ a month) <input name="netPay" type="number" min="0" step="100"
+        /></label>
+        <label>Paid work until <input name="workUntil" type="month" /></label>
+        <label
+          >Your gross salary ($ a year) <input name="gross1" type="number" min="0" step="1000"
+        /></label>
+        <label
+          >Partner's gross salary ($ a year) <input name="gross2" type="number" min="0" step="1000"
+        /></label>
+        <label
+          >Cash kept in the bank ($) <input name="buffer" type="number" min="0" step="500"
+        /></label>
+      </div>
+      <h3>Withdrawals</h3>
+      <div class="fields">
+        <label
+          >Strategy
+          <select name="strategy">
+            <option value="fixed-real">Fixed real: spend the tier's need</option>
+            <option value="percent">Percent of capital each year</option>
+            <option value="guardrails">Guardrails (cut or raise spending)</option>
+            <option value="skim">Skim: only returns above a threshold</option>
+            <option value="hold">Hold: never sell chosen holdings</option>
+          </select>
+        </label>
+        <label class="p-rate"
+          >Rate (% a year) <input name="rate" type="number" min="1" max="15" step="0.1"
+        /></label>
+        <label class="p-band"
+          >Band (±%) <input name="band" type="number" min="5" max="50" step="1"
+        /></label>
+        <label class="p-band"
+          >Adjust by (%) <input name="adjust" type="number" min="1" max="50" step="1"
+        /></label>
+        <label class="p-band"
+          >Minimum spending (% of need)
+          <input name="minSpend" type="number" min="50" max="100" step="1"
+        /></label>
+        <label class="p-skim"
+          >Threshold (% a year) <input name="threshold" type="number" min="0" max="10" step="0.1"
+        /></label>
+        <label
+          >Tax
+          <select name="tax">
+            <option value="au-2025-26">Australia 2025-26</option>
+            <option value="">Before tax (spreadsheet check)</option>
+          </select>
+        </label>
+      </div>
+      <p class="muted tax-note"></p>
+    </form>
+
+    <article class="card holdings-card">
+      <h2>What you own</h2>
+      <p class="muted">
+        Values from your bank balances where known. Investments start at what you paid in: edit them
+        to today's market value. Return models are assumptions.
+      </p>
+      <div class="scroll">
+        <table class="holdings">
+          <thead>
+            <tr>
+              <th scope="col">Holding</th>
+              <th scope="col">Kind</th>
+              <th scope="col" class="num">Value ($)</th>
+              <th scope="col">Returns</th>
+              <th scope="col">Locked until</th>
+              <th scope="col">Hold</th>
+              <th scope="col">Source</th>
+              <th scope="col"><span class="visually-hidden">Remove</span></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p class="actions">
+        <button type="button" class="secondary small add-holding">Add holding</button>
+        <button type="button" class="secondary small reset">Reset to defaults from my data</button>
+      </p>
+    </article>
+
+    <form class="run card" aria-label="Simulation">
+      <label
+        >Runs
+        <select name="runs">
+          <option value="200">200 (quick)</option>
+          <option value="1000" selected>1,000</option>
+          <option value="2000">2,000</option>
+        </select>
+      </label>
+      <label>Seed <input name="seed" type="text" size="8" /></label>
+      <button type="submit" class="simulate">Simulate</button>
+      <span class="status muted" role="status" aria-live="polite"></span>
+    </form>
+  </div>
+
+  <div class="results" hidden>
+    <div class="cards">
+      <article class="card stat">
+        <h2>Chance of success</h2>
+        <p class="v psuccess">–</p>
+        <p class="muted psuccess-note"></p>
+      </article>
+      <article class="card stat">
+        <h2>By tier</h2>
+        <table class="tiers">
+          <tbody></tbody>
+        </table>
+      </article>
+      <article class="card stat">
+        <h2>Freedom number</h2>
+        <p class="v fn-det">–</p>
+        <p class="muted fn-det-note"></p>
+        <p class="fn-p90-line">
+          <span class="fn-p90">–</span>
+          <button type="button" class="secondary small find-p90">Find</button>
+        </p>
+        <p class="muted fn-p90-note"></p>
+      </article>
+      <article class="card stat">
+        <h2>Years to freedom</h2>
+        <p class="v ytf">–</p>
+        <p class="muted ytf-note"></p>
+      </article>
+      <article class="card stat">
+        <h2>Project runway</h2>
+        <p class="v runway">–</p>
+        <p class="muted runway-note"></p>
+      </article>
+    </div>
+
+    <article class="card">
+      <h2>Capital in today's dollars</h2>
+      <fan-chart class="capital"></fan-chart>
+      <p class="muted capital-note"></p>
+    </article>
+
+    <article class="card">
+      <h2>What drives shortfalls</h2>
+      <p class="muted">
+        Each input in turn is frozen at its median, using the same simulated futures, to show how
+        much of the risk it carries.
+      </p>
+      <button type="button" class="secondary small drivers-run">Analyse</button>
+      <table class="drivers" hidden>
+        <thead>
+          <tr>
+            <th scope="col">Input</th>
+            <th scope="col" class="num">Chance of success if it were certain</th>
+            <th scope="col" class="num">Change</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </article>
+
+    <details class="card record">
+      <summary>Reproducibility</summary>
+      <dl></dl>
+    </details>
+  </div>
+</section>

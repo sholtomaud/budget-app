@@ -40,7 +40,7 @@ and tests.
 | `src/store/`                 | IndexedDB wrapper with versioned migrations.                                                                                                                      |
 | `fixtures/`                  | Personas and generated synthetic exports; `npm run fixtures` regenerates them.                                                                                    |
 | `schemas/`                   | Persona schema; CDR schemas derived by `scripts/cdr-schemas.ts`.                                                                                                  |
-| `src/sim/`                   | `gssk.ts` is the only code that touches WASM memory. `run.ts` steps a model.                                                                                      |
+| `src/sim/`                   | The freedom model: `modelgen`, the policy `controller`, tax, return samplers, Monte-Carlo and metrics. `gssk.ts` is the only code that touches WASM memory.       |
 | `src/workers/`               | One entry per worker, exposed with the in-house RPC in `rpc.ts`. The UI never touches WASM directly.                                                              |
 | `src/sw/sw.js`               | Service-worker template. The build fills in the precache list (`vite.config.ts`).                                                                                 |
 | `vendor/gssk/`               | Pinned kernel and `GSSK_PIN.json`.                                                                                                                                |
