@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft 8: M0–M6 decisions folded in (ADRs 0001–0013) |
+| Status | Draft 9: M0–M6 built (ADRs 0001–0013); M7–M14 planned, with proposed directions in ADRs 0014–0018 |
 | Date | 2026-10-11 |
 | Kernel | [GSSK](https://github.com/energese-project/GSSK-Giannantoni), consumed as a pinned WebAssembly artefact |
 | Runtime | Browser only. Static site, no backend |
@@ -31,15 +31,21 @@ as GSSK). The app treats that as a measurable goal, not a slogan (§11).
 
 ### 1.1 Non-goals
 
-- **No server, no account, no cloud sync.** All data stays in the browser unless the user explicitly
-  exports it or explicitly invokes an external API (§13).
+- **No server of ours holding user data, and no account of ours.** All data stays in the browser
+  unless the user exports it, invokes an external API (§13), or turns on sync to cloud storage they
+  own (§14.1, M12). That sync is end-to-end encrypted, and signing in to the storage provider is
+  the only account.
 - **No direct bank connection in v1.** Becoming an accredited CDR data recipient is out of scope.
   The app ingests files in the CDR (Open Banking) format that the user obtains elsewhere, plus
   synthetic data (§6, §7). Live connections are planned as an optional production milestone
-  (§6.4, M10).
+  (§6.4, M11).
 - **No financial advice.** The app simulates consequences of the user's own assumptions. Every output
   states its assumptions (NFR-HON-001). Tax rules are user-verifiable data files, not authority.
-- **No trading, no payments, no write access to any account.**
+- **No trading and no write access to any account.** Purchases made by the user's agent (§22, M14)
+  go through a merchant's own checkout under a mandate the user approved, never through bank
+  access.
+- **No sale or sharing of users' personal, transaction or CDR data** (NFR-MON-001). Commerce
+  features compute relevance on the device (§22).
 - **No changes to GSSK to make the app work.** Gaps are worked around in the app and recorded as
   kernel requests (§17). The app MUST run against an unmodified, pinned GSSK release.
 
@@ -52,6 +58,8 @@ as GSSK). The app treats that as a measurable goal, not a slogan (§11).
 | NFR-PRIV-001 | **Local-first.** Real financial data lives only in browser storage (IndexedDB/OPFS) on the user's device. |
 | NFR-PRIV-002 | **The repository holds code and synthetic data only.** No real statement, workbook, balance, address or account number is ever committed. CI enforces this (§16.4). The repository may be public. |
 | NFR-PRIV-003 | **No silent network.** At runtime the app makes no network request except (a) loading its own static assets and (b) calls to an external API the user has configured and confirmed for that call (§13). An automated test asserts this. |
+| NFR-PRIV-004 | **User-owned storage.** Cloud copies live only in storage the user owns and signs in to (Google Drive first; §14.1), end-to-end encrypted. We host no household data. |
+| NFR-MON-001 | **The user is the customer.** Monetisation never sells or shares personal, transaction or CDR data. Offer relevance is computed on the device. Paid placement is always disclosed and never influences the advisor's figures. Commerce features are off by default and the app is complete without them (§22, ADR 0018). |
 | NFR-HON-001 | **Every number is labelled** with its provenance: `actual` (from bank data), `budgeted` (user-entered), `calibrated` (fitted by GSSK to actuals), `forecast` (statistical model), `assumed` (user or default assumption), `illustrative` (synthetic data). The label travels with the number into every chart and export. Adapted from GSSK's own output labelling. |
 | NFR-HON-002 | **An LLM never produces a number.** It may propose inputs or changes; every figure shown is the output of a deterministic computation with a run ID (§13). |
 | NFR-DET-001 | **Deterministic.** Every stochastic step (synthetic data, bootstrap, Monte-Carlo, optimiser) takes an explicit seed. Same inputs + same seed ⇒ bit-identical outputs on the same browser engine. |
@@ -289,6 +297,10 @@ their spreadsheet program. The app does not read `.xlsx` (ADR 0003). Import goes
 | FR-ING-012 | Period codes are mapped through a user-editable table (`d`, `w`, `f`, `m`, `q`, `h`, `y`, `Ny` = every N years, `Nv` = N visits a year, `v` = once a year), with the per-week normaliser shown, so imported per-week figures can be checked against the sheet's own. |
 | FR-ING-013 | Every imported record keeps `source: { file, row }` so a value can be traced back to its row in the exported CSV. |
 | FR-ING-014 | The import is previewed (counts, totals per tier per week) before commit. The totals SHOULD match the CSV's own totals row within 0.5 %. A mismatch is shown, not hidden. |
+| FR-ING-015 | **Mapping spec.** Every way of proposing a mapping (presets, the learned mapper, the LLM assistant) produces the same JSON *mapping spec*: column → field and parse rule, row roles (header, section, line, totals) and the period vocabulary. It is validated against `schemas/mapping-spec.schema.json`. Deterministic code applies it, and the user confirms it in the preview. A proposer never writes a figure (NFR-HON-002). ADR 0014. |
+| FR-ING-016 | **Learned mapper (M10).** A small in-browser model in ml-core classifies column and row roles from header tokens, value statistics and position. It is trained on synthetic budgets in many layouts and adapts to the user's own wizard corrections, kept locally. Gate: ≥ 95 % column accuracy on held-out synthetic layouts. |
+| FR-ING-017 | **LLM mapping assistant (M8, optional).** For layouts the first two tiers leave uncertain, an LLM proposes a mapping spec from the header rows and a few sampled rows, redacted with amounts bucketed (FR-API-003). It uses structured outputs: the Claude API's `output_config.format` with the JSON Schema or a `strict: true` tool, or `json_schema` response format on OpenAI-compatible providers. The response is re-validated locally. Consent and logging follow §13.1. |
+| FR-ING-018 | The wizard shows who suggested each column (rules, model or LLM) and their confidence. Every suggestion is editable. |
 
 ### 6.3 Later formats (not v1)
 
@@ -297,7 +309,7 @@ Bank transaction CSV adapters (column-mapping presets per bank), OFX/QFX, QIF. E
 
 ---
 
-### 6.4 Live bank connections (M10, production; not v1)
+### 6.4 Live bank connections (M11, production; not v1)
 
 Fetching transactions directly from banks would remove the manual export step. Constraints:
 
@@ -317,6 +329,21 @@ Design, so the rest of the app is unchanged:
 | FR-LIVE-004 | Each sync is an egress call under §13 (FR-API-001…005): the connector origin is configured in Settings and added to the CSP `connect-src`, and each sync is confirmed and logged. |
 | FR-LIVE-005 | Consent is visible and revocable from Settings: accounts shared, scopes, expiry, last sync. Revoking deletes the connector's stored tokens. |
 | FR-LIVE-006 | Bank-specific personal APIs (a personal access token for one bank) MAY be supported as connector plugins, subject to the bank's terms and to CORS. A token entered by the user is held like an API key (FR-API-001). |
+
+### 6.5 Receipts (M13; iOS companion app, separate repository)
+
+Receipts add line items to bank transactions: split categories, model, serial and warranty for
+assets, and refund matching. ADR 0017.
+
+| ID | Requirement |
+|---|---|
+| FR-RCPT-001 | A SwiftUI iOS app (repository `budget-app-receipts`) captures receipts with VisionKit and recognises text on the device with the Vision framework. Images and text stay on the phone by default. An optional LLM fallback follows §13.1 and is labelled when used. |
+| FR-RCPT-002 | Receipts follow the versioned contract `schemas/receipt.schema.json`: merchant, ABN, datetime, currency, total, tax, payment hint, and line items with OCR confidence. Fixtures carry `x-synthetic`. |
+| FR-RCPT-003 | The lines must sum to the total within rounding, or the receipt is flagged for review. |
+| FR-RCPT-004 | Receipts reach the web app through the user's sync storage (§14.1), as an imported `.receipt.json`, or by a local handoff. There is no server of ours in the path. |
+| FR-RCPT-005 | Reconciliation matches a receipt to a bank transaction by amount (exact, or within a tip or surcharge tolerance), date (±3 days) and merchant similarity. Matches attach line items and can split the category by line. Unmatched receipts wait in a review queue. |
+| FR-RCPT-006 | Capital line items create or link register assets, with purchase date, cost, model, serial and warranty end. |
+| FR-RCPT-007 | The synth generator emits receipts for its purchases, so reconciliation is tested end to end on synthetic data. |
 
 ---
 
@@ -511,6 +538,23 @@ Return paths for different holdings are drawn jointly (same bootstrap months) to
 Price history files are user-imported CSV, or fetched with consent (§13). None is committed except
 synthetic series.
 
+### 10.4 Bayesian workflow (M9, FR-BAY)
+
+Forecasts are built, checked and compared following the Bayesian workflow (Gelman, Vehtari et al.,
+*Bayesian Workflow*). The aim is calibrated uncertainty, because pSuccess is only as honest as its
+inputs. ADR 0015.
+
+| ID | Requirement |
+|---|---|
+| FR-BAY-001 | A Bayesian structural time-series model per category (local level, optional damped trend, seasonality as random walks, log scale), with a hurdle component for intermittent categories. It joins the forecast candidates (§10.1). |
+| FR-BAY-002 | Partial pooling across a household's categories through shared hyper-priors. Weakly informative priors come from the synthetic population. |
+| FR-BAY-003 | A shared latent household spending factor loads on every category, so totals carry cross-category correlation. Full multi-construct SEM is out of scope (not identifiable from one household's data). |
+| FR-BAY-004 | Return-parameter uncertainty: Normal–Inverse-Gamma posteriors for each return model's monthly log-return mean and variance. Each Monte-Carlo run draws its parameters first (FR-FC-020). |
+| FR-BAY-005 | Inference runs in ml-core: Gibbs with forward-filtering backward-sampling, slice or Metropolis steps for hyper-parameters, and conjugate updates. Every kernel has a TypeScript twin and a parity test, and is seeded (NFR-DET-001). |
+| FR-BAY-006 | Diagnostics per fit: split-R̂ and effective sample size. A failing fit falls back to the §10.1 forecaster, labelled as such. |
+| FR-BAY-007 | Prior and posterior predictive checks are shown in a model panel and on `/eval`. LOO-PIT calibration and P10–P90 coverage on held-out months are CI gates. |
+| FR-BAY-008 | Simulation-based calibration tests every sampler in CI. Prior sensitivity of pSuccess (power-scaling) is reported as a shortfall driver. |
+
 ---
 
 ## 11. Freedom model (goals, simulation, optimisation)
@@ -675,6 +719,7 @@ All of this is **off by default**. The app is complete without it.
 
 | Use | Provider type | What is sent |
 |---|---|---|
+| Map an unusual budget CSV (FR-ING-017) | LLM API with structured outputs | header rows + a few sampled rows, amounts bucketed; returns a mapping spec, never figures |
 | Classify leftover transactions (§8 stage 6) | LLM API, or in-browser LLM | normalised merchant + description + amount bucket + candidate categories |
 | Market history (BTC, indices, FX) | price API | ticker symbols and date range only |
 | CPI | statistics API | series ID only |
@@ -710,6 +755,21 @@ Tools exposed to the model: `get_scenario(id)`, `list_metrics(id)`, `propose_sce
 | NFR-STO-005 | Works offline after first load (service worker, precached assets including `gssk.wasm` and `ml-core.wasm`). |
 | NFR-SEC-001 | **No third-party runtime code.** The shipped app contains only this repository's code and the pinned GSSK kernel; npm packages are build and test tooling only (ADR 0007). No third-party scripts at runtime, no analytics, no telemetry. |
 | NFR-SEC-002 | Imported files are parsed in workers with size limits (50 MB per file) and never evaluated. Imported text is rendered with DOM text APIs, never interpolated into HTML. |
+
+### 14.1 Sync to user-owned storage (M12)
+
+Local-first, with IndexedDB the source of truth on each device. ADR 0016.
+
+| ID | Requirement |
+|---|---|
+| FR-SYNC-001 | Sync is opt-in per device and works through the provider's OAuth in the browser (PKCE or token client). There is no app server. |
+| FR-SYNC-002 | First target: Google Drive's per-app folder (`drive.appdata` scope), or a user-visible folder (`drive.file`). Later: Dropbox app folder, OneDrive app root, and iCloud (CloudKit JS), which also serves the iOS app. |
+| FR-SYNC-003 | Everything synced is encrypted on the client with the NFR-STO-002 key. The provider sees only ciphertext. |
+| FR-SYNC-004 | Sync uses an encrypted append-only event log (imports, labels, rules, decisions, scenarios, receipts) plus periodic snapshots. Merge is a set union by event ID. Settings are last-writer-wins registers with hybrid logical clocks. A conflict on the same register shows both values. |
+| FR-SYNC-005 | Merged state is deterministic: the ledger is rebuilt from the event log (ADR 0008). |
+| FR-SYNC-006 | Provider origins are added to the CSP `connect-src`, and every sync is logged (FR-API-004). The privacy e2e test asserts that only ciphertext leaves. |
+| FR-SYNC-007 | Disconnecting a provider stops sync. Local data is unaffected, and the remote copy can be deleted from Settings. |
+| FR-SYNC-008 | Signing in to a provider is the only account. Social sign-in arrives with each provider's storage, not as a separate identity system. |
 
 ---
 
@@ -913,9 +973,13 @@ data.
 | **M5 Freedom simulation** | modelgen, controller, tax tables, withdrawal strategies, return models, Monte-Carlo, metrics, Freedom screen | FR-SIM-001…006; FR-GOAL metrics; FR-SIM-006 bridge test |
 | **M6 Scenarios + optimiser** | Scenario compare, optimiser, Pareto view, shortfall drivers | FR-OPT-001; monotonicity property tests |
 | **M7 Storage, encryption, export** | Encryption at rest, export/import, delete-all, migrations | NFR-STO-001…005 |
-| **M8 Optional APIs + advisor** | Provider settings, consent + redaction, price/CPI fetch, LLM classification, advisor with tools | FR-API-001…005; §13.3; privacy tests |
-| **M9 Real data** | User loads own exports locally; bank-specific CSV adapters as needed | Reconciliation clean on real exports (verified locally, nothing committed) |
-| **M10 Live connections (production)** | Optional connector (§6.4): CDR consent via an accredited partner, or bank personal-API plugins; sync into the existing import pipeline; consent management in Settings | FR-LIVE-001…006; a sync from a CDR sandbox passes the same validation, dedupe and reconciliation tests as file import; the privacy e2e shows egress only to the configured connector origin |
+| **M8 Optional APIs + advisor** | Provider settings, consent + redaction, price/CPI fetch, LLM classification, LLM mapping assistant (structured outputs), advisor with tools | FR-API-001…005; FR-ING-015, 017, 018; §13.3; privacy tests |
+| **M9 Bayesian workflow** | Bayesian structural time series with pooling and a shared spending factor, return-parameter uncertainty, ml-core samplers with parity, model checks (ADR 0015) | FR-BAY-001…008; calibration gates in CI |
+| **M10 Real data** | User loads own exports locally; bank-specific CSV adapters as needed; learned in-browser CSV mapper | Reconciliation clean on real exports (verified locally, nothing committed); FR-ING-016 accuracy gate |
+| **M11 Live connections (production)** | Optional connector (§6.4): CDR consent via an accredited partner, or bank personal-API plugins; sync into the existing import pipeline; consent management in Settings | FR-LIVE-001…006; a sync from a CDR sandbox passes the same validation, dedupe and reconciliation tests as file import; the privacy e2e shows egress only to the configured connector origin |
+| **M12 Sync** | Local-first sync to user-owned storage, Google Drive first, end-to-end encrypted (ADR 0016) | FR-SYNC-001…008; two-device merge property tests; privacy e2e shows ciphertext only |
+| **M13 Receipts** | iOS companion app (separate repository), receipt contract, reconciliation of line items to bank transactions (ADR 0017) | FR-RCPT-001…007 on synthetic receipts |
+| **M14 Offers and agents** | On-device offer matching, intent marketplace, mandated agent actions; only after the legal review gate (ADR 0018) | FR-OFR-…, FR-AGT-…; NFR-MON-001…007; privacy e2e shows offer matching sends nothing |
 
 ---
 
@@ -933,9 +997,22 @@ data.
 6. **Time as a carrier**: track hours (paid work vs chosen work) as a second GSSK carrier so the
    freedom goal is expressed in time as well as money?
 7. **In-browser LLM**: which model size is acceptable on the target devices (WebGPU availability)?
-8. **Live connections (M10)**: which route — a sponsor or CDR-representative arrangement with an
+8. **Live connections (M11)**: which route — a sponsor or CDR-representative arrangement with an
    accredited intermediary, a self-hosted connector for users who hold their own accreditation
    arrangement, or bank-specific personal APIs? Who operates the connector, and at what cost?
+9. **Learned CSV mapper**: is a kilobyte-scale classifier enough, or is a small embedding model for
+   header semantics worth an ADR 0007 exception (ONNX/WebGPU weights)? Decide on the M10 accuracy
+   gate.
+10. **Bayesian priors**: from the synthetic population only, or from published household-spending
+    statistics (labelled `assumed`)?
+11. **Sync providers after Google Drive**: iCloud (best for the iOS app) or Dropbox/OneDrive first?
+12. **Receipts on Android**: needed, or is the receipt contract plus file import enough?
+13. **Monetisation and licensing** (gate for M14): which legal advice, and for which markets? Is
+    the app an information service, or does any feature amount to financial product or credit
+    advice? Do CDR-derived signals ever enter offer matching on the device, given the CDR Rules on
+    use and direct marketing?
+14. **Business model order**: subscription and B2B first (no data use), then private offers, then
+    the intent marketplace? Is a data cooperative ("data dividend") worth exploring at all?
 
 ---
 
@@ -951,6 +1028,61 @@ data.
 | pSuccess | share of Monte-Carlo runs meeting the goal |
 | Sinking fund | regular saving that funds expected CAPEX replacements |
 | GSSK | the Odum-ESL stock-and-flow kernel this app runs on |
+| Mandate | a user-approved, bounded instruction under which the user's agent may act (FR-AGT-001) |
+| Mapping spec | the JSON description of how a CSV's columns and rows map into the app's records (FR-ING-015) |
+
+---
+
+## 22. Monetisation and the agentic layer (proposed, M14)
+
+The app knows things about a household that are valuable to sellers, and calibrated:
+- when a replacement is due (§9.3);
+- what fits the budget (§9.1);
+- what is on the wish list;
+- what a purchase does to the household's freedom (§11.3).
+
+It turns that into value **without the data leaving the device** (NFR-MON-001, ADR 0018). Nothing
+here is built before the legal review gate (open question 13).
+
+### 22.1 Revenue paths, in build order
+
+1. **User-paid:** a subscription for hosted conveniences (sync options, receipts app, live bank
+   connector, hosted advisor credits); B2B for licensed planners and employers. Uses no data.
+2. **Private offers:** retailers publish a public offers feed, and the device matches and ranks it.
+3. **Intent marketplace:** the user publishes an anonymous, expiring want, and retailers answer.
+4. **Agent commerce:** the user's agent acts on mandates (price watch, buy-within-mandate, bill
+   switching).
+5. **Aggregate insights:** only as an opt-in, differentially private data cooperative, with revenue
+   shared back. Maybe never.
+
+### 22.2 Offers (FR-OFR)
+
+| ID | Requirement |
+|---|---|
+| FR-OFR-001 | Retailers publish offers to a public, signed feed: product, price, validity, region, category and intent tags (e.g. `capex.computing`, `replacement`, `wish:*`), and a bid per conversion. A public offers API handles publishing and conversion postbacks. |
+| FR-OFR-002 | Every device fetches the same feed, or the same coarse regional shard. A fetch carries no user data. |
+| FR-OFR-003 | Matching runs on the device, against the wish list, open replacement windows (P10–P90), budget headroom at the goal tier, and the purchase's effect on pSuccess. |
+| FR-OFR-004 | Ranking is by user benefit: expected saving × probability of need within the offer's validity, from the forecast's posterior (§10.4). The bid only breaks ties. |
+| FR-OFR-005 | Every placement says **Sponsored**, who paid, and why it matched ("your laptop's replacement window is open; within your Independent budget"). |
+| FR-OFR-006 | Personalised creative is generated from the offer and a style the device picks. User attributes are never sent to an image service. AI-generated imagery is labelled. |
+| FR-OFR-007 | Measurement uses the link or coupon the user chooses to follow, plus opt-in aggregate counts with k-anonymity and differential privacy. |
+| FR-OFR-008 | Excluded from matching: shortfall, debt, gambling or hardship signals. Not carried: credit, buy-now-pay-later and gambling offers (NFR-MON-001). |
+| FR-OFR-009 | Intent marketplace: the user publishes a specific want (item, price range, time window, coarse region). It goes through a relay with no identifiers, expires and is revocable. |
+| FR-OFR-010 | Retailers' answers arrive as offers. The user's agent compares them on price, total cost and pSuccess impact, and the user chooses. |
+| FR-OFR-011 | Retailers pay per qualified answer or per sale, disclosed to the user. |
+
+### 22.3 The user's agent (FR-AGT)
+
+| ID | Requirement |
+|---|---|
+| FR-AGT-001 | The agent acts only under a **mandate** the user creates: what to buy or switch, a price cap, a time window, and whether each action needs approval or is pre-approved up to a spend cap. |
+| FR-AGT-002 | Price watch and buy-within-mandate for planned CAPEX and wish-list items. The agent talks to merchant agents (MCP or agent-to-agent protocols) and checks out through the merchant's checkout. It never has bank write access (§1.1). |
+| FR-AGT-003 | Selective disclosure: the agent may answer a merchant's "would you buy X at Y?" with yes, no or a counter-offer, from local data, without revealing that data. |
+| FR-AGT-004 | Bill switching (energy, mobile, insurance) with disclosed referral fees. Credit and insurance only once licensing is resolved. |
+| FR-AGT-005 | Every agent action is logged with its mandate, the merchant, the amount and the fee earned. It appears in the ledger like any transaction. |
+| FR-AGT-006 | Revenue is affiliate commission or a success fee on purchases the user approved, stated in the mandate. |
+| FR-AGT-007 | The advisor (§13.3) cannot see bids or fees. Its figures come only from tool results (NFR-HON-002). It is never paid to recommend. |
+| FR-AGT-008 | Mandates are revocable at any time, and expire by default. |
 
 ---
 
