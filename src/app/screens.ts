@@ -30,14 +30,7 @@ export const screens: Screen[] = [
   { path: '/capex', nav: 'CAPEX', title: 'CAPEX register', component: 'capex-page' },
   { path: '/forecast', nav: 'Forecast', title: 'Forecast', component: 'forecast-page' },
   { path: '/freedom', nav: 'Freedom', title: 'Freedom', component: 'freedom-page' },
-  planned(
-    '/scenarios',
-    'Scenarios',
-    'Scenarios',
-    '§11.4',
-    'M6',
-    'Side-by-side comparison of up to four scenarios, the optimiser and a decision diff.'
-  ),
+  { path: '/scenarios', nav: 'Scenarios', title: 'Scenarios', component: 'scenarios-page' },
   planned(
     '/advisor',
     'Advisor',

@@ -9,6 +9,7 @@ import { GsskKernel, type GsskPin, type KernelInfo } from '../sim/gssk.ts';
 import { runModel, type RunOptions, type RunTrace } from '../sim/run.ts';
 import { runChunk, type ChunkRequest, type ChunkResult } from '../sim/montecarlo.ts';
 import type { FreedomSetup } from '../sim/inputs.ts';
+import type { SavedScenario } from '../optimise/scenarios.ts';
 import { IdbValue } from '../store/kv.ts';
 import householdModel from '../sim/examples/household_model.json?raw';
 import { expose, type Endpoint } from './rpc.ts';
@@ -47,9 +48,16 @@ const api = {
   saveSetup(setup: FreedomSetup): Promise<void> {
     return setupStore.set(setup);
   },
+  async loadScenarios(): Promise<SavedScenario[]> {
+    return (await scenarioStore.get()) ?? [];
+  },
+  saveScenarios(list: SavedScenario[]): Promise<void> {
+    return scenarioStore.set(list);
+  },
 };
 
 const setupStore = new IdbValue<FreedomSetup>('freedom');
+const scenarioStore = new IdbValue<SavedScenario[]>('scenarios');
 
 export type SimApi = typeof api;
 

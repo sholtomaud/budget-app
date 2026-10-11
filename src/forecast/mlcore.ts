@@ -2,6 +2,7 @@
  * Loader for ml-core.wasm: raw exports over f64 buffers, no wasm-bindgen
  * (ADR 0007). All pointer handling lives here.
  */
+import type { CmaKernel } from '../optimise/cmaes.ts';
 import type { Kernels, RunResult } from './kernels.ts';
 
 interface Exports {
@@ -54,12 +55,17 @@ interface Exports {
     n: number,
     out: number
   ): void;
+  mc_cmaes_state_size(n: number, lambda: number): number;
+  mc_cmaes_init(x0: number, n: number, sigma0: number, lambda: number, state: number): void;
+  mc_cmaes_ask(state: number, n: number, lambda: number, z: number, out: number): void;
+  mc_cmaes_tell(state: number, n: number, lambda: number, x: number, f: number): void;
 }
 
-export const ML_CORE_ABI = 1;
+export const ML_CORE_ABI = 2;
 const MASK = (1n << 64n) - 1n;
 
 export interface MlCore extends Kernels {
+  cma: CmaKernel;
   mase(actual: Float64Array, forecast: Float64Array, train: Float64Array, m: number): number;
   quantileSorted(sorted: Float64Array, q: number): number;
   pinball(actual: number, predicted: number, q: number): number;
@@ -151,6 +157,33 @@ export async function loadMlCore(bytes: BufferSource): Promise<MlCore> {
         x.mc_uniform(seed & MASK, n, p!);
         return read(p!, n);
       });
+    },
+    cma: {
+      name: 'ml-core',
+      init(x0, sigma0, lambda) {
+        const n = x0.length;
+        const size = x.mc_cmaes_state_size(n, lambda);
+        return withBuffers([x0, size], ([px, ps]) => {
+          x.mc_cmaes_init(px!, n, sigma0, lambda, ps!);
+          return read(ps!, size);
+        });
+      },
+      ask(state, z) {
+        const n = state[0]!;
+        const lambda = state[1]!;
+        return withBuffers([state, z, lambda * n], ([ps, pz, po]) => {
+          x.mc_cmaes_ask(ps!, n, lambda, pz!, po!);
+          return read(po!, lambda * n);
+        });
+      },
+      tell(state, xs, f) {
+        const n = state[0]!;
+        const lambda = state[1]!;
+        return withBuffers([state, xs, f], ([ps, px, pf]) => {
+          x.mc_cmaes_tell(ps!, n, lambda, px!, pf!);
+          return read(ps!, state.length);
+        });
+      },
     },
     weibullGiven(seed, k, scale, age, n) {
       return withBuffers([n], ([p]) => {

@@ -7,6 +7,7 @@
 
 #![allow(clippy::missing_safety_doc, clippy::too_many_arguments)]
 
+pub mod cmaes;
 pub mod kernels;
 pub mod rng;
 
@@ -54,7 +55,7 @@ unsafe fn sl_mut<'a>(p: *mut f64, n: usize) -> &'a mut [f64] {
 /// Kernel ABI version; bump when any signature changes.
 #[no_mangle]
 pub extern "C" fn mc_version() -> u32 {
-    1
+    2
 }
 
 #[no_mangle]
@@ -186,4 +187,56 @@ pub unsafe extern "C" fn mc_weibull_given(
     for v in sl_mut(out, n) {
         *v = rng.weibull_given(k, scale, age);
     }
+}
+
+/// Length of a CMA-ES state vector for dimension `n` and population `lambda`.
+#[no_mangle]
+pub extern "C" fn mc_cmaes_state_size(n: usize, lambda: usize) -> usize {
+    cmaes::state_size(n, lambda)
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn mc_cmaes_init(
+    x0: *const f64,
+    n: usize,
+    sigma0: f64,
+    lambda: usize,
+    state: *mut f64,
+) {
+    cmaes::init(
+        sl(x0, n),
+        sigma0,
+        lambda,
+        sl_mut(state, cmaes::state_size(n, lambda)),
+    );
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn mc_cmaes_ask(
+    state: *const f64,
+    n: usize,
+    lambda: usize,
+    z: *const f64,
+    out: *mut f64,
+) {
+    cmaes::ask(
+        sl(state, cmaes::state_size(n, lambda)),
+        sl(z, lambda * n),
+        sl_mut(out, lambda * n),
+    );
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn mc_cmaes_tell(
+    state: *mut f64,
+    n: usize,
+    lambda: usize,
+    x: *const f64,
+    f: *const f64,
+) {
+    cmaes::tell(
+        sl_mut(state, cmaes::state_size(n, lambda)),
+        sl(x, lambda * n),
+        sl(f, lambda),
+    );
 }

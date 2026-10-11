@@ -18,6 +18,7 @@ const adrs = [
   ['0010', 'Budget and CAPEX register', '0010-budget-and-capex'],
   ['0011', 'Forecasting and ml-core', '0011-forecasting-and-ml-core'],
   ['0012', 'Freedom simulation', '0012-freedom-simulation'],
+  ['0013', 'Scenarios and the optimiser', '0013-scenarios-and-optimiser'],
 ] as const;
 
 export default defineConfig({

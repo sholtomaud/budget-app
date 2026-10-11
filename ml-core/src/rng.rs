@@ -32,6 +32,13 @@ impl SplitMix64 {
         (self.float() * n as f64).floor() as usize
     }
 
+    /// Standard normal (Box–Muller, one value per call), as `Rng.normal()`.
+    pub fn normal(&mut self) -> f64 {
+        let u1 = 1.0 - self.float();
+        let u2 = self.float();
+        (-2.0 * u1.ln()).sqrt() * (2.0 * std::f64::consts::PI * u2).cos()
+    }
+
     pub fn weibull_given(&mut self, k: f64, scale: f64, age: f64) -> f64 {
         let u = 1.0 - self.float();
         scale * ((age / scale).powf(k) - u.ln()).powf(1.0 / k)

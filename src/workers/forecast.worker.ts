@@ -9,14 +9,19 @@ import { forecastOpex, type OpexForecast } from '../forecast/opex.ts';
 import type { MonthlySeries } from '../forecast/series.ts';
 import { useKernels } from '../forecast/kernels.ts';
 import { loadMlCore } from '../forecast/mlcore.ts';
+import { tsCma, type CmaKernel } from '../optimise/cmaes.ts';
 import { expose, type Endpoint } from './rpc.ts';
+
+let cma: CmaKernel = tsCma;
 
 /** ml-core (WASM) when it loads; the TypeScript reference otherwise. Results agree within 1e-9. */
 const ready: Promise<'ml-core' | 'ts'> = (async () => {
   try {
     const res = await fetch(new URL('../forecast/ml-core.wasm', import.meta.url));
     if (!res.ok) return 'ts';
-    useKernels(await loadMlCore(await res.arrayBuffer()));
+    const ml = await loadMlCore(await res.arrayBuffer());
+    useKernels(ml);
+    cma = ml.cma;
     return 'ml-core';
   } catch {
     return 'ts';
@@ -24,6 +29,19 @@ const ready: Promise<'ml-core' | 'ts'> = (async () => {
 })();
 
 const api = {
+  /** CMA-ES for the optimiser (SPEC §11.4), on ml-core when it loaded. */
+  async cmaInit(x0: Float64Array, sigma0: number, lambda: number): Promise<Float64Array> {
+    await ready;
+    return cma.init(x0, sigma0, lambda);
+  },
+  async cmaAsk(state: Float64Array, z: Float64Array): Promise<Float64Array> {
+    await ready;
+    return cma.ask(state, z);
+  },
+  async cmaTell(state: Float64Array, x: Float64Array, f: Float64Array): Promise<Float64Array> {
+    await ready;
+    return cma.tell(state, x, f);
+  },
   kernels(): Promise<'ml-core' | 'ts'> {
     return ready;
   },

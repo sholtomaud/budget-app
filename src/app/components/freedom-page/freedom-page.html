@@ -30,6 +30,14 @@
         <label
           >Project income ($ a year) <input name="project" type="number" min="0" step="1000"
         /></label>
+        <label
+          >Spending after freedom (% of tier)
+          <input name="tierSpend" type="number" min="30" max="200" step="5"
+        /></label>
+        <label
+          >Spending now (% of today)
+          <input name="currentSpend" type="number" min="30" max="200" step="5"
+        /></label>
       </div>
       <h3>Work and pay</h3>
       <div class="fields">
@@ -126,6 +134,8 @@
       </label>
       <label>Seed <input name="seed" type="text" size="8" /></label>
       <button type="submit" class="simulate">Simulate</button>
+      <label>Scenario name <input name="scenarioName" type="text" size="16" /></label>
+      <button type="button" class="secondary save-scenario">Save as scenario</button>
       <span class="status muted" role="status" aria-live="polite"></span>
     </form>
   </div>

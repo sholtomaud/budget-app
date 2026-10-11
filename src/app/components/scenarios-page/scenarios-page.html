@@ -1,0 +1,135 @@
+<section class="screen wide">
+  <h1>Scenarios</h1>
+  <p class="lede">
+    Compare plans side by side, and ask what it would take to reach your target. Every comparison
+    uses the same simulated futures, so differences come from the decisions, not from luck.
+  </p>
+  <p class="empty muted" hidden>
+    Nothing to compare yet. <a href="/" data-route="/">Load synthetic data</a> or
+    <a href="/import" data-route="/import">import your own</a>, then set a goal on the
+    <a href="/freedom" data-route="/freedom">Freedom</a> screen.
+  </p>
+
+  <div class="body" hidden>
+    <article class="card optimiser">
+      <h2>What would make this likely?</h2>
+      <p class="muted">
+        Starting from your current plan on the Freedom screen, unlock the levers you're willing to
+        move and set how far. The optimiser finds the smallest change that reaches the target, and
+        the trade-offs along the way.
+      </p>
+      <form class="opt-form" aria-label="Optimiser">
+        <div class="fields">
+          <label
+            >Target (%) <input name="target" type="number" min="50" max="99" step="1" value="90"
+          /></label>
+          <label
+            >Runs per candidate
+            <select name="runs">
+              <option value="40">40 (rough)</option>
+              <option value="100" selected>100</option>
+              <option value="200">200</option>
+            </select>
+          </label>
+          <label
+            >Simulations
+            <select name="budget">
+              <option value="20">20</option>
+              <option value="60" selected>60</option>
+              <option value="120">120</option>
+            </select>
+          </label>
+        </div>
+        <table class="levers">
+          <thead>
+            <tr>
+              <th scope="col">Unlock</th>
+              <th scope="col">Lever</th>
+              <th scope="col">Now</th>
+              <th scope="col">From</th>
+              <th scope="col">To</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <p class="actions">
+          <button type="submit" class="optimise">Optimise</button>
+          <button type="button" class="secondary cancel" hidden>Cancel</button>
+          <span class="opt-status muted" role="status" aria-live="polite"></span>
+        </p>
+      </form>
+      <div class="opt-result" hidden>
+        <p class="answer"></p>
+        <p class="actions">
+          <button type="button" class="keep-best">Keep as scenario</button>
+        </p>
+        <h3>Trade-offs</h3>
+        <p class="muted">
+          Plans no other plan beats on all three: chance of success, spending after freedom, and how
+          soon freedom starts.
+        </p>
+        <div class="scroll">
+          <table class="pareto">
+            <thead>
+              <tr>
+                <th scope="col">Freedom starts</th>
+                <th scope="col" class="num">Spending after</th>
+                <th scope="col" class="num">Spending now</th>
+                <th scope="col" class="num">Project income</th>
+                <th scope="col" class="num">Chance of success</th>
+                <th scope="col">Runs</th>
+                <th scope="col"><span class="visually-hidden">Keep</span></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </article>
+
+    <article class="card saved">
+      <h2>Saved scenarios</h2>
+      <p class="muted none">
+        None yet. Save one from the <a href="/freedom" data-route="/freedom">Freedom</a> screen, or
+        keep an optimiser result.
+      </p>
+      <div class="scroll">
+        <table class="list">
+          <thead>
+            <tr>
+              <th scope="col">Compare</th>
+              <th scope="col">Name</th>
+              <th scope="col">From</th>
+              <th scope="col">Saved</th>
+              <th scope="col"><span class="visually-hidden">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <form class="compare-form actions" aria-label="Compare">
+        <label
+          >Runs
+          <select name="runs">
+            <option value="200">200</option>
+            <option value="500" selected>500</option>
+            <option value="1000">1,000</option>
+          </select>
+        </label>
+        <button type="submit" class="compare">Compare selected</button>
+        <span class="cmp-status muted" role="status" aria-live="polite"></span>
+      </form>
+    </article>
+
+    <article class="card comparison" hidden>
+      <h2>Side by side</h2>
+      <p class="muted">Rows that differ are highlighted.</p>
+      <div class="scroll">
+        <table class="compare-table">
+          <thead></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </article>
+  </div>
+</section>
