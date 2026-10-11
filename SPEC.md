@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft 4: M0–M2 decisions folded in (ADRs 0001–0009) |
+| Status | Draft 5: M0–M3 decisions folded in (ADRs 0001–0010) |
 | Date | 2026-10-11 |
 | Kernel | [GSSK](https://github.com/energese-project/GSSK-Giannantoni), consumed as a pinned WebAssembly artefact |
 | Runtime | Browser only. Static site, no backend |
@@ -286,7 +286,7 @@ their spreadsheet program. The app does not read `.xlsx` (ADR 0003). Import goes
 | ID | Requirement |
 |---|---|
 | FR-ING-011 | Parse CSV as RFC 4180 text (quoted fields, embedded commas and newlines, UTF-8 with or without BOM). Values are taken as given, so no formula is ever evaluated. Report cells holding a spreadsheet error literal (`#DIV/0!`, `#REF!`, `#VALUE!`, `#N/A`) and skip them. |
-| FR-ING-012 | Period codes are mapped through a user-editable table (`d`, `w`, `f`, `m`, `q`, `y`, `Ny`, `v` = visits/year, …), with the per-week normaliser shown, so imported per-week figures can be checked against the sheet's own. |
+| FR-ING-012 | Period codes are mapped through a user-editable table (`d`, `w`, `f`, `m`, `q`, `h`, `y`, `Ny` = every N years, `Nv` = N visits a year, `v` = once a year), with the per-week normaliser shown, so imported per-week figures can be checked against the sheet's own. |
 | FR-ING-013 | Every imported record keeps `source: { file, row }` so a value can be traced back to its row in the exported CSV. |
 | FR-ING-014 | The import is previewed (counts, totals per tier per week) before commit. The totals SHOULD match the CSV's own totals row within 0.5 %. A mismatch is shown, not hidden. |
 
@@ -449,7 +449,7 @@ variance %, and a trailing 3/6/12-month run rate. Drill down to transactions.
 | ID | Requirement |
 |---|---|
 | FR-CAP-001 | Each asset shows age, expected remaining life (Weibull conditional on age), next replacement date distribution (P10/P50/P90) and replacement cost in nominal and real terms. |
-| FR-CAP-002 | **Sinking fund view**: the weekly amount that, set aside from today, funds all expected replacements over the horizon. This is the CAPEX line the budget was missing. |
+| FR-CAP-002 | **Sinking fund view**: the weekly amount that, set aside from today, funds all expected replacements over the horizon. This is the CAPEX line the budget was missing. Expected replacements come from a seeded Monte-Carlo renewal process per asset; at a zero real rate the fund is their real total divided by the horizon's weeks (ADR 0010). |
 | FR-CAP-003 | **Annualised CAPEX** per tier = Σ (replacement cost / life) over assets included in the tier, shown alongside OPEX so the budget total is OPEX + annualised CAPEX. |
 | FR-CAP-004 | Wish-list items carry a decision (`buy by date`, `defer`, `drop`). Scenarios can toggle them (§11.3). |
 | FR-CAP-005 | Assets imported from the workbook with no `Expected Life` get a category default and are flagged `assumed`. |

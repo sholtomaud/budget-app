@@ -240,6 +240,17 @@ export class Classifier {
     await this.save();
   }
 
+  /** Replace the assets imported from `file` (re-importing a sheet replaces, never duplicates). */
+  async importAssets(file: string, assets: Asset[]): Promise<void> {
+    this.assets = [...this.assets.filter((a) => a.source?.file !== file), ...assets];
+    await this.save();
+  }
+
+  async addAsset(asset: Asset): Promise<void> {
+    this.assets.push(asset);
+    await this.save();
+  }
+
   async deleteAsset(id: string): Promise<void> {
     this.assets = this.assets.filter((a) => a.id !== id);
     await this.save();

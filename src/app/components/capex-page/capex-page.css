@@ -1,0 +1,81 @@
+:host {
+  display: block;
+}
+:host .assumptions,
+:host .add-asset {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: end;
+  margin-bottom: var(--space-4);
+}
+:host .assumptions label,
+:host .add-asset label {
+  display: grid;
+  gap: 2px;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+:host .assumptions input {
+  width: 7rem;
+}
+:host .cards {
+  display: grid;
+  grid-template-columns: minmax(14rem, 1fr) minmax(20rem, 2fr);
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+@media (max-width: 720px) {
+  :host .cards {
+    grid-template-columns: 1fr;
+  }
+}
+:host .stat h2 {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+:host .stat .v {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+}
+:host td input[type='number'] {
+  width: 4.5rem;
+}
+:host td select,
+:host td input[type='date'] {
+  font-size: 0.8125rem;
+}
+:host .assumed {
+  font-size: 0.6875rem;
+}
+:host .timeline svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+:host .timeline text {
+  fill: var(--text-muted);
+  font-size: 11px;
+}
+:host .timeline .bar {
+  fill: var(--series-1);
+  opacity: 0.35;
+}
+:host .timeline .p50 {
+  stroke: var(--series-1);
+  stroke-width: 3;
+}
+:host .timeline .grid line {
+  stroke: var(--border);
+}
+:host .timeline .now {
+  stroke: var(--border-strong);
+  stroke-dasharray: 3 3;
+}
+:host details summary {
+  cursor: pointer;
+}
+:host details summary h2 {
+  display: inline;
+}

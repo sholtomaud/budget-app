@@ -4,6 +4,8 @@
  */
 import type { Asset, ImportRecord } from '../domain/types.ts';
 import type { Rule } from '../classify/rules.ts';
+import type { BudgetLine, BudgetSettings } from '../budget/model.ts';
+import type { WorkbookOptions } from '../data/service.ts';
 import type { InputFile } from '../ingest/service.ts';
 import type { DataView } from '../data/service.ts';
 import { Store } from './core/store.ts';
@@ -112,3 +114,14 @@ export const rejectCapex = (key: string) => act('Saving…', () => ingest().reje
 export const updateAsset = (id: string, patch: Partial<Omit<Asset, 'id'>>) =>
   act('Saving…', () => ingest().updateAsset(id, patch));
 export const deleteAsset = (id: string) => act('Saving…', () => ingest().deleteAsset(id));
+export const addAsset = (asset: Asset) => act('Saving…', () => ingest().addAsset(asset));
+export const previewWorkbook = (file: string, text: string, opts: WorkbookOptions = {}) =>
+  ingest().previewWorkbook(file, text, opts);
+export const commitWorkbook = (file: string, text: string, opts: WorkbookOptions = {}) =>
+  act(`Importing ${file}…`, () => ingest().commitWorkbook(file, text, opts));
+export const removeWorkbook = (file: string) =>
+  act('Removing…', () => ingest().removeWorkbook(file));
+export const upsertLine = (line: BudgetLine) => act('Saving…', () => ingest().upsertLine(line));
+export const deleteLine = (id: string) => act('Saving…', () => ingest().deleteLine(id));
+export const setSettings = (patch: Partial<BudgetSettings>) =>
+  act('Saving…', () => ingest().setSettings(patch));

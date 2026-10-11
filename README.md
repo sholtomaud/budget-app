@@ -53,6 +53,7 @@ npm run hooks:install  # data-hygiene pre-commit hook
 | [0007](docs/adr/0007-no-third-party-runtime.md)        | No third-party runtime code; TypeScript 7; no ESLint; no `.mjs`               |
 | [0008](docs/adr/0008-cdr-ingest-and-synthetic-data.md) | CDR v1.36.0 ingest, `x-as-at` balances, rebuild-on-undo, synthetic data rules |
 | [0009](docs/adr/0009-classification.md)                | Classification stages, merchant memory, CAPEX proposals, evaluation           |
+| [0010](docs/adr/0010-budget-and-capex.md)              | Workbook CSV import rules, actual vs budget, replacement timing, sinking fund |
 
 ## License
 

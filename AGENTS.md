@@ -31,6 +31,7 @@ and tests.
 | `src/domain/`                | Canonical types (SPEC §5).                                                                                                                                        |
 | `src/ingest/`                | CDR parsing and validation, the ledger (dedupe, pending→posted, transfers, reconciliation), the import service.                                                   |
 | `src/synth/`                 | Persona validation, the seeded generator, the CLI.                                                                                                                |
+| `src/budget/`                | Periods, tiers, budget lines, workbook CSV import, actual vs budget, CAPEX timing and sinking fund.                                                               |
 | `src/classify/`              | Classification stages (rules, memory, MCC, model), the classifier service, the evaluation harness.                                                                |
 | `src/data/`                  | The data service the `ingest` worker exposes: ledger plus classification.                                                                                         |
 | `data-tables/`               | Shipped, editable tables: categories, MCC map, asset lifetimes.                                                                                                   |

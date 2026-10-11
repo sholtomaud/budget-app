@@ -1,0 +1,114 @@
+<section class="screen wide">
+  <h1>Budget</h1>
+  <p class="lede">
+    Your budget by standard of living (tier), against what you actually spent. The budget total is
+    operating spend plus annualised capital spend.
+  </p>
+
+  <form class="controls" aria-label="Budget view">
+    <fieldset class="tiers">
+      <legend>Tier</legend>
+    </fieldset>
+    <fieldset class="spans">
+      <legend>Period</legend>
+      <label><input type="radio" name="span" value="week" /> Week</label>
+      <label><input type="radio" name="span" value="month" checked /> Month</label>
+      <label><input type="radio" name="span" value="year" /> Year</label>
+    </fieldset>
+    <label class="ending"
+      >Ending
+      <select name="end"></select
+    ></label>
+  </form>
+
+  <div class="cards">
+    <article class="card stat">
+      <h2>Operating budget</h2>
+      <p class="v opex-budget">–</p>
+      <p class="muted opex-actual"></p>
+    </article>
+    <article class="card stat">
+      <h2>Annualised CAPEX</h2>
+      <p class="v capex-budget">–</p>
+      <p class="muted capex-actual"></p>
+    </article>
+    <article class="card stat">
+      <h2>Budget total</h2>
+      <p class="v total-budget">–</p>
+      <p class="muted total-note">operating + annualised CAPEX</p>
+    </article>
+  </div>
+
+  <article class="card">
+    <h2 class="table-title">Actual vs budget</h2>
+    <p class="no-budget muted" hidden>
+      No budget lines yet. Import your budget CSV below, or add lines. Actuals still show.
+    </p>
+    <div class="scroll">
+      <table class="vs">
+        <thead>
+          <tr>
+            <th scope="col">Category</th>
+            <th scope="col" class="num">Budget</th>
+            <th scope="col" class="num">Actual</th>
+            <th scope="col" class="num">Variance</th>
+            <th scope="col" class="num">%</th>
+            <th
+              scope="col"
+              class="num"
+              title="Average over the last 3 months, scaled to the period"
+            >
+              3-mo rate
+            </th>
+            <th scope="col" class="num">6-mo rate</th>
+            <th scope="col" class="num">12-mo rate</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot></tfoot>
+      </table>
+    </div>
+    <p class="muted legend"></p>
+  </article>
+
+  <article class="card">
+    <h2>Import a budget CSV</h2>
+    <p class="muted">
+      Export each sheet of your budget workbook as CSV: the OPEX budget, CAPEX register, wish list,
+      renewals or goal sheet. Columns are matched by name; check the mapping before importing.
+    </p>
+    <label class="button"
+      >Choose CSV files<input type="file" class="pick-csv" multiple accept=".csv,text/csv"
+    /></label>
+    <div class="wizard"></div>
+    <h3>Imported sheets</h3>
+    <p class="no-sheets muted">None yet.</p>
+    <ul class="sheets"></ul>
+  </article>
+
+  <details class="card lines-card">
+    <summary><h2>Budget lines</h2></summary>
+    <div class="scroll">
+      <table class="lines">
+        <thead>
+          <tr></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <form class="add-line">
+      <h3>Add a line</h3>
+      <label>Item <input name="item" required /></label>
+      <label
+        >Category
+        <select name="categoryId"></select
+      ></label>
+      <label>Cost <input name="cost" inputmode="decimal" required size="8" /></label>
+      <label
+        >Per
+        <select name="period"></select
+      ></label>
+      <button type="submit">Add</button>
+    </form>
+  </details>
+</section>

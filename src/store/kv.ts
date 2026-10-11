@@ -1,4 +1,6 @@
 import type { ClassifyState, StateStore } from '../classify/service.ts';
+import type { BudgetState } from '../budget/state.ts';
+import type { BudgetStore } from '../data/service.ts';
 import { done, openDb, request } from './idb.ts';
 
 /** One value under one key in the `kv` object store. */
@@ -35,6 +37,16 @@ export class IdbClassifyStore implements StateStore {
     return this.v.get();
   }
   save(s: ClassifyState) {
+    return this.v.set(s);
+  }
+}
+
+export class IdbBudgetStore implements BudgetStore {
+  private readonly v = new IdbValue<BudgetState>('budget');
+  load() {
+    return this.v.get();
+  }
+  save(s: BudgetState) {
     return this.v.set(s);
   }
 }

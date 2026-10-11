@@ -7,14 +7,16 @@ import type { Rule } from '../classify/rules.ts';
 import { DataService, type DataView } from '../data/service.ts';
 import type { InputFile } from '../ingest/service.ts';
 import { IdbImportStore } from '../store/import-store.ts';
-import { IdbClassifyStore } from '../store/kv.ts';
+import { IdbBudgetStore, IdbClassifyStore } from '../store/kv.ts';
+import type { BudgetLine, BudgetSettings } from '../budget/model.ts';
+import type { WorkbookOptions } from '../data/service.ts';
 import { expose, type Endpoint } from './rpc.ts';
 
 let service: Promise<DataService> | null = null;
 
 function svc(): Promise<DataService> {
   service ??= (async () => {
-    const s = new DataService(new IdbImportStore(), new IdbClassifyStore());
+    const s = new DataService(new IdbImportStore(), new IdbClassifyStore(), new IdbBudgetStore());
     await s.load();
     return s;
   })();
@@ -69,6 +71,27 @@ const api = {
   },
   async deleteAsset(id: string) {
     await (await svc()).deleteAsset(id);
+  },
+  async addAsset(asset: Asset) {
+    await (await svc()).addAsset(asset);
+  },
+  async previewWorkbook(file: string, text: string, opts: WorkbookOptions = {}) {
+    return (await svc()).previewWorkbook(file, text, opts);
+  },
+  async commitWorkbook(file: string, text: string, opts: WorkbookOptions = {}) {
+    return (await svc()).commitWorkbook(file, text, opts);
+  },
+  async removeWorkbook(file: string) {
+    await (await svc()).removeWorkbook(file);
+  },
+  async upsertLine(line: BudgetLine) {
+    await (await svc()).upsertLine(line);
+  },
+  async deleteLine(id: string) {
+    await (await svc()).deleteLine(id);
+  },
+  async setSettings(patch: Partial<BudgetSettings>) {
+    await (await svc()).setSettings(patch);
   },
 };
 

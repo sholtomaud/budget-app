@@ -13,7 +13,8 @@ import {
   type DataState,
 } from '../../data.ts';
 import { count, day, el, money, prov } from '../../format.ts';
-import { categoryName, type Category } from '../../../classify/categories.ts';
+import { categoryName } from '../../../classify/categories.ts';
+import { categorySelect, KINDS } from '../../category-select.ts';
 import { merchantKey } from '../../../classify/normalise.ts';
 import type { DataView } from '../../../data/service.ts';
 import type { Txn } from '../../../domain/types.ts';
@@ -23,17 +24,6 @@ import style from './ledger-page.css?raw';
 type Tab = 'all' | 'review' | 'capex' | 'transfers' | 'refunds';
 
 const PAGE = 100;
-const KINDS = [
-  'income',
-  'opex',
-  'capex',
-  'transfer',
-  'investment',
-  'tax',
-  'fee',
-  'interest',
-  'refund',
-];
 const BY_LABEL: Record<string, string> = {
   user: 'you',
   structural: 'bank data',
@@ -47,38 +37,14 @@ const BY_LABEL: Record<string, string> = {
 const keyOf = (t: Txn) => `${t.accountId}\u001f${t.id}`;
 const domKey = (t: Txn) => `${t.accountId}/${t.id}`;
 
-/** A <select> of categories grouped by kind. */
-export function categorySelect(
-  categories: readonly Category[],
-  selected?: string,
-  extra: [string, string][] = []
-): HTMLSelectElement {
-  const s = document.createElement('select');
-  for (const [v, label] of extra) s.append(new Option(label, v));
-  const groups = new Map<string, Category[]>();
-  for (const c of categories) groups.set(c.kind, [...(groups.get(c.kind) ?? []), c]);
-  for (const kind of KINDS) {
-    const cs = groups.get(kind);
-    if (!cs?.length) continue;
-    const g = document.createElement('optgroup');
-    g.label = kind;
-    for (const c of [...cs].sort((a, b) => a.name.localeCompare(b.name)))
-      g.append(new Option(c.name, c.id));
-    s.append(g);
-  }
-  if (selected && ![...s.options].some((o) => o.value === selected)) {
-    s.prepend(new Option(categoryName(selected, categories), selected));
-  }
-  if (selected) s.value = selected;
-  return s;
-}
-
 export class LedgerPage extends BaseComponent {
   private unsubscribe: (() => void) | null = null;
   private tab: Tab = 'all';
   private shown = PAGE;
   private selected = new Set<string>();
   private pendingCorrection: { key: string; categoryId: string; similar: string[] } | null = null;
+  /** From ?category=, applied once the category list exists. */
+  private initialCategory = '';
 
   constructor() {
     super(template, style);
@@ -91,6 +57,10 @@ export class LedgerPage extends BaseComponent {
     const params = new URLSearchParams(location.search);
     const t = params.get('tab');
     if (t && ['all', 'review', 'capex', 'transfers', 'refunds'].includes(t)) this.tab = t as Tab;
+    this.initialCategory = params.get('category') ?? '';
+    const q = params.get('q');
+    if (q)
+      (this.$<HTMLFormElement>('.filters').elements.namedItem('q') as HTMLInputElement).value = q;
 
     for (const b of this.querySelectorAll<HTMLButtonElement>('.tabs button')) {
       b.onclick = () => {
@@ -266,6 +236,14 @@ export class LedgerPage extends BaseComponent {
     sel.name = 'category';
     cat.replaceWith(sel);
     sel.value = curCat;
+    if (this.initialCategory) {
+      if (![...sel.options].some((o) => o.value === this.initialCategory))
+        sel.append(
+          new Option(categoryName(this.initialCategory, v.categories), this.initialCategory)
+        );
+      sel.value = this.initialCategory;
+      this.initialCategory = '';
+    }
     const kind = f.elements.namedItem('kind') as HTMLSelectElement;
     const curKind = kind.value;
     kind.replaceChildren(new Option('All', ''), ...KINDS.map((k) => new Option(k, k)));
