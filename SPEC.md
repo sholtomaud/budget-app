@@ -1,0 +1,940 @@
+# budget-app — Specification
+
+| | |
+|---|---|
+| Status | Draft 1, for review |
+| Date | 2026-10-11 |
+| Kernel | [GSSK](https://github.com/energese-project/GSSK-Giannantoni), consumed as a pinned WebAssembly artefact |
+| Runtime | Browser only. Static site, no backend |
+
+Requirement IDs (`FR-…`, `NFR-…`, `KR-…`) are stable and are meant to be cited from issues, PRs and
+tests. "MUST", "SHOULD" and "MAY" carry their RFC 2119 meanings.
+
+---
+
+## 1. Purpose
+
+A household budget is usually a spreadsheet that answers "what do I spend?" at one point in time. This
+app answers the questions that a spreadsheet cannot:
+
+1. **What did I actually spend**, by category, against the budget? (Bank data, not estimates.)
+2. **What will I spend**, including lumpy capital purchases (laptops, watches, pens, holidays), with
+   uncertainty rather than a single number?
+3. **Is my capital enough to live on passive cashflow** — at a chosen standard of living — for the
+   rest of my life, and with what probability?
+4. **What has to change** (savings rate, spending tier, CAPEX deferrals, allocation, withdrawal
+   strategy) to make that probability acceptable?
+
+The motivating goal is *freedom capital*: a capital base whose passive cashflow funds a chosen life,
+so that time can go to work chosen for its value rather than its pay (for example, open research such
+as GSSK). The app treats that as a measurable goal, not a slogan (§11).
+
+### 1.1 Non-goals
+
+- **No server, no account, no cloud sync.** All data stays in the browser unless the user explicitly
+  exports it or explicitly invokes an external API (§13).
+- **No direct bank connection in v1.** Becoming an accredited CDR data recipient is out of scope.
+  The app ingests files in the CDR (Open Banking) format that the user obtains elsewhere, plus
+  synthetic data (§6, §7).
+- **No financial advice.** The app simulates consequences of the user's own assumptions. Every output
+  states its assumptions (NFR-HON-001). Tax rules are user-verifiable data files, not authority.
+- **No trading, no payments, no write access to any account.**
+- **No changes to GSSK to make the app work.** Gaps are worked around in the app and recorded as
+  kernel requests (§17). The app MUST run against an unmodified, pinned GSSK release.
+
+---
+
+## 2. Principles
+
+| ID | Principle |
+|---|---|
+| NFR-PRIV-001 | **Local-first.** Real financial data lives only in browser storage (IndexedDB/OPFS) on the user's device. |
+| NFR-PRIV-002 | **The repository holds code and synthetic data only.** No real statement, workbook, balance, address or account number is ever committed. CI enforces this (§16.4). The repository may be public. |
+| NFR-PRIV-003 | **No silent network.** At runtime the app makes no network request except (a) loading its own static assets and (b) calls to an external API the user has configured and confirmed for that call (§13). An automated test asserts this. |
+| NFR-HON-001 | **Every number is labelled** with its provenance: `actual` (from bank data), `budgeted` (user-entered), `calibrated` (fitted by GSSK to actuals), `forecast` (statistical model), `assumed` (user or default assumption), `illustrative` (synthetic data). The label travels with the number into every chart and export. Adapted from GSSK's own output labelling. |
+| NFR-HON-002 | **An LLM never produces a number.** It may propose inputs or changes; every figure shown is the output of a deterministic computation with a run ID (§13). |
+| NFR-DET-001 | **Deterministic.** Every stochastic step (synthetic data, bootstrap, Monte-Carlo, optimiser) takes an explicit seed. Same inputs + same seed ⇒ bit-identical outputs on the same browser engine. |
+| NFR-KER-001 | **GSSK is a pinned dependency.** The app vendors `gssk.wasm` + loader from a named GSSK commit/tag and verifies its SHA-256 at load. Upgrading the kernel is a deliberate PR. |
+
+---
+
+## 3. Users and use cases
+
+Primary user: one household (one or two adults), technically literate, in Australia (AUD, ATO tax
+rules, superannuation). Multi-currency holdings (BTC, USD, EUR) are first-class.
+
+| ID | As a user I want to… |
+|---|---|
+| UC-01 | load several months of bank transactions in CDR format and see them categorised. |
+| UC-02 | correct a category once and have similar transactions follow. |
+| UC-03 | see actual vs budget per category, per week/month/year, for each spending tier. |
+| UC-04 | import my existing budget workbook so I do not re-enter it. |
+| UC-05 | keep a register of capital items (asset, cost, purchase date, expected life) and see when replacements fall due and what they cost per week. |
+| UC-06 | have new large purchases detected in the bank data and offered as CAPEX register entries. |
+| UC-07 | see forecast OPEX and CAPEX for the next 1–5 years with uncertainty bands. |
+| UC-08 | define my freedom goal (tier, start date, horizon, floor) and see the probability of meeting it. |
+| UC-09 | compare strategies (e.g. skim returns vs hold; rent vs buy; tiers) side by side. |
+| UC-10 | ask "what would make this 90% likely?" and get concrete, simulated options. |
+| UC-11 | ask questions in plain language about my finances and get answers that cite simulation runs. |
+| UC-12 | try all of the above on synthetic data before loading anything real. |
+| UC-13 | export everything as one encrypted file and restore it on another device. |
+
+---
+
+## 4. Architecture
+
+```
+┌──────────────────────────── Browser (static site) ─────────────────────────────┐
+│                                                                                │
+│  UI (main thread)                                                              │
+│   Ledger · Budget · CAPEX · Forecast · Freedom · Scenarios · Advisor · Settings │
+│        │ Comlink RPC                                                           │
+│  ┌─────▼──────────────────── Web Workers ───────────────────────────────────┐  │
+│  │ ingest      CDR JSON → canonical; xlsx → budget/CAPEX/goals              │  │
+│  │ classify    rules → merchant memory → in-browser ML → (optional) LLM     │  │
+│  │ forecast    ml-core.wasm: ETS, Croston, bootstrap, Weibull, quantiles    │  │
+│  │ modelgen    canonical state → GSSK model JSON (pure function)            │  │
+│  │ sim         gssk.wasm: Init/Step/Reset/SetEdgeK + policy controller      │  │
+│  │             Monte-Carlo runner, calibration, run store                   │  │
+│  │ optimise    decision search over sim                                     │  │
+│  │ synth       seeded synthetic household → CDR JSON + truth labels         │  │
+│  └──────────────────────────────────────────────────────────────────────────┘  │
+│        │                                                                       │
+│  Storage: IndexedDB (records) · OPFS (large run outputs) · optional encryption │
+│                                                                                │
+│  Optional egress, per-call consent: LLM API · market-price API                 │
+└────────────────────────────────────────────────────────────────────────────────┘
+```
+
+Every worker exposes a typed, promise-based interface. The UI never touches WASM memory directly.
+
+**Why GSSK rather than plain JavaScript arithmetic.** GSSK gives the app: an explicit stock-and-flow
+model whose money conservation is checked every step (`GSSK_GetCarrierConservationError`); a
+mutation log that records *why* each rate changed (`cause`), so every policy decision in a run is
+auditable and replayable (`GSSK_Replay`); gradient calibration of behavioural rates against actual
+balances (`GSSK_CalibrateGradient`); and room to add non-money carriers later (household energy,
+time) in the same model. Policy (tax, withdrawals) stays in the app; dynamics stay in the kernel.
+
+---
+
+## 5. Canonical data model
+
+All persisted records carry `id`, `createdAt`, `updatedAt`, and `provenance` (NFR-HON-001). Money is
+stored as **integer minor units** (cents) with an ISO 4217 or asset code; conversions are explicit
+records, never implicit floats.
+
+```ts
+type Provenance = 'actual' | 'budgeted' | 'calibrated' | 'forecast' | 'assumed' | 'illustrative';
+type Money = { minor: bigint; ccy: string };          // 'AUD', 'USD', 'BTC' (sats), …
+
+interface Account {
+  id: string;                 // CDR accountId (opaque)
+  displayName: string;
+  productCategory: string;    // CDR BankingProductCategory, e.g. TRANS_AND_SAVINGS_ACCOUNTS
+  maskedNumber?: string;
+  role: 'transaction' | 'savings' | 'offset' | 'credit' | 'loan' | 'investment' | 'super';
+  source: { kind: 'cdr-file' | 'synthetic' | 'manual'; fileHash?: string };
+}
+
+interface Txn {
+  id: string;                 // CDR transactionId, or stable hash if absent (FR-ING-004)
+  accountId: string;
+  status: 'PENDING' | 'POSTED';
+  cdrType: string;            // CDR type enum, kept verbatim
+  postedAt?: string;          // ISO 8601
+  valueAt?: string;
+  executedAt?: string;
+  amount: Money;              // negative = outgoing, as in CDR
+  description: string;
+  reference?: string;
+  merchantName?: string;
+  mcc?: string;               // merchantCategoryCode
+  billerCode?: string; billerName?: string;
+  // derived
+  classification?: Classification;
+  transferPairId?: string;    // links the two legs of an internal transfer
+}
+
+interface Classification {
+  kind: 'income' | 'opex' | 'capex' | 'transfer' | 'investment' | 'tax' | 'fee' | 'interest' | 'refund';
+  categoryId: string;         // BudgetCategory.id
+  assetId?: string;           // when kind = 'capex'
+  confidence: number;         // 0..1
+  by: 'rule' | 'memory' | 'model' | 'llm' | 'user';
+  ruleId?: string; modelVersion?: string;
+}
+
+interface BudgetCategory { id: string; name: string; parentId?: string; kind: Classification['kind']; }
+
+interface BudgetLine {                        // one row of an OPEX budget
+  id: string; categoryId: string; item: string;
+  cost: Money;
+  period: Period;                             // 'd','w','f','m','q','y','2y','3y','5y','6y','visit', …
+  tierMultiplier: Record<TierId, number>;     // e.g. { secure: 1, independent: 1.5, luxury: 2 }
+  startDate?: string; renewDate?: string; notes?: string; url?: string;
+}
+
+type TierId = 'secure' | 'independent' | 'luxury' | string;
+interface Tier { id: TierId; name: string; description: string; }
+
+interface Asset {                             // CAPEX register entry
+  id: string; name: string; categoryId: string;
+  purchasedAt?: string; cost: Money;
+  forecastCost?: Money;                       // planned, before purchase
+  life: { meanYears: number; shape?: number };// Weibull: shape k, scale from mean
+  replace: boolean;                           // replace at end of life?
+  replacementCostGrowth?: number;             // real growth per year beyond inflation
+  status: 'wish' | 'planned' | 'owned' | 'retired';
+  tier?: TierId;                              // the lowest tier that includes this item
+  linkedTxnIds: string[]; url?: string;
+}
+
+interface Holding {                           // capital, for the freedom model
+  id: string; name: string;
+  assetClass: 'cash' | 'term_deposit' | 'equity' | 'property' | 'btc' | 'super' | 'other';
+  value: Money; costBase?: Money; acquiredAt?: string;
+  returnModelId: string;                      // §10.3
+  accessibleFrom?: string;                    // e.g. super preservation age
+}
+
+interface Goal {
+  id: string; name: string; tier: TierId;
+  start: string;                              // date passive living begins
+  horizonYears: number;                       // or until age N
+  floor: Money;                               // real capital never below this
+  targetProbability: number;                  // e.g. 0.9
+  projectIncome?: Money;                      // optional income from chosen work, per year
+  constraints?: Record<string, unknown>;
+}
+
+interface Scenario {
+  id: string; name: string; seed: string;
+  tier: TierId; goalId: string;
+  decisions: Record<string, number | string | boolean>;   // §11.3
+  assumptions: Assumption[];
+}
+
+interface Assumption { key: string; value: number | string; unit?: string; source: string; provenance: Provenance; }
+
+interface RunRecord {
+  id: string; scenarioId: string; seed: string;
+  gssk: { version: string; sha256: string };
+  modelHash: string; inputsHash: string;
+  startedAt: string; ms: number;
+  summary: Record<string, number>;            // e.g. pSuccess, medianEndCapital
+  outputsRef: string;                         // OPFS path to quantile arrays
+}
+```
+
+---
+
+## 6. Ingest
+
+### 6.1 CDR Open Banking format (primary, FR-ING-001)
+
+The app ingests the **Australian Consumer Data Right (CDR) Banking API** response payloads, as
+defined by the Consumer Data Standards (consumerdatastandards.gov.au). The implemented standards
+version MUST be pinned in `src/ingest/cdr/VERSION` and the field list re-verified against it at M1.
+
+Accepted files (JSON, one response body per file, or a ZIP of them):
+
+| Endpoint shape | Used for |
+|---|---|
+| `GET /banking/accounts` → `data.accounts[]` (`BankingAccount`) | Account list and roles |
+| `GET /banking/accounts/balances` → `data.balances[]` (`BankingBalance`) | Balance checkpoints for reconciliation and calibration (§9.4) |
+| `GET /banking/accounts/{id}/transactions` → `data.transactions[]` (`BankingTransaction`) | Transactions |
+
+Each response carries `links` (`self`, `first`, `prev`, `next`, `last`) and `meta` (`totalRecords`,
+`totalPages`). The importer accepts any subset of pages, in any order.
+
+`BankingTransaction` fields consumed: `accountId`, `transactionId`, `isDetailAvailable`, `type`
+(`FEE`, `INTEREST_CHARGED`, `INTEREST_PAID`, `TRANSFER_OUTGOING`, `TRANSFER_INCOMING`, `PAYMENT`,
+`DIRECT_DEBIT`, `OTHER`), `status` (`PENDING`, `POSTED`), `description`, `postingDateTime`,
+`valueDateTime`, `executionDateTime`, `amount` (string decimal, negative = outgoing), `currency`
+(defaults to AUD), `reference`, `merchantName`, `merchantCategoryCode`, `billerCode`, `billerName`,
+`crn`, `apcaNumber`.
+
+| ID | Requirement |
+|---|---|
+| FR-ING-002 | Validate every file against a JSON Schema derived from the pinned standard. Reject the file (not the batch) with a message naming the first failing path. Unknown extra fields are kept in `raw`, not rejected. |
+| FR-ING-003 | Parse `amount` as a decimal string to integer minor units. Never through a binary float. |
+| FR-ING-004 | Deduplicate by `(accountId, transactionId)`. When `transactionId` is absent, use a stable hash of `(accountId, postingDateTime or executionDateTime, amount, description)` and flag the record `idSynthetic`. |
+| FR-ING-005 | A `POSTED` record supersedes a matching `PENDING` record (same account, same amount, description similarity ≥ threshold, within 7 days). Superseded pendings are kept, hidden. |
+| FR-ING-006 | Re-importing the same file is a no-op. Each import is recorded with its file SHA-256, counts (new/dup/superseded/rejected) and can be undone as a unit. |
+| FR-ING-007 | Detect internal transfers: an outgoing and an incoming leg across the user's own accounts, equal and opposite amounts, within 3 days. Link them (`transferPairId`) and exclude both from spend. |
+| FR-ING-008 | Times are stored as given (with offset) and bucketed to local dates in the user's configured timezone (default `Australia/Sydney`). |
+
+### 6.2 Workbook import (FR-ING-010)
+
+Import an existing budget workbook (`.xlsx`, parsed in the browser with SheetJS) through a
+**mapping wizard**, not a hard-coded layout. Built-in presets recognise the common layout:
+
+| Sheet type | Recognised columns | Maps to |
+|---|---|---|
+| OPEX budget | Category (section header rows), Item, Cost, Unit (period code), Start Date, Renew Date, tier multipliers (e.g. *Fin. Secure / Fin. Indepnt / Fin. Luxury*), Sub-category, Notes | `BudgetCategory`, `BudgetLine`, `Tier` |
+| CAPEX register | Source Year, Item, Forecast Spend, Paid?, Date Paid, Actual Spend, Expected Life, Replacement Year, Product URL | `Asset` |
+| Yearly wish-list | Item, Link, Config, Toggle, Price, Forecast Spend, Date Paid, Actual Spend | `Asset` with status `wish`/`planned`/`owned` |
+| Renewals | Item, Date, Cost | `Asset.purchasedAt` updates |
+| Goal / retirement sheet | Starting balance, budget need, return, inflation, tax rate, CGT discount, years | `Goal`, `Assumption` |
+
+| ID | Requirement |
+|---|---|
+| FR-ING-011 | Use cached cell values. Never evaluate formulas. Report cells whose cached value is an error (`#DIV/0!`, `#REF!`) and skip them. |
+| FR-ING-012 | Period codes are mapped through a user-editable table (`d`, `w`, `f`, `m`, `q`, `y`, `Ny`, `v` = visits/year, …), with the per-week normaliser shown, so imported per-week figures can be checked against the sheet's own. |
+| FR-ING-013 | Every imported record keeps `source: { sheet, row }` so a value can be traced back to its cell. |
+| FR-ING-014 | The import is previewed (counts, totals per tier per week) before commit. The totals SHOULD match the workbook's own totals line within 0.5 %. A mismatch is shown, not hidden. |
+
+### 6.3 Later formats (not v1)
+
+CSV adapters per bank (column-mapping presets), OFX/QFX, QIF. Each adapter converts to the canonical
+`Txn` and is held to the same FR-ING-002…008.
+
+---
+
+## 7. Synthetic data (FR-SYN)
+
+The app MUST be fully usable, and fully tested, on synthetic data before any real data exists.
+
+### 7.1 Generator
+
+A seeded generator produces a synthetic household as CDR-conformant response files plus a
+ground-truth file. It runs in a worker (in-app "Try with synthetic data") and from the CLI
+(`npm run synth -- --persona personas/default.json --seed 42 --months 24 --out fixtures/syn-42/`).
+
+Outputs:
+
+```
+fixtures/syn-42/
+  accounts.json                       # CDR BankingAccount list
+  balances.json                       # CDR BankingBalance snapshots (monthly)
+  transactions/<accountId>/page-N.json # CDR BankingTransaction pages, with links/meta
+  truth.json                          # per transactionId: kind, categoryId, assetId, transferPairId
+  workbook.xlsx                       # matching synthetic budget workbook (§6.2 layout)
+  manifest.json                       # generator version, persona hash, seed, x-synthetic: true
+```
+
+Every synthetic file carries a top-level `"x-synthetic": { "generator": "...", "seed": "..." }` key
+(ignored by the importer, required by the CI data-hygiene check, §16.4). Account IDs begin `SYN-`,
+masked numbers end `SYN`, and merchant names come from a fictional list.
+
+### 7.2 Persona (config)
+
+```jsonc
+{
+  "timezone": "Australia/Sydney",
+  "start": "2024-07-01", "months": 24,
+  "accounts": [
+    { "id": "SYN-TXN", "role": "transaction", "productCategory": "TRANS_AND_SAVINGS_ACCOUNTS", "opening": "4200.00" },
+    { "id": "SYN-SAV", "role": "savings",     "productCategory": "TRANS_AND_SAVINGS_ACCOUNTS", "opening": "25000.00", "interestPa": 0.045 },
+    { "id": "SYN-CC",  "role": "credit",      "productCategory": "CRED_AND_CHRG_CARDS", "limit": "8000.00" }
+  ],
+  "income": [ { "name": "Salary", "amount": "3100.00", "every": "fortnight", "jitter": 0.0, "rises": [{ "on": "2025-07-01", "pct": 0.03 }] } ],
+  "recurring": [
+    { "category": "housing.rent",      "amount": "620.00", "every": "week",    "via": "DIRECT_DEBIT" },
+    { "category": "utilities.electricity", "mean": "380.00", "every": "quarter", "seasonality": "winter_peak", "cv": 0.15 },
+    { "category": "comms.mobile",      "amount": "65.00",  "every": "month" },
+    { "category": "health.insurance",  "amount": "160.00", "every": "month" }
+  ],
+  "variable": [
+    { "category": "food.groceries", "weeklyMean": "140.00", "cv": 0.25, "visitsPerWeek": 2.5, "merchants": ["Fresh Fields", "Corner Grocer"] },
+    { "category": "food.cafe",      "dailyProb": 0.6, "amount": { "lognormal": [1.6, 0.3] } }
+  ],
+  "capex": [
+    { "asset": "Laptop",         "cost": "3200.00", "lifeYears": 5, "shape": 3, "lastBought": "2021-03-01" },
+    { "asset": "Watch",          "cost": "900.00",  "lifeYears": 10, "wish": true, "buyProbPerYear": 0.3 },
+    { "asset": "Fountain pen",   "cost": "180.00",  "lifeYears": 8 },
+    { "asset": "Holiday (international)", "cost": { "normal": [6000, 1500] }, "every": "year", "month": [1, 7] }
+  ],
+  "investing": [ { "to": "SYN-BROKER", "amount": "500.00", "every": "month", "kind": "investment" } ],
+  "noise": {
+    "pendingThenPosted": 0.15,       // share of card txns first emitted PENDING
+    "duplicatePages": 0.02,          // overlapping page exports
+    "merchantNameVariants": true,    // "FRESH FIELDS 0231 SYDNEY", "Fresh Fields Pty"
+    "refunds": 0.01, "fees": true, "missingTransactionId": 0.01
+  }
+}
+```
+
+| ID | Requirement |
+|---|---|
+| FR-SYN-001 | Same persona + same seed ⇒ byte-identical output (NFR-DET-001). The PRNG is SplitMix64 (same algorithm as GSSK's instance RNG), seeded from the decimal or hex seed string. |
+| FR-SYN-002 | Output validates against the same CDR schemas as real imports (FR-ING-002). |
+| FR-SYN-003 | Balances are consistent: opening + Σ posted amounts = each emitted balance, to the cent. |
+| FR-SYN-004 | `truth.json` labels every transaction. It is never read by the app at runtime; it is read only by tests and the evaluation page (§16.2). |
+| FR-SYN-005 | CAPEX purchases are drawn from each asset's Weibull life from `lastBought`, so the replacement forecaster (§10.2) can be evaluated against known truth. |
+| FR-SYN-006 | Ship three committed personas: `frugal-renter`, `default` (mixed), `high-capex-crypto` (heavy lumpy spend and BTC transfers). |
+
+---
+
+## 8. Classification
+
+Pipeline, first confident answer wins. Each stage records `by` and `confidence`.
+
+1. **Structural** — CDR `type` alone: `INTEREST_PAID` → interest, `FEE` → fee, transfer pairs (FR-ING-007).
+2. **User rules** — ordered, editable: match on `merchantName`, `description` regex, `billerCode`,
+   `mcc`, amount range, account. Rule hits are `confidence = 1`.
+3. **Merchant memory** — every user correction stores `normalisedMerchant → category` (normalisation
+   strips store numbers, suburbs, card suffixes, case). Applies with `confidence = 0.95`.
+4. **MCC map** — `merchantCategoryCode` → default category table (shipped, editable).
+5. **In-browser model** — a small text classifier over normalised description + merchant + amount
+   bucket + weekday + MCC. v1: multinomial naive Bayes / logistic regression on hashed character
+   n-grams, trained in a worker on the user's own corrected transactions; persisted as weights in
+   IndexedDB. Optional later: a small sentence-embedding model via ONNX Runtime Web for k-NN.
+6. **LLM (optional, §13)** — only for transactions still below the confidence threshold, only with
+   consent, only redacted fields.
+7. **Unclassified** — shown in a review queue.
+
+| ID | Requirement |
+|---|---|
+| FR-CLS-001 | Correcting one transaction offers "apply to N similar" and creates a memory entry or a rule. |
+| FR-CLS-002 | **CAPEX detection**: a debit is proposed as CAPEX when its category is configured as capital, or when its amount exceeds a per-category threshold (default: 4× the category's median, and ≥ AUD 200). The user confirms, and links it to an existing `Asset` or creates one (life pre-filled from the category default). |
+| FR-CLS-003 | Refunds are linked to their original purchase when amounts match within 60 days, and net against it. |
+| FR-CLS-004 | Re-running classification never overwrites `by: 'user'`. |
+| FR-CLS-005 | On synthetic `default` persona, after 50 user corrections the pipeline reaches ≥ 95 % category accuracy and ≥ 98 % kind accuracy against `truth.json` (measured in CI, §16.2). |
+
+---
+
+## 9. Budget, actuals and CAPEX register
+
+### 9.1 Budget
+
+- Budget lines are normalised to a common rate (per week, per month, per year) through the period
+  table (FR-ING-012).
+- **Tiers** multiply each line: tier total = Σ line rate × `tierMultiplier[tier]`. Lines with
+  multiplier 0 are excluded from that tier. Tiers are user-defined (default three: *Secure*,
+  *Independent*, *Luxury*).
+
+### 9.2 Actual vs budget (FR-BUD-001)
+
+For a chosen period and tier: per category, budget, actual (posted, excluding transfers), variance,
+variance %, and a trailing 3/6/12-month run rate. Drill down to transactions.
+
+### 9.3 CAPEX register (FR-CAP)
+
+| ID | Requirement |
+|---|---|
+| FR-CAP-001 | Each asset shows age, expected remaining life (Weibull conditional on age), next replacement date distribution (P10/P50/P90) and replacement cost in nominal and real terms. |
+| FR-CAP-002 | **Sinking fund view**: the weekly amount that, set aside from today, funds all expected replacements over the horizon. This is the CAPEX line the budget was missing. |
+| FR-CAP-003 | **Annualised CAPEX** per tier = Σ (replacement cost / life) over assets included in the tier, shown alongside OPEX so the budget total is OPEX + annualised CAPEX. |
+| FR-CAP-004 | Wish-list items carry a decision (`buy by date`, `defer`, `drop`). Scenarios can toggle them (§11.3). |
+| FR-CAP-005 | Assets imported from the workbook with no `Expected Life` get a category default and are flagged `assumed`. |
+
+### 9.4 Reconciliation (FR-REC-001)
+
+For each account with balance checkpoints: simulated balance (opening + classified flows) vs reported
+balance. A drift above AUD 1 is an import gap (missing pages) and is reported with the date range.
+
+---
+
+## 10. Forecasting
+
+All forecasting runs in a worker on `ml-core` (§15.2). Every forecast is a set of **quantile paths**
+(P5, P10, P25, P50, P75, P90, P95) per series, plus the method and backtest score that produced it.
+
+### 10.1 OPEX per category (FR-FC-001)
+
+Monthly series per category from actuals; when history is shorter than 6 months, fall back to the
+budget line (labelled `budgeted`).
+
+Candidate methods, chosen per series by rolling-origin backtest (MASE, plus pinball loss for
+quantiles):
+
+| Method | For |
+|---|---|
+| Seasonal naive / budget | baseline, always computed |
+| ETS (Holt-Winters, additive/multiplicative damped) | regular series with seasonality |
+| Croston / SBA / TSB | intermittent series (many zero months) |
+| Empirical residual bootstrap | quantiles for any of the above |
+
+Inflation: forecasts are produced in real terms and inflated by a CPI assumption (`assumed`, editable,
+default from the user's settings). An optional API MAY fetch published CPI (§13).
+
+The method set is extensible: an ONNX time-series model (for example a small pretrained forecaster)
+MAY be added later as one more candidate. It MUST win the backtest on the user's own data to be used.
+
+### 10.2 CAPEX (FR-FC-010)
+
+For each asset with `replace = true`: replacement time ~ Weibull(shape k, scale from mean life),
+conditional on current age; cost grows by inflation + `replacementCostGrowth`. Wish-list items
+contribute according to their decision or `buyProbPerYear`. Monte-Carlo over assets gives quantile
+paths of CAPEX spend per month.
+
+### 10.3 Returns, prices and FX (FR-FC-020)
+
+Each `Holding.returnModelId` refers to one of:
+
+| Model | Parameters | Notes |
+|---|---|---|
+| `fixed` | annual real return | Deterministic. Reproduces a single-number spreadsheet. |
+| `lognormal` | μ, σ (annual) | Monthly draws. |
+| `student-t` | μ, σ, ν | Fat tails. |
+| `block-bootstrap` | history series, block length (default 12 months) | Resamples the user-supplied or API-fetched monthly return history. Preserves volatility clustering. Default for BTC and equities. |
+| `regime` | two-state Markov switching (bull/bear) | MAY, later. |
+
+Return paths for different holdings are drawn jointly (same bootstrap months) to keep correlation.
+Price history files are user-imported CSV, or fetched with consent (§13). None is committed except
+synthetic series.
+
+---
+
+## 11. Freedom model (goals, simulation, optimisation)
+
+### 11.1 The GSSK model (FR-SIM-001, generated by `modelgen`)
+
+`modelgen` is a pure function `(state, scenario) → GSSK model JSON`. Time unit: **months**, `t = 0` at
+scenario start, `dt = 1`, fixed-step RK4 (or Euler; all flows are piecewise constant per month).
+Carrier: `money` (`AUD`, `conserved: true`). Non-AUD holdings are valued in AUD inside the model;
+FX enters through their return paths.
+
+| Element | GSSK construct |
+|---|---|
+| Wages, project income, other income | `source` → `bank` edges, `constant`, rate driven by an edge forcing `table` (step interpolation) so pay rises, gaps and stopping work are dated events |
+| Bank (transaction + offset + savings, aggregated) | `storage` |
+| One sink per OPEX category group | `sink` + edge from `bank`, rate `table` from the OPEX forecast for this run |
+| CAPEX | `sink` + edge from `bank`, `table` of this run's sampled CAPEX spend |
+| Each holding (cash, ETF, BTC, super, property equity) | `storage` |
+| Contributions | edge `bank` → holding, rate set by the controller |
+| Returns, gains | `market` source → holding, `interaction` with `control_node` = holding (F = k·Q_market·Q_holding, Q_market = 1), k set monthly by the controller to max(r, 0) |
+| Returns, losses | holding → `market_loss` sink, `linear`, k set monthly to max(−r, 0) |
+| Withdrawals / drawdown | edge holding → `bank`, rate set by the controller |
+| Tax | `tax` sink + edge from `bank`, rate set by the controller |
+
+Gains and losses are separate edges so that no flow rate is ever negative. (Whether the kernel accepts
+a negative `k` is not relied on; see KR-3.)
+
+### 11.2 Policy controller and Monte-Carlo runner (FR-SIM-002)
+
+The kernel integrates; the app decides. Each month the controller, in the `sim` worker:
+
+1. reads state (`GSSK_GetState`);
+2. sets this month's return edges from the run's sampled path (`GSSK_SetEdgeK`);
+3. applies the scenario's **withdrawal strategy** (below) by setting drawdown edge rates;
+4. computes tax for the financial year to date (ATO brackets, Medicare levy, CGT with discount for
+   assets held ≥ 12 months, using cost base tracked per holding) and sets the tax edge;
+5. records `GSSK_SetMutationCause(inst, "policy:<rule>")` before each change, so the mutation log
+   explains every rate change;
+6. steps one month (`GSSK_Step`).
+
+Withdrawal strategies (scenario decision):
+
+| ID | Strategy |
+|---|---|
+| `fixed-real` | withdraw the tier's annual need, inflated; sell holdings in a configured order |
+| `percent` | withdraw x % of capital each year |
+| `guardrails` | Guyton-Klinger style: cut/raise spending when withdrawal rate leaves a band |
+| `skim` | withdraw only realised returns above a threshold; leave principal |
+| `hold` | no sales from a holding (e.g. BTC); live from other holdings and income |
+
+**Monte-Carlo:** for `N` runs (default 1000; configurable), one `GSSK_Init` per scenario, then
+`GSSK_Reset` per run. Run `i` uses seed `hash(scenario.seed, i)` for every sampled input (OPEX
+quantile draw, CAPEX events, return path). Per run the runner keeps a small summary (end capital,
+min real capital, ruin month, total tax) and streams per-month values into quantile accumulators
+(P5…P95) per tracked node. It does not keep all paths. The first 20 runs are kept whole for display
+as example paths.
+
+Tax tables live in `data/tax/au-<year>.json` with a source URL and a `verifiedBy`/`verifiedOn` field.
+The app warns when the scenario runs past the last verified year (later years reuse the last table,
+labelled `assumed`).
+
+| ID | Requirement |
+|---|---|
+| FR-SIM-003 | `|GSSK_GetCarrierConservationError(money)|` ≤ 1e-9 at every step of every run; otherwise the run is marked invalid and shown as such. |
+| FR-SIM-004 | Every run stores its GSSK version, wasm SHA-256, model hash, inputs hash and seed. Any run can be replayed exactly from those (`GSSK_Replay` with the exported mutation log, or re-execution). |
+| FR-SIM-005 | 1000 runs × 40 years (480 steps) of the default model complete in ≤ 10 s on a 2022 mid-range laptop, using `navigator.hardwareConcurrency − 1` workers. |
+| FR-SIM-006 | A `fixed` return model with one run reproduces a single-path spreadsheet projection (same inputs) to within AUD 1 per year. This is the bridge test from the user's existing workbook. |
+
+### 11.3 Goals and metrics (FR-GOAL)
+
+Inputs: `Goal` + `Scenario.decisions`. Decision variables (each optional):
+
+`savingsRate`, `tier`, `freedomStartDate`, `allocation` (weights per holding class),
+`withdrawalStrategy` (+ params), `capexDecisions` (per wish-list asset: buy/defer/drop),
+`housing` (rent / buy at date with price, deposit, loan), `projectIncome`, `workUntil`.
+
+Outputs per scenario:
+
+| Metric | Definition |
+|---|---|
+| **pSuccess** | share of runs where real capital ≥ `floor` at every month from `start` to horizon, and the tier's spending was always met |
+| **Freedom number** (deterministic) | capital needed at `start` for the tier's annual need (OPEX + annualised CAPEX), grossed up for tax, at the user's chosen withdrawal rate. Matches the spreadsheet definition, labelled `assumed` |
+| **Freedom number (P90)** | smallest starting capital with pSuccess ≥ 0.9, by bisection over the simulator |
+| **Years to freedom** | P50 / P10 / P90 months until capital first meets the P90 freedom number, under the current savings rate |
+| **Project runway** | months of fully funded project work available now, at the chosen tier |
+| **Shortfall drivers** | variance attribution: re-run with each stochastic input frozen at its median and report the change in pSuccess |
+
+### 11.4 Optimiser (FR-OPT-001)
+
+"What would make this 90 % likely?" Searches the decision variables the user unlocks, under their
+constraints, to find:
+
+- the **minimum change** (normalised distance from the current scenario) achieving pSuccess ≥ target;
+- a **Pareto set** over (pSuccess, tier spending, years to freedom) for display.
+
+Method: coarse grid over ≤ 2 variables; CMA-ES (in `ml-core`) for more, with common random numbers
+(the same seeds across candidates) so comparisons are not noise. Results are Scenarios the user can
+open, compare and keep. Every result cites its run IDs.
+
+---
+
+## 12. User interface
+
+Plain, fast, keyboard-friendly. Light and dark themes. Colour-blind-safe series palette. Every chart
+labels provenance (NFR-HON-001) and shows quantile bands, not single lines, wherever a value is
+uncertain.
+
+| Screen | Contents |
+|---|---|
+| **Start** | "Try synthetic data" (persona picker) or "Import my data". Privacy statement. |
+| **Import** | Drop zone for CDR JSON/ZIP and xlsx. Per-file results (FR-ING-006). Mapping wizard for workbooks. Undo import. |
+| **Ledger** | Transactions table: filter, search, bulk re-categorise, review queue, CAPEX proposals, transfer pairs. |
+| **Budget** | Lines by category with tier columns; actual vs budget; run-rate; period switch (wk/mth/yr). |
+| **CAPEX** | Asset register; replacement timeline (P10–P90 bars); sinking fund; wish-list decisions. |
+| **Forecast** | Per-category fan charts; method and backtest score per series; CAPEX fan; totals. |
+| **Freedom** | Goal editor; pSuccess gauge per tier; capital fan chart in real terms with floor line; example paths; years to freedom; project runway; shortfall drivers. |
+| **Scenarios** | Side-by-side comparison (up to 4); optimiser; diff of decisions. |
+| **Advisor** | Optional chat (§13). Every answer links to run IDs and screens. |
+| **Settings** | Timezone, currency, CPI, period table, categories, rules, tax tables, return models, API providers and keys, encryption, export/import, delete all data. |
+
+---
+
+## 13. External APIs and the advisor (optional)
+
+All of this is **off by default**. The app is complete without it.
+
+### 13.1 Egress rules (NFR-PRIV-003)
+
+| ID | Requirement |
+|---|---|
+| FR-API-001 | Providers are configured in Settings (endpoint, model, key). Keys are stored locally (encrypted if encryption is on) and sent only to their own endpoint. |
+| FR-API-002 | Before each call, show the exact payload to be sent; the user confirms. "Remember for this session" MAY be offered per provider and payload type. |
+| FR-API-003 | **Redaction by default.** Payloads never contain account IDs, masked numbers, BSB/account numbers, names of people, addresses or exact balances. Amounts are bucketed unless the user unticks redaction for that call. |
+| FR-API-004 | Every call is logged locally (time, provider, payload hash, bytes sent). |
+| FR-API-005 | A Content Security Policy restricts `connect-src` to the app origin plus configured provider origins. |
+
+### 13.2 Uses
+
+| Use | Provider type | What is sent |
+|---|---|---|
+| Classify leftover transactions (§8 stage 6) | LLM API, or in-browser LLM | normalised merchant + description + amount bucket + candidate categories |
+| Market history (BTC, indices, FX) | price API | ticker symbols and date range only |
+| CPI | statistics API | series ID only |
+| **Advisor** | LLM API, or in-browser LLM (WebLLM/WebGPU) | the user's question, the scenario's decision variables, aggregate metrics, assumption list — never transactions unless the user attaches them |
+
+### 13.3 Advisor contract (NFR-HON-002)
+
+The advisor is a tool-using agent with a fixed tool set; it cannot compute figures itself.
+
+Tools exposed to the model: `get_scenario(id)`, `list_metrics(id)`, `propose_scenario(changes)`,
+`run_scenario(id)` (returns run ID + metrics), `explain_assumption(key)`, `get_category_summary(...)`.
+
+- `propose_scenario` input is validated against the Scenario JSON Schema; invalid proposals are
+  rejected back to the model with the validation error.
+- Figures in the advisor's reply MUST come from tool results; the UI renders each figure with a link
+  to its run. A reply containing a monetary figure not present in a tool result in the same
+  conversation is flagged "unverified figure" in the UI.
+- The advisor elicits goals in conversation ("what would you do with free time?", "what standard of
+  living is non-negotiable?") and writes them as `Goal`/`Tier` drafts the user accepts or edits.
+- System prompt states: not financial advice; assumptions are the user's; recommend professional
+  advice for tax/legal structure decisions.
+
+---
+
+## 14. Storage, security and portability
+
+| ID | Requirement |
+|---|---|
+| NFR-STO-001 | Records in IndexedDB (via a thin typed wrapper); bulk run outputs (quantile arrays) in OPFS. Schema migrations are versioned and tested. |
+| NFR-STO-002 | **Optional encryption at rest**: passphrase → key via PBKDF2-SHA-256 (≥ 600 000 iterations) or Argon2id (WASM), AES-GCM-256 per record. Locked by default after 15 minutes idle. Forgetting the passphrase loses the data; the UI says so. |
+| NFR-STO-003 | **Export** everything (records + settings + optional runs) as one file, `.budgetapp`, a ZIP of JSON, encrypted with a passphrase. **Import** restores it. Round-trip is lossless (tested). |
+| NFR-STO-004 | "Delete all data" removes IndexedDB, OPFS, caches and service-worker storage for the origin. |
+| NFR-STO-005 | Works offline after first load (service worker, precached assets including `gssk.wasm` and `ml-core.wasm`). |
+| NFR-SEC-001 | No third-party scripts at runtime. All dependencies are bundled at build time. No analytics, no telemetry. |
+| NFR-SEC-002 | Imported files are parsed in workers with size limits (50 MB per file) and never evaluated. Workbook formulas are never evaluated (FR-ING-011). |
+
+---
+
+## 15. Technology
+
+### 15.1 Stack
+
+| Concern | Choice |
+|---|---|
+| Language | TypeScript (strict) |
+| Build / dev | Vite |
+| UI | Preact + signals (or Svelte; decide at M0 and record an ADR) — small bundle |
+| Charts | Hand-written SVG components, or uPlot for dense series |
+| Workers / RPC | Web Workers + Comlink |
+| xlsx | SheetJS (community edition, installed from the SheetJS CDN tarball per their instructions) |
+| Validation | JSON Schema (Ajv, precompiled) for CDR files, models, scenarios |
+| Storage | IndexedDB (idb), OPFS |
+| Kernel | `gssk.wasm` + `gssk.js` loader from GSSK `dist/`, pinned (§15.3) |
+| ML / numerics | `ml-core.wasm` (§15.2); TS reference implementations for tests |
+| Optional ML | ONNX Runtime Web (embeddings, pretrained forecasters); WebLLM (in-browser LLM on WebGPU) |
+| Tests | Vitest (unit, property via fast-check), Playwright (e2e, network assertions) |
+| Lint / format | ESLint, Prettier; `cargo fmt` / `clippy` for `ml-core` |
+
+### 15.2 `ml-core` (WASM)
+
+Rust crate compiled to `wasm32-unknown-unknown` with `wasm-bindgen`, exposing pure numeric kernels on
+typed arrays (no strings across the boundary in hot paths):
+
+- ETS fit/forecast (Holt-Winters variants), Croston/SBA/TSB, rolling-origin backtest, MASE, pinball loss;
+- block bootstrap, lognormal / Student-t samplers, Weibull conditional sampling;
+- streaming quantile accumulators (P² or fixed-grid histogram per month);
+- naive Bayes / logistic regression training and inference on hashed n-gram features;
+- CMA-ES.
+
+Each kernel has a TypeScript reference implementation; property tests require WASM and TS outputs to
+agree within 1e-9 (relative) on random inputs. The PRNG in `ml-core` is SplitMix64, matching GSSK
+and the synthetic generator.
+
+Until `ml-core` lands (M4), the TS reference implementations are used directly.
+
+### 15.3 GSSK integration
+
+- `vendor/gssk/` holds `gssk.wasm`, `gssk.js`, `gssk.h` (for reference), and `GSSK_PIN.json`:
+  `{ "repo": "...", "commit": "...", "tag": "...", "sha256": { "gssk.wasm": "...", "gssk.js": "..." } }`.
+- `npm run gssk:update -- <commit-or-tag>` builds GSSK in a container at that commit
+  (`make wasm` with its pinned WASI SDK), copies `dist/`, and rewrites `GSSK_PIN.json`.
+- At load the `sim` worker computes the wasm SHA-256 and refuses to run on mismatch.
+- A thin typed wrapper `src/sim/gssk.ts` owns all pointer handling: string marshalling
+  (`stringToUTF8`), `GSSK_Init` out-pointer, `HEAPF64` state views, freeing. Nothing else touches
+  WASM memory.
+- **Calibration marshalling**: `GSSK_CalibrateGradient` takes `GSSK_NodeObservations*` (a struct
+  holding pointers and `size_t`). The wrapper lays these out for `wasm32` explicitly and a test pins
+  the layout against the vendored kernel version. KR-1 asks GSSK for a flat entry point that removes
+  this.
+
+---
+
+## 16. Quality
+
+### 16.1 Tests
+
+| Layer | What |
+|---|---|
+| Unit | Money parsing, period normalisation, dedupe, transfer pairing, tax calculation (table-driven against ATO worked examples), each forecaster, each sampler, modelgen output. |
+| Property | Ingest: import order and page overlap never change the result. Synth: balances always reconcile. Sim: conservation holds; doubling all OPEX never increases pSuccess; more starting capital never decreases pSuccess (with common random numbers). |
+| Golden | Fixed persona + seed → fixed `transactions` hash, fixed forecast quantiles, fixed pSuccess (to 1e-12). Changes require an explicit fixture update in the PR. |
+| Kernel | GSSK wrapper against the vendored wasm: init/step/reset/setEdgeK/mutation log/replay round-trip; SHA pin check. |
+| E2E (Playwright) | Synthetic persona end to end: import → classify → budget → forecast → freedom → scenario compare → export → delete → import export. |
+| Privacy | E2E with all APIs off asserts zero requests outside the app origin. With a mock provider on, asserts the payload matches the confirmed preview and contains no redacted field. |
+
+### 16.2 Evaluation page (`/eval`, dev builds only)
+
+Runs classification, CAPEX detection and forecasting against `truth.json` for each committed persona
+and prints accuracy, confusion matrix, MASE and pinball loss. CI runs the same and fails below the
+thresholds in FR-CLS-005 and these:
+
+- CAPEX detection: precision ≥ 0.9, recall ≥ 0.9 on `high-capex-crypto`;
+- OPEX forecast: chosen method's MASE ≤ seasonal-naive MASE on ≥ 80 % of categories;
+- Replacement-date P10–P90 interval covers the true date for 75–90 % of assets.
+
+### 16.3 Performance budgets
+
+First load ≤ 400 kB JS gzipped excluding wasm and optional ONNX/LLM assets; import of 10 000
+transactions ≤ 3 s; classification of 10 000 ≤ 2 s; FR-SIM-005 for Monte-Carlo.
+
+### 16.4 CI and data hygiene
+
+CI runs on `pull_request`: lint, typecheck, unit + property, golden, kernel, e2e, eval thresholds,
+`ml-core` build + tests, bundle size.
+
+**Data-hygiene gate (NFR-PRIV-002)**, run in CI and as a pre-commit hook:
+
+- `.gitignore` excludes `data/`, `private/`, `*.budgetapp`, `*.xlsx` outside `fixtures/`, `*.ofx`, `*.qif`.
+- Every JSON/XLSX under `fixtures/` must carry the `x-synthetic` marker (or, for xlsx, a `_synthetic`
+  sheet with the generator manifest).
+- Any committed file containing a CDR-shaped `accountId` not starting `SYN-`, a BSB-and-account-number
+  pattern, or an Australian TFN pattern fails the build.
+
+### 16.5 Contribution workflow
+
+`AGENTS.md` is the canonical standard (as in GSSK). Work lands through PRs with green CI; the author
+does not merge their own PR. ADRs live in `docs/adr/` for decisions such as the UI framework, the
+quantile accumulator, and every deviation from this spec.
+
+---
+
+## 17. Kernel requests to GSSK (non-blocking)
+
+The app works around each of these. Each, if accepted by GSSK, simplifies the app and is adopted by a
+deliberate pin update.
+
+| ID | Request | Current workaround |
+|---|---|---|
+| KR-1 | A flat calibration entry point (parallel arrays: node indices, times, values, counts) so no struct crosses the WASM boundary, following the precedent of the flat ensemble getters. | Hand-laid `wasm32` struct, pinned by a test. |
+| KR-2 | Ensemble output beyond min/mean/max: quantile envelopes, or a per-run callback/export. | App-level Monte-Carlo loop with its own quantile accumulators. |
+| KR-3 | A documented position on negative edge `k` (allowed or rejected). | Paired gain/loss edges, never negative. |
+| KR-4 | A git tag per release, so the pin can name a tag rather than a commit. | Pin by commit SHA. |
+| KR-5 | Optional distribution families for `jitter` (normal/lognormal/Student-t), seeded per run. | Controller-set `k` from app-sampled paths. |
+
+---
+
+## 18. Repository layout
+
+```
+budget-app/
+├─ AGENTS.md  CLAUDE.md  README.md  SPEC.md  LICENSE
+├─ docs/
+│  ├─ adr/                       0001-ui-framework.md, …
+│  └─ user-guide.md
+├─ data/                         # git-ignored; local scratch only
+├─ fixtures/                     # synthetic only, x-synthetic marked
+│  ├─ personas/                  frugal-renter.json, default.json, high-capex-crypto.json
+│  └─ syn-<persona>-<seed>/      generated CDR files + truth.json + workbook.xlsx
+├─ schemas/
+│  ├─ cdr/                       pinned Consumer Data Standards JSON Schemas
+│  ├─ persona.schema.json  scenario.schema.json  goal.schema.json
+├─ data-tables/
+│  ├─ tax/au-2025-26.json        source URL, verifiedBy, verifiedOn
+│  ├─ mcc-categories.json
+│  └─ asset-lifetimes.json       default life + Weibull shape per category
+├─ vendor/gssk/                  gssk.wasm, gssk.js, gssk.h, GSSK_PIN.json
+├─ ml-core/                      Rust crate → ml-core.wasm
+├─ src/
+│  ├─ app/                       UI shell, routes, screens
+│  ├─ ingest/                    cdr/, xlsx/, dedupe.ts, transfers.ts
+│  ├─ synth/                     generator.ts, cli.ts
+│  ├─ classify/                  rules.ts, memory.ts, model.ts, llm.ts
+│  ├─ budget/                    periods.ts, tiers.ts, actuals.ts, capex.ts
+│  ├─ forecast/                  opex.ts, capex.ts, returns.ts, ref/ (TS reference impls)
+│  ├─ sim/                       gssk.ts, modelgen.ts, controller.ts, tax.ts, montecarlo.ts
+│  ├─ goals/                     metrics.ts, optimise.ts
+│  ├─ advisor/                   tools.ts, providers/, redact.ts
+│  ├─ store/                     db.ts, crypto.ts, export.ts, migrations/
+│  └─ workers/                   one entry per worker
+├─ tests/                        unit/, property/, golden/, kernel/, e2e/, privacy/
+├─ scripts/                      gssk-update.sh, data-hygiene.mjs
+└─ .github/workflows/ci.yml
+```
+
+---
+
+## 19. Milestones
+
+Each milestone ends with a merged PR, green CI, and its acceptance criteria demonstrated on synthetic
+data.
+
+| M | Scope | Acceptance |
+|---|---|---|
+| **M0 Skeleton** | Repo, AGENTS.md, CI, data-hygiene gate, Vite app shell, vendored GSSK with pin check, ADR for UI framework | CI green; app loads offline; `gssk.wasm` hash verified; household example model runs in a worker |
+| **M1 Synthetic + ingest** | Persona schema, generator (CLI + in-app), three personas, CDR schemas + importer, dedupe, pending→posted, transfers, reconciliation | FR-SYN-001…006; FR-ING-001…008; FR-REC-001; property tests pass |
+| **M2 Ledger + classification** | Ledger UI, rules, merchant memory, MCC map, NB/LR model, CAPEX proposals, refunds | FR-CLS-001…005 thresholds met in CI |
+| **M3 Budget + workbook + CAPEX register** | xlsx mapping wizard and presets, tiers, actual vs budget, CAPEX register, sinking fund | FR-ING-010…014 on synthetic workbook; FR-BUD-001; FR-CAP-001…005 |
+| **M4 Forecasting + ml-core** | OPEX and CAPEX forecasters, backtests, fan charts; `ml-core` crate with WASM/TS parity | FR-FC-001, FR-FC-010; §16.2 forecast thresholds |
+| **M5 Freedom simulation** | modelgen, controller, tax tables, withdrawal strategies, return models, Monte-Carlo, metrics, Freedom screen | FR-SIM-001…006; FR-GOAL metrics; FR-SIM-006 bridge test |
+| **M6 Scenarios + optimiser** | Scenario compare, optimiser, Pareto view, shortfall drivers | FR-OPT-001; monotonicity property tests |
+| **M7 Storage, encryption, export** | Encryption at rest, export/import, delete-all, migrations | NFR-STO-001…005 |
+| **M8 Optional APIs + advisor** | Provider settings, consent + redaction, price/CPI fetch, LLM classification, advisor with tools | FR-API-001…005; §13.3; privacy tests |
+| **M9 Real data** | User loads own exports locally; bank-specific CSV adapters as needed | Reconciliation clean on real exports (verified locally, nothing committed) |
+
+---
+
+## 20. Open questions
+
+1. **UI framework**: Preact vs Svelte (M0 ADR).
+2. **Superannuation**: model as a holding with `accessibleFrom` only, or with contribution caps and
+   Div 293/296 rules? (Proposed: holding + preservation age in M5; caps and Div 296 as a later tax
+   table extension.)
+3. **Housing**: rent-vs-buy in M6 needs loan amortisation and stamp duty tables. Which states?
+4. **Couple mode**: one household with two incomes, or two people with separate tax? (Proposed: two
+   tax persons from M5, one shared household budget.)
+5. **Project income**: model chosen-work income (grants, consulting, product) as a separate stochastic
+   source with its own distribution?
+6. **Time as a carrier**: track hours (paid work vs chosen work) as a second GSSK carrier so the
+   freedom goal is expressed in time as well as money?
+7. **In-browser LLM**: which model size is acceptable on the target devices (WebGPU availability)?
+
+---
+
+## 21. Glossary
+
+| Term | Meaning |
+|---|---|
+| CDR | Consumer Data Right, Australia's open-banking regime; its Consumer Data Standards define the Banking API payloads ingested here |
+| OPEX | recurring operating expenditure: rent, food, bills, subscriptions |
+| CAPEX | capital expenditure: durable or lumpy purchases with a life (laptop, watch, pen, holiday treated as a periodic lump) |
+| Tier | a standard of living, expressed as multipliers on budget lines |
+| Freedom capital | capital whose passive cashflow funds a tier indefinitely (or to a horizon) with probability ≥ target |
+| pSuccess | share of Monte-Carlo runs meeting the goal |
+| Sinking fund | regular saving that funds expected CAPEX replacements |
+| GSSK | the Odum-ESL stock-and-flow kernel this app runs on |
+
+---
+
+## Appendix A — CDR transaction page (synthetic example)
+
+```json
+{
+  "x-synthetic": { "generator": "budget-app/synth@0.1.0", "seed": "42" },
+  "data": {
+    "transactions": [
+      {
+        "accountId": "SYN-TXN",
+        "transactionId": "SYN-TXN-000193",
+        "isDetailAvailable": false,
+        "type": "PAYMENT",
+        "status": "POSTED",
+        "description": "FRESH FIELDS 0231 NEWTOWN AU",
+        "postingDateTime": "2025-03-14T09:12:00+11:00",
+        "executionDateTime": "2025-03-13T17:40:22+11:00",
+        "amount": "-63.85",
+        "currency": "AUD",
+        "reference": "",
+        "merchantName": "Fresh Fields",
+        "merchantCategoryCode": "5411"
+      }
+    ]
+  },
+  "links": {
+    "self": "https://synthetic.invalid/banking/accounts/SYN-TXN/transactions?page=3",
+    "first": "https://synthetic.invalid/banking/accounts/SYN-TXN/transactions?page=1",
+    "prev": "https://synthetic.invalid/banking/accounts/SYN-TXN/transactions?page=2",
+    "next": "https://synthetic.invalid/banking/accounts/SYN-TXN/transactions?page=4",
+    "last": "https://synthetic.invalid/banking/accounts/SYN-TXN/transactions?page=9"
+  },
+  "meta": { "totalRecords": 412, "totalPages": 9 }
+}
+```
+
+## Appendix B — Generated GSSK model (fragment)
+
+```jsonc
+{
+  "metadata": { "schema_version": 4, "name": "freedom:scenario-7f3a" },
+  "config": { "t_start": 0, "t_end": 480, "dt": 1, "method": "rk4" },
+  "carriers": [ { "id": "money", "unit": "AUD", "conserved": true } ],
+  "nodes": [
+    { "id": "wages",       "type": "source",  "carrier": "money", "value": 1 },
+    { "id": "market",      "type": "source",  "carrier": "money", "value": 1 },
+    { "id": "bank",        "type": "storage", "carrier": "money", "value": 12000 },
+    { "id": "etf",         "type": "storage", "carrier": "money", "value": 250000 },
+    { "id": "btc",         "type": "storage", "carrier": "money", "value": 180000 },
+    { "id": "opex_housing","type": "sink",    "carrier": "money" },
+    { "id": "capex",       "type": "sink",    "carrier": "money" },
+    { "id": "tax",         "type": "sink",    "carrier": "money" },
+    { "id": "market_loss", "type": "sink",    "carrier": "money" }
+  ],
+  "edges": [
+    { "id": "pay", "origin": "wages", "target": "bank", "carrier": "money", "logic": "constant",
+      "params": { "k": 0 },
+      "forcing": { "waveform": "table", "times": [0, 12, 36], "values": [8200, 8450, 0], "interpolation": "step", "extrapolation": "hold" } },
+    { "id": "rent", "origin": "bank", "target": "opex_housing", "carrier": "money", "logic": "constant",
+      "params": { "k": 0 },
+      "forcing": { "waveform": "table", "times": [0, 1, 2], "values": [2690, 2702, 2715], "interpolation": "step", "extrapolation": "hold" } },
+    { "id": "etf_gain", "origin": "market", "target": "etf", "carrier": "money", "logic": "interaction",
+      "params": { "k": 0, "control_node": "etf" } },
+    { "id": "etf_loss", "origin": "etf", "target": "market_loss", "carrier": "money", "logic": "linear",
+      "params": { "k": 0 } },
+    { "id": "etf_draw", "origin": "etf", "target": "bank", "carrier": "money", "logic": "constant",
+      "params": { "k": 0 } },
+    { "id": "tax_paid", "origin": "bank", "target": "tax", "carrier": "money", "logic": "constant",
+      "params": { "k": 0 } }
+  ]
+}
+```
+
+Field names in Appendix B are illustrative; `modelgen` MUST emit exactly what the pinned
+`gssk.schema.json` accepts, and a test validates every generated model against that schema and
+against `GSSK_Init`.
