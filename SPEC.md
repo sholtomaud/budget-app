@@ -504,8 +504,10 @@ FX enters through their return paths.
 Gains and losses are separate edges so that no flow rate is ever negative. (Whether the kernel accepts
 a negative `k` is not relied on; see KR-3.)
 
-Every `sink` node is emitted with `"value": 0`. GSSK 5.3.0 rejects a sink without `value`
-(`GSSK_ERR_SCHEMA_VIOLATION`), so this is required, not optional (ADR 0005).
+A `sink`'s Q accumulates the cumulative offtake into it (∫ flow dt), so a sink's `value` is its
+opening accumulator. `modelgen` emits `"value": 0` for every sink at scenario start. GSSK 5.3.0
+rejects a sink without `value`. Sink Q then reads directly as cumulative OPEX, CAPEX, tax and
+market losses for the run (ADR 0005).
 
 ### 11.2 Policy controller and Monte-Carlo runner (FR-SIM-002)
 
@@ -543,7 +545,7 @@ labelled `assumed`).
 
 | ID | Requirement |
 |---|---|
-| FR-SIM-003 | **Money balance**, checked at every step of every run: the change in total `money` storage minus the net boundary flow over the step (inflows from sources, minus outflows to sinks, × dt) is within 1e-9 of zero, in absolute value relative to total storage. Otherwise the run is marked invalid and shown as such. `GSSK_GetCarrierConservationError` alone cannot check this: for a model with sources or sinks it reports the relative net boundary flow, not leakage (ADR 0005). Boundary flows are read with `GSSK_GetFlows`. If that turns out not to match the integrator's stages, sources and sinks are modelled as zero-initialised storages, which closes the model so the kernel's own conservation error applies. KR-6 asks for a kernel-side accessor. |
+| FR-SIM-003 | **Money balance**, checked at every step of every run: the change in total `money` held in storages and sinks (sinks accumulate their offtake) minus the inflow from sources over the step (source outflows × dt) is within 1e-9 of zero, in absolute value relative to total storage. Otherwise the run is marked invalid and shown as such. `GSSK_GetCarrierConservationError` alone cannot check this: for a model with sources or sinks it reports the relative net boundary flow, not leakage (ADR 0005). Source outflows are read with `GSSK_GetFlows`. If that turns out not to match the integrator's stages, sources and sinks are modelled as zero-initialised storages, which closes the model so the kernel's own conservation error applies. KR-6 asks for a kernel-side accessor. |
 | FR-SIM-004 | Every run stores its GSSK version, wasm SHA-256, model hash, inputs hash and seed. Any run can be replayed exactly from those (`GSSK_Replay` with the exported mutation log, or re-execution). |
 | FR-SIM-005 | 1000 runs × 40 years (480 steps) of the default model complete in ≤ 10 s on a 2022 mid-range laptop, using `navigator.hardwareConcurrency − 1` workers. |
 | FR-SIM-006 | A `fixed` return model with one run reproduces a single-path spreadsheet projection (same inputs) to within AUD 1 per year. This is the bridge test from the user's existing workbook. |
@@ -778,7 +780,7 @@ deliberate pin update.
 | KR-3 | A documented position on negative edge `k` (allowed or rejected). | Paired gain/loss edges, never negative. |
 | KR-4 | A git tag per release, so the pin can name a tag rather than a commit. | Pin by commit SHA. |
 | KR-5 | Optional distribution families for `jitter` (normal/lognormal/Student-t), seeded per run. | Controller-set `k` from app-sampled paths. |
-| KR-6 | A per-carrier boundary-flux accessor (inflow and outflow across sources and sinks per step, consistent with the integrator's stages), so conservation can be checked for open models. `GSSK_GetCarrierConservationError` reports the relative change in storage, which for an open model is net flow, not leakage. | App-side balance check (FR-SIM-003, ADR 0005). |
+| KR-6 | A per-carrier boundary-flux accessor (inflow from sources per step, consistent with the integrator's stages), so conservation can be checked for open models. `GSSK_GetCarrierConservationError` reports the relative change in storage, which for an open model is net flow, not leakage. Also: `gssk.h` comments sinks as `dQ/dt = 0`, but sink Q accumulates its inflow. Document or correct this. | App-side balance check (FR-SIM-003, ADR 0005). |
 
 ---
 

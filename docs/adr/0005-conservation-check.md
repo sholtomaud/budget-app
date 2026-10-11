@@ -35,7 +35,15 @@ read literally, would fail every valid run.
 across sources and sinks, consistent with the integrator's stages), so open-system conservation
 can be checked inside the kernel.
 
-## Related M0 finding
+## Related M0 finding: sinks accumulate
 
-GSSK 5.3.0 rejects a `sink` node without `value` (`GSSK_ERR_SCHEMA_VIOLATION`). SPEC Appendix B
-omits it, so `modelgen` must emit `"value": 0` for sinks.
+GSSK 5.3.0 rejects a `sink` node without `value` (`GSSK_ERR_SCHEMA_VIOLATION`). The value is not a
+dummy. `gssk.h` comments sinks as "dQ/dt = 0", but a sink's Q actually **integrates its inflow**: a
+kernel test sees a sink fed 6100/month reach 18300 after three months. So `value` is the sink's
+opening cumulative offtake, and `modelgen` emits `"value": 0` at scenario start. Sink Q then gives
+cumulative OPEX, CAPEX, tax and market losses directly.
+
+This also halves the balance check: sinks need no flow reads. Per step,
+`Δ(Σ storages + Σ sinks)` must equal the source outflows × dt, so only the edges leaving sources
+are read through `GSSK_GetFlows`. Sources are held, not integrated, so they still need that read.
+KR-6 should also ask GSSK to correct the sink comment in `gssk.h`, or document the behaviour.

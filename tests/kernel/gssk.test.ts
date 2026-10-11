@@ -114,6 +114,20 @@ describe('GSSK wrapper', () => {
     }
   });
 
+  test('a sink accumulates its cumulative offtake from its opening value', async () => {
+    // gssk.h comments sinks as "dQ/dt = 0", but in 5.3.0 a sink's Q integrates its
+    // inflow. So `value` is the opening accumulator: 0 at scenario start (ADR 0005).
+    const inst = (await loadKernel()).init(moneyModel);
+    try {
+      const opex = inst.nodeIndex('opex');
+      assert.equal(inst.state()[opex], 0);
+      for (let n = 0; n < 3; n++) inst.step();
+      assert.ok(Math.abs(inst.state()[opex]! - 3 * 6100) < 1e-9);
+    } finally {
+      inst.free();
+    }
+  });
+
   test('reset returns to t_start and initial state', async () => {
     const inst = (await loadKernel()).init(moneyModel);
     try {
