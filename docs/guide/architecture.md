@@ -7,7 +7,9 @@ UI (main thread, custom elements)
    │  typed postMessage RPC (src/workers/rpc.ts)
    ▼
 Web Workers ── sim: gssk.wasm (pinned), model runner
-               ingest · classify · forecast · optimise · synth   (later milestones)
+               ingest: CDR validation, ledger, IndexedDB persistence
+               synth: seeded synthetic households
+               classify · forecast · optimise   (later milestones)
    │
 Storage: IndexedDB · OPFS          Service worker: offline after first load
 ```
@@ -48,3 +50,23 @@ stock-and-flow kernel compiled to WebAssembly.
 - A service worker, generated at build time, precaches every asset including `gssk.wasm`. The app
   works offline after the first visit.
 - The repository holds synthetic data only, enforced by the data-hygiene gate in CI.
+
+## Ingest and the ledger
+
+The `ingest` worker owns the ledger. Each import's accepted files are stored verbatim in IndexedDB,
+and the ledger is the fold of every import in order. Undo deletes an import and rebuilds. After
+each import, the links between records are recomputed from scratch in a canonical order:
+
+- pending records superseded by their posted versions (FR-ING-005);
+- transfer pairs between the household's own accounts (FR-ING-007).
+
+So the ledger never depends on file or import order; a property test checks this. Reconciliation
+compares each pair of consecutive balance checkpoints with the posted transactions between them
+(FR-REC-001). See [ADR 0008](../adr/0008-cdr-ingest-and-synthetic-data.md).
+
+## Synthetic data
+
+`src/synth/generator.ts` turns a persona and a seed into CDR response files, a ground-truth label
+file and a CSV budget workbook, byte-identically for the same inputs (FR-SYN-001). It runs in the
+`synth` worker ("Try synthetic data") and from the command line (`npm run synth`). The app never
+reads `truth.json`; only tests do.

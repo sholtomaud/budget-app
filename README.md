@@ -15,18 +15,14 @@ and the documentation site (`npm run docs:dev`, published at `/<repo>/docs/` on 
 
 ## Status
 
-**M0 — Skeleton** (SPEC §19):
+| Milestone                 | State                                                                                                                                                                         |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **M0 Skeleton**           | Done: app shell, pinned GSSK kernel in a worker, offline, CI, GitHub Pages                                                                                                    |
+| **M1 Synthetic + ingest** | Done: seeded synthetic households (three personas), CDR v1.36.0 import with validation, dedupe, pending→posted, transfer pairing, reconciliation, undo, IndexedDB persistence |
+| M2–M8                     | Planned, one PR each (SPEC §19)                                                                                                                                               |
 
-- Vite app shell built from native web components (ADR 0001), with every SPEC §12 screen routed.
-  Screens that later milestones fill show which milestone delivers them.
-- GSSK 5.3.0 vendored in `vendor/gssk/`, with its SHA-256 checked in CI and again at load. The
-  `sim` worker refuses a kernel that does not match the pin.
-- The **Kernel** screen runs GSSK's reference household model in a Web Worker.
-- Works offline after first load (service worker). A Content-Security-Policy limits connections
-  to the app's own origin.
-- CI: `build` (data-hygiene gate, pin check, lint, typecheck, app and docs builds, bundle-size
-  budget), `test` (Vitest) and `e2e` (Playwright: shell, kernel, offline, no-egress privacy). Pushes
-  to `main` deploy the app and docs to GitHub Pages once all three pass.
+Try it: **Start → Try synthetic data → Generate and load**, then see the **Import** screen. Or import
+a folder from `fixtures/syn-*-42/`.
 
 ## Develop
 
@@ -39,20 +35,23 @@ npm test             # unit and kernel tests (Vitest)
 npm run e2e          # Playwright, against the production build
 npm run build        # static site in dist/ (set BASE_PATH=/sub/path/ to host under a path)
 npm run docs:dev     # documentation site (VitePress)
+npm run synth -- --persona fixtures/personas/default.json --seed 7 --out /tmp/syn-7
+npm run fixtures     # regenerate the committed fixtures after a generator change
 npm run hooks:install  # data-hygiene pre-commit hook
 ```
 
 ## Decisions
 
-| ADR                                                | Decision                                                           |
-| -------------------------------------------------- | ------------------------------------------------------------------ |
-| [0001](docs/adr/0001-ui-framework.md)              | Native web components (Boba pattern), no UI framework              |
-| [0002](docs/adr/0002-test-runner.md)               | `node:test` for unit tests (superseded by 0006)                    |
-| [0003](docs/adr/0003-csv-instead-of-xlsx.md)       | Budget workbooks imported as CSV, not xlsx                         |
-| [0004](docs/adr/0004-gssk-pin-from-dist-branch.md) | GSSK vendored from its `dist` branch, pinned by commit and SHA-256 |
-| [0005](docs/adr/0005-conservation-check.md)        | What GSSK's conservation error measures; how FR-SIM-003 is checked |
-| [0006](docs/adr/0006-vitest-vitepress-pages.md)    | Vitest for tests, VitePress for docs, GitHub Pages for deployment  |
-| [0007](docs/adr/0007-no-third-party-runtime.md)    | No third-party runtime code; TypeScript 7; no ESLint; no `.mjs`    |
+| ADR                                                    | Decision                                                                      |
+| ------------------------------------------------------ | ----------------------------------------------------------------------------- |
+| [0001](docs/adr/0001-ui-framework.md)                  | Native web components (Boba pattern), no UI framework                         |
+| [0002](docs/adr/0002-test-runner.md)                   | `node:test` for unit tests (superseded by 0006)                               |
+| [0003](docs/adr/0003-csv-instead-of-xlsx.md)           | Budget workbooks imported as CSV, not xlsx                                    |
+| [0004](docs/adr/0004-gssk-pin-from-dist-branch.md)     | GSSK vendored from its `dist` branch, pinned by commit and SHA-256            |
+| [0005](docs/adr/0005-conservation-check.md)            | What GSSK's conservation error measures; how FR-SIM-003 is checked            |
+| [0006](docs/adr/0006-vitest-vitepress-pages.md)        | Vitest for tests, VitePress for docs, GitHub Pages for deployment             |
+| [0007](docs/adr/0007-no-third-party-runtime.md)        | No third-party runtime code; TypeScript 7; no ESLint; no `.mjs`               |
+| [0008](docs/adr/0008-cdr-ingest-and-synthetic-data.md) | CDR v1.36.0 ingest, `x-as-at` balances, rebuild-on-undo, synthetic data rules |
 
 ## License
 

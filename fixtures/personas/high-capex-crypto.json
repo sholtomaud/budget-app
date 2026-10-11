@@ -1,0 +1,244 @@
+{
+  "x-synthetic": { "generator": "budget-app/synth", "kind": "persona" },
+  "name": "high-capex-crypto",
+  "description": "High income with heavy lumpy spending: cameras, computers, an e-bike, furniture, two holidays a year, and weekly BTC purchases through an exchange.",
+  "timezone": "Australia/Sydney",
+  "start": "2024-07-01",
+  "months": 24,
+  "accounts": [
+    {
+      "id": "SYN-TXN",
+      "name": "Everyday",
+      "role": "transaction",
+      "productCategory": "TRANS_AND_SAVINGS_ACCOUNTS",
+      "opening": "9500.00",
+      "buffer": "3000.00"
+    },
+    {
+      "id": "SYN-SAV",
+      "name": "High Interest Saver",
+      "role": "savings",
+      "productCategory": "TRANS_AND_SAVINGS_ACCOUNTS",
+      "opening": "60000.00",
+      "interestPa": 0.048
+    },
+    {
+      "id": "SYN-CC",
+      "name": "Platinum Card",
+      "role": "credit",
+      "productCategory": "CRED_AND_CHRG_CARDS",
+      "limit": "25000.00"
+    }
+  ],
+  "income": [
+    {
+      "name": "Salary",
+      "payer": "Quasar Robotics",
+      "amount": "5400.00",
+      "every": "fortnight",
+      "jitter": 0.0,
+      "rises": [{ "on": "2025-01-01", "pct": 0.05 }]
+    },
+    {
+      "name": "Consulting",
+      "payer": "Halcyon Labs",
+      "category": "income.consulting",
+      "amount": "2500.00",
+      "every": "quarter",
+      "jitter": 0.4
+    }
+  ],
+  "recurring": [
+    {
+      "category": "housing.rent",
+      "payee": "Skyline Apartments",
+      "amount": "980.00",
+      "every": "week",
+      "via": "DIRECT_DEBIT"
+    },
+    {
+      "category": "utilities.electricity",
+      "payee": "Brightwire Energy",
+      "mean": "520.00",
+      "every": "quarter",
+      "seasonality": "summer_peak",
+      "cv": 0.15
+    },
+    { "category": "comms.mobile", "payee": "Telcoast Mobile", "amount": "95.00", "every": "month" },
+    {
+      "category": "comms.internet",
+      "payee": "Lumen Broadband",
+      "amount": "110.00",
+      "every": "month"
+    },
+    {
+      "category": "health.gym",
+      "payee": "Ironworks Gym",
+      "amount": "28.00",
+      "every": "week",
+      "via": "DIRECT_DEBIT"
+    },
+    {
+      "category": "subscriptions.software",
+      "payee": "Cloudnest Storage",
+      "amount": "16.99",
+      "every": "month",
+      "via": "PAYMENT",
+      "mcc": "5734"
+    }
+  ],
+  "variable": [
+    {
+      "category": "food.groceries",
+      "weeklyMean": "230.00",
+      "cv": 0.25,
+      "visitsPerWeek": 3,
+      "merchants": ["Fresh Fields", "Harbour Organics"],
+      "mcc": "5411"
+    },
+    {
+      "category": "food.dining",
+      "weeklyMean": "160.00",
+      "cv": 0.5,
+      "visitsPerWeek": 1.5,
+      "merchants": ["Ember & Oak", "Saffron Lane", "Noodle Republic"],
+      "mcc": "5812"
+    },
+    {
+      "category": "food.cafe",
+      "dailyProb": 0.8,
+      "amount": { "lognormal": [1.75, 0.3] },
+      "merchants": ["Little Bean Espresso", "Tram Stop Cafe"],
+      "mcc": "5814"
+    },
+    {
+      "category": "transport.rideshare",
+      "weeklyMean": "40.00",
+      "cv": 0.6,
+      "visitsPerWeek": 1.2,
+      "merchants": ["Zoomride"],
+      "mcc": "4121"
+    }
+  ],
+  "capex": [
+    {
+      "asset": "Laptop",
+      "category": "capex.computing",
+      "merchant": "Bytewise Computers",
+      "mcc": "5732",
+      "cost": "4200.00",
+      "lifeYears": 3,
+      "shape": 3,
+      "lastBought": "2022-11-01"
+    },
+    {
+      "asset": "Camera body",
+      "category": "capex.photography",
+      "merchant": "Aperture House",
+      "mcc": "5946",
+      "cost": "3800.00",
+      "lifeYears": 4,
+      "shape": 2.5,
+      "lastBought": "2021-08-01"
+    },
+    {
+      "asset": "Lens",
+      "category": "capex.photography",
+      "merchant": "Aperture House",
+      "mcc": "5946",
+      "cost": "2100.00",
+      "lifeYears": 6,
+      "wish": true,
+      "buyProbPerYear": 0.6
+    },
+    {
+      "asset": "Phone",
+      "category": "capex.computing",
+      "merchant": "Bytewise Computers",
+      "mcc": "5732",
+      "cost": "1900.00",
+      "lifeYears": 2.5,
+      "shape": 3,
+      "lastBought": "2023-03-01"
+    },
+    {
+      "asset": "E-bike",
+      "category": "capex.transport",
+      "merchant": "Spokes & Sprockets",
+      "mcc": "5940",
+      "cost": "5200.00",
+      "lifeYears": 7,
+      "lastBought": "2019-06-01"
+    },
+    {
+      "asset": "Sofa",
+      "category": "capex.furniture",
+      "merchant": "Hearth Furniture",
+      "mcc": "5712",
+      "cost": "3400.00",
+      "lifeYears": 9
+    },
+    {
+      "asset": "Watch",
+      "category": "capex.personal",
+      "merchant": "Meridian Watchmakers",
+      "mcc": "5944",
+      "cost": "6500.00",
+      "lifeYears": 15,
+      "wish": true,
+      "buyProbPerYear": 0.35
+    },
+    {
+      "asset": "Fountain pen",
+      "category": "capex.personal",
+      "merchant": "Inkwell Stationers",
+      "mcc": "5943",
+      "cost": "420.00",
+      "lifeYears": 5,
+      "wish": true,
+      "buyProbPerYear": 0.8
+    },
+    {
+      "asset": "Holiday (international)",
+      "category": "capex.travel",
+      "merchant": "Wanderlust Travel Co",
+      "mcc": "4722",
+      "cost": { "normal": [9000, 2500] },
+      "every": "year",
+      "month": [4, 10]
+    },
+    {
+      "asset": "Holiday (domestic)",
+      "category": "capex.travel",
+      "merchant": "Coastline Getaways",
+      "mcc": "7011",
+      "cost": { "normal": [2500, 600] },
+      "every": "year",
+      "month": [1, 7]
+    }
+  ],
+  "investing": [
+    {
+      "to": "SYN-EXCHANGE",
+      "amount": "250.00",
+      "every": "week",
+      "kind": "investment",
+      "category": "investment.btc"
+    },
+    {
+      "to": "SYN-BROKER",
+      "amount": "1500.00",
+      "every": "month",
+      "kind": "investment",
+      "category": "investment.etf"
+    }
+  ],
+  "noise": {
+    "pendingThenPosted": 0.2,
+    "duplicatePages": 0.03,
+    "merchantNameVariants": true,
+    "refunds": 0.015,
+    "fees": true,
+    "missingTransactionId": 0.01
+  }
+}

@@ -9,3 +9,5 @@ src/sim/examples/
 docs/.vitepress/cache/
 docs/.vitepress/dist/
 site/
+fixtures/syn-*/
+schemas/cdr/

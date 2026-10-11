@@ -1,14 +1,45 @@
 # Using the app
 
-::: warning Milestone M0
-The app is a skeleton. The screens are in place, but most fill in during later milestones
-([SPEC §19](./spec.md#_19-milestones)).
+::: info Status
+M0 and M1 are done: synthetic data, import and reconciliation work. Other screens fill in with
+later milestones ([SPEC §19](./spec.md#_19-milestones)).
 :::
 
 ## Start
 
-Choose **Try synthetic data** to explore with a generated household (from M1), or **Import my
-data** to load your own files. Nothing you load leaves your browser.
+**Try synthetic data** generates a fictional household in your browser and loads it, so you can
+explore before loading anything real. Pick a household:
+
+- **frugal-renter**: one modest salary, a debit card, steady saving.
+- **default**: one salary, renting, a credit card, monthly investing, a few lumpy purchases.
+- **high-capex-crypto**: high income, heavy capital spending, weekly BTC purchases.
+
+The seed makes it reproducible: the same household and seed always give the same data. Everything
+it produces is labelled **illustrative**.
+
+## Import
+
+Drop files or a folder onto the Import screen, or use **Choose files** or **Choose a folder**. It
+accepts Consumer Data Right (Open Banking) responses as JSON, or a ZIP of them:
+
+| Response                                  | What it gives                                            |
+| ----------------------------------------- | -------------------------------------------------------- |
+| `GET /banking/accounts`                   | Your accounts and their types                            |
+| `GET /banking/accounts/balances`          | Balances, used to check that no transactions are missing |
+| `GET /banking/accounts/{id}/transactions` | Transactions, one page per file, in any order            |
+
+- Files are checked against the Consumer Data Standards (v1.36.0). A file that doesn't match is
+  rejected on its own, with the exact field that failed. The rest still import.
+- Duplicates are dropped, even across overlapping exports. Importing the same file again does
+  nothing.
+- A pending transaction is replaced by its posted version when it arrives.
+- Transfers between your own accounts are paired, and don't count as spending or income.
+- **Reconciliation:** for each account with balance snapshots, the app checks that the
+  transactions add up to the change in balance. A gap of more than $1 means pages are missing, and
+  the app shows the date range.
+- Balance files carry no time in the standard. Add a top-level `"x-as-at": "2025-06-30T23:59:59+10:00"`
+  for exact checks; otherwise the file's date is used and labelled **assumed**.
+- **Undo** in the import history removes everything that import added.
 
 ## Screens
 

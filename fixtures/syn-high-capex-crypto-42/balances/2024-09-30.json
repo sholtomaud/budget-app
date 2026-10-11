@@ -1,0 +1,38 @@
+{
+  "x-synthetic": {
+    "generator": "budget-app/synth@0.1.0",
+    "seed": "42",
+    "persona": "high-capex-crypto"
+  },
+  "x-as-at": "2024-09-30T23:59:59+10:00",
+  "data": {
+    "balances": [
+      {
+        "accountId": "SYN-TXN",
+        "currentBalance": "3097.82",
+        "availableBalance": "3097.82",
+        "currency": "AUD"
+      },
+      {
+        "accountId": "SYN-SAV",
+        "currentBalance": "79318.65",
+        "availableBalance": "79318.65",
+        "currency": "AUD"
+      },
+      {
+        "accountId": "SYN-CC",
+        "currentBalance": "-338.17",
+        "availableBalance": "24661.83",
+        "creditLimit": "25000.00",
+        "currency": "AUD"
+      }
+    ]
+  },
+  "links": {
+    "self": "https://synthetic.invalid/banking/accounts/balances"
+  },
+  "meta": {
+    "totalRecords": 3,
+    "totalPages": 1
+  }
+}

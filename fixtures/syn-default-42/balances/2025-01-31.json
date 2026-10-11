@@ -1,0 +1,38 @@
+{
+  "x-synthetic": {
+    "generator": "budget-app/synth@0.1.0",
+    "seed": "42",
+    "persona": "default"
+  },
+  "x-as-at": "2025-01-31T23:59:59+11:00",
+  "data": {
+    "balances": [
+      {
+        "accountId": "SYN-TXN",
+        "currentBalance": "1579.26",
+        "availableBalance": "1579.26",
+        "currency": "AUD"
+      },
+      {
+        "accountId": "SYN-SAV",
+        "currentBalance": "35664.87",
+        "availableBalance": "35664.87",
+        "currency": "AUD"
+      },
+      {
+        "accountId": "SYN-CC",
+        "currentBalance": "-129.52",
+        "availableBalance": "7870.48",
+        "creditLimit": "8000.00",
+        "currency": "AUD"
+      }
+    ]
+  },
+  "links": {
+    "self": "https://synthetic.invalid/banking/accounts/balances"
+  },
+  "meta": {
+    "totalRecords": 3,
+    "totalPages": 1
+  }
+}

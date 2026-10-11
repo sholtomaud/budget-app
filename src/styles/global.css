@@ -221,3 +221,56 @@ td {
 .prov[data-prov='illustrative'] {
   color: var(--prov-illustrative);
 }
+
+button.secondary,
+.button.secondary {
+  background: transparent;
+  color: var(--accent);
+}
+button.small {
+  font-size: 0.8125rem;
+  padding: 0 var(--space-2);
+}
+
+input,
+select,
+textarea {
+  font: inherit;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  padding: var(--space-1) var(--space-2);
+}
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.scroll {
+  overflow-x: auto;
+}
+
+.lede {
+  max-width: 65ch;
+  color: var(--text-muted);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.muted {
+  color: var(--text-muted);
+}
+
+tbody th {
+  font-weight: 600;
+}

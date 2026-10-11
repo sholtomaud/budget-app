@@ -1,0 +1,132 @@
+{
+  "x-synthetic": { "generator": "budget-app/synth", "kind": "persona" },
+  "name": "frugal-renter",
+  "description": "Single person in a share house: modest salary, debit card only, low variable spending, few capital items, steady saving.",
+  "timezone": "Australia/Sydney",
+  "start": "2024-07-01",
+  "months": 24,
+  "accounts": [
+    {
+      "id": "SYN-TXN",
+      "name": "Everyday",
+      "role": "transaction",
+      "productCategory": "TRANS_AND_SAVINGS_ACCOUNTS",
+      "opening": "1800.00",
+      "buffer": "800.00"
+    },
+    {
+      "id": "SYN-SAV",
+      "name": "Bonus Saver",
+      "role": "savings",
+      "productCategory": "TRANS_AND_SAVINGS_ACCOUNTS",
+      "opening": "9000.00",
+      "interestPa": 0.05
+    }
+  ],
+  "income": [
+    {
+      "name": "Salary",
+      "payer": "Greenleaf Community Library",
+      "amount": "2350.00",
+      "every": "fortnight",
+      "jitter": 0.0,
+      "rises": [{ "on": "2025-07-01", "pct": 0.035 }]
+    }
+  ],
+  "recurring": [
+    {
+      "category": "housing.rent",
+      "payee": "Elm Street Share House",
+      "amount": "290.00",
+      "every": "week",
+      "via": "TRANSFER_OUTGOING"
+    },
+    {
+      "category": "utilities.electricity",
+      "payee": "Brightwire Energy",
+      "mean": "140.00",
+      "every": "quarter",
+      "seasonality": "winter_peak",
+      "cv": 0.2
+    },
+    { "category": "comms.mobile", "payee": "Telcoast Mobile", "amount": "25.00", "every": "month" },
+    {
+      "category": "comms.internet",
+      "payee": "Lumen Broadband",
+      "amount": "30.00",
+      "every": "month"
+    },
+    {
+      "category": "transport.public",
+      "payee": "Metro Transit Card",
+      "amount": "50.00",
+      "every": "fortnight",
+      "via": "PAYMENT",
+      "mcc": "4111"
+    }
+  ],
+  "variable": [
+    {
+      "category": "food.groceries",
+      "weeklyMean": "85.00",
+      "cv": 0.2,
+      "visitsPerWeek": 1.5,
+      "merchants": ["Corner Grocer", "Thrifty Basket"],
+      "mcc": "5411"
+    },
+    {
+      "category": "food.cafe",
+      "dailyProb": 0.15,
+      "amount": { "lognormal": [1.5, 0.25] },
+      "merchants": ["Little Bean Espresso"],
+      "mcc": "5814"
+    },
+    {
+      "category": "leisure.books",
+      "weeklyMean": "12.00",
+      "cv": 0.5,
+      "visitsPerWeek": 0.3,
+      "merchants": ["Second Chapter Books"],
+      "mcc": "5942"
+    }
+  ],
+  "capex": [
+    {
+      "asset": "Laptop",
+      "category": "capex.computing",
+      "merchant": "Bytewise Computers",
+      "mcc": "5732",
+      "cost": "1400.00",
+      "lifeYears": 6,
+      "shape": 3,
+      "lastBought": "2020-02-01"
+    },
+    {
+      "asset": "Phone",
+      "category": "capex.computing",
+      "merchant": "Bytewise Computers",
+      "mcc": "5732",
+      "cost": "700.00",
+      "lifeYears": 4,
+      "shape": 2.5,
+      "lastBought": "2022-09-01"
+    },
+    {
+      "asset": "Bicycle",
+      "category": "capex.transport",
+      "merchant": "Spokes & Sprockets",
+      "mcc": "5940",
+      "cost": "650.00",
+      "lifeYears": 10
+    }
+  ],
+  "investing": [],
+  "noise": {
+    "pendingThenPosted": 0.1,
+    "duplicatePages": 0.02,
+    "merchantNameVariants": true,
+    "refunds": 0.01,
+    "fees": false,
+    "missingTransactionId": 0.01
+  }
+}

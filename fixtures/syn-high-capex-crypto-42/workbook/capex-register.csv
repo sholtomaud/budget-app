@@ -1,0 +1,16 @@
+# x-synthetic: generator=budget-app/synth@0.1.0, seed=42, persona=high-capex-crypto
+Source Year,Item,Forecast Spend,Paid?,Date Paid,Actual Spend,Expected Life,Replacement Year,Product URL
+2022,Laptop,4200.00,Yes,2022-11-01,4200.00,3,2025,
+2025,Laptop,4200.00,Yes,2025-05-19,4200.00,3,2028,
+2021,Camera body,3800.00,Yes,2021-08-01,3800.00,4,2025,
+2026,Camera body,3800.00,Yes,2026-02-11,3800.00,4,2030,
+2025,Lens,2100.00,Yes,2025-06-12,2100.00,6,2031,
+2023,Phone,1900.00,Yes,2023-03-01,1900.00,2.5,2026,
+2025,Phone,1900.00,Yes,2025-12-08,1900.00,2.5,2028,
+2019,E-bike,5200.00,Yes,2019-06-01,5200.00,7,2026,
+2026,E-bike,5200.00,Yes,2026-06-30,5200.00,7,2033,
+2024,Sofa,3400.00,No,,,9,,
+2024,Watch,6500.00,No,,,15,,
+2024,Fountain pen,420.00,Yes,2024-12-26,420.00,5,2029,
+2025,Holiday (international),9000.00,Yes,2025-10-10,9000.00,1,2026,
+2025,Holiday (domestic),2500.00,Yes,2025-07-27,2500.00,1,2026,

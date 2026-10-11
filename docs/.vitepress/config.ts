@@ -13,6 +13,7 @@ const adrs = [
   ['0005', 'Conservation check and sinks', '0005-conservation-check'],
   ['0006', 'Vitest, VitePress and Pages', '0006-vitest-vitepress-pages'],
   ['0007', 'No third-party runtime code', '0007-no-third-party-runtime'],
+  ['0008', 'CDR ingest and synthetic data', '0008-cdr-ingest-and-synthetic-data'],
 ] as const;
 
 export default defineConfig({

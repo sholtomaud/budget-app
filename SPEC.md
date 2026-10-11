@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft 2: M0 decisions folded in (ADRs 0001–0005) |
+| Status | Draft 3: M0 and M1 decisions folded in (ADRs 0001–0008) |
 | Date | 2026-10-11 |
 | Kernel | [GSSK](https://github.com/energese-project/GSSK-Giannantoni), consumed as a pinned WebAssembly artefact |
 | Runtime | Browser only. Static site, no backend |
@@ -234,18 +234,22 @@ interface RunRecord {
 
 The app ingests the **Australian Consumer Data Right (CDR) Banking API** response payloads, as
 defined by the Consumer Data Standards (consumerdatastandards.gov.au). The implemented standards
-version MUST be pinned in `src/ingest/cdr/VERSION` and the field list re-verified against it at M1.
+version is pinned in `src/ingest/cdr/VERSION`, currently **v1.36.0**. The JSON Schemas in
+`schemas/cdr/` are derived from that release's OpenAPI document by `scripts/cdr-schemas.ts`
+(ADR 0008).
 
 Accepted files (JSON, one response body per file, or a ZIP of them):
 
 | Endpoint shape | Used for |
 |---|---|
 | `GET /banking/accounts` → `data.accounts[]` (`BankingAccount`) | Account list and roles |
-| `GET /banking/accounts/balances` → `data.balances[]` (`BankingBalance`) | Balance checkpoints for reconciliation and calibration (§9.4) |
+| `GET /banking/accounts/balances` → `data.balances[]` (`BankingBalance`) | Balance checkpoints for reconciliation and calibration (§9.4). `BankingBalance` has no observation time, so the app reads an optional top-level `x-as-at` (ISO 8601 with offset). Without it, the file's modification time is used and the checkpoint is labelled `assumed` (ADR 0008). |
 | `GET /banking/accounts/{id}/transactions` → `data.transactions[]` (`BankingTransaction`) | Transactions |
 
 Each response carries `links` (`self`, `first`, `prev`, `next`, `last`) and `meta` (`totalRecords`,
-`totalPages`). The importer accepts any subset of pages, in any order.
+`totalPages`). The importer accepts any subset of pages, in any order. Files that are not CDR
+banking responses (for example budget CSVs, `truth.json`, `manifest.json`) are skipped and
+reported, not rejected.
 
 `BankingTransaction` fields consumed: `accountId`, `transactionId`, `isDetailAvailable`, `type`
 (`FEE`, `INTEREST_CHARGED`, `INTEREST_PAID`, `TRANSFER_OUTGOING`, `TRANSFER_INCOMING`, `PAYMENT`,
@@ -307,10 +311,10 @@ Outputs:
 ```
 fixtures/syn-42/
   accounts.json                       # CDR BankingAccount list
-  balances.json                       # CDR BankingBalance snapshots (monthly)
+  balances/<date>.json                # CDR BankingBalance snapshot, one per month end, with x-as-at
   transactions/<accountId>/page-N.json # CDR BankingTransaction pages, with links/meta
   truth.json                          # per transactionId: kind, categoryId, assetId, transferPairId
-  workbook/<sheet>.csv                # matching synthetic budget workbook, one CSV per sheet (§6.2)
+  workbook/<sheet>.csv                # matching synthetic budget workbook: opex-budget, capex-register, goal (§6.2)
   manifest.json                       # generator version, persona hash, seed, x-synthetic: true
 ```
 
@@ -809,9 +813,10 @@ budget-app/
 ├─ data/                         # git-ignored; local scratch only
 ├─ fixtures/                     # synthetic only, x-synthetic marked
 │  ├─ personas/                  frugal-renter.json, default.json, high-capex-crypto.json
-│  └─ syn-<persona>-<seed>/      generated CDR files + truth.json + workbook/*.csv
+│  └─ syn-<persona>-42/          generated CDR files + truth.json + workbook/*.csv (`npm run fixtures`;
+│                                 a test checks they match the generator byte for byte)
 ├─ schemas/
-│  ├─ cdr/                       pinned Consumer Data Standards JSON Schemas
+│  ├─ cdr/                       JSON Schemas derived from Consumer Data Standards v1.36.0
 │  ├─ persona.schema.json  scenario.schema.json  goal.schema.json
 ├─ data-tables/
 │  ├─ tax/au-2025-26.json        source URL, verifiedBy, verifiedOn
@@ -821,15 +826,17 @@ budget-app/
 ├─ ml-core/                      Rust crate → ml-core.wasm
 ├─ src/
 │  ├─ app/                       core/ (BaseComponent, Store, Router), components/<tag>/ (.html .css .ts)
-│  ├─ ingest/                    cdr/, csv/, dedupe.ts, transfers.ts
-│  ├─ synth/                     generator.ts, cli.ts
+│  ├─ lib/                       prng (SplitMix64), money, dates, hash, jsonschema, csv, zip
+│  ├─ domain/                    canonical types (§5)
+│  ├─ ingest/                    cdr/ (VERSION, parse), ledger (dedupe, pending, transfers, reconcile), service
+│  ├─ synth/                     persona.ts, generator.ts, cli.ts
 │  ├─ classify/                  rules.ts, memory.ts, model.ts, llm.ts
 │  ├─ budget/                    periods.ts, tiers.ts, actuals.ts, capex.ts
 │  ├─ forecast/                  opex.ts, capex.ts, returns.ts, ref/ (TS reference impls)
 │  ├─ sim/                       gssk.ts, modelgen.ts, controller.ts, tax.ts, montecarlo.ts
 │  ├─ goals/                     metrics.ts, optimise.ts
 │  ├─ advisor/                   tools.ts, providers/, redact.ts
-│  ├─ store/                     db.ts, crypto.ts, export.ts, migrations/
+│  ├─ store/                     idb.ts (wrapper + migrations), import-store.ts; later crypto.ts, export.ts
 │  ├─ sw/                        service-worker template (precache list filled at build)
 │  └─ workers/                   one entry per worker
 ├─ tests/                        unit/, property/, golden/, kernel/, e2e/ (privacy tests live in e2e/)

@@ -1,0 +1,142 @@
+{
+  "$comment": "Derived by scripts/cdr-schemas.ts from Consumer Data Standards v1.36.0 (45f31a807cf6770456eb26aa2c68003d634ea53c), components.schemas.ResponseBankingAccountsBalanceList. Do not edit by hand.",
+  "title": "GET /banking/accounts/balances",
+  "required": [
+    "data",
+    "links",
+    "meta"
+  ],
+  "type": "object",
+  "properties": {
+    "data": {
+      "required": [
+        "balances"
+      ],
+      "type": "object",
+      "properties": {
+        "balances": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/BankingBalance"
+          }
+        }
+      }
+    },
+    "links": {
+      "$ref": "#/$defs/LinksPaginated"
+    },
+    "meta": {
+      "$ref": "#/$defs/MetaPaginated"
+    }
+  },
+  "$defs": {
+    "BankingAccountId": {
+      "type": "string",
+      "x-cds-type": "ASCIIString"
+    },
+    "BankingBalance": {
+      "required": [
+        "accountId",
+        "availableBalance",
+        "currentBalance"
+      ],
+      "type": "object",
+      "properties": {
+        "accountId": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/BankingAccountId"
+            }
+          ]
+        },
+        "currentBalance": {
+          "type": "string",
+          "x-cds-type": "AmountString"
+        },
+        "availableBalance": {
+          "type": "string",
+          "x-cds-type": "AmountString"
+        },
+        "creditLimit": {
+          "type": "string",
+          "x-cds-type": "AmountString"
+        },
+        "amortisedLimit": {
+          "type": "string",
+          "x-cds-type": "AmountString"
+        },
+        "currency": {
+          "type": "string",
+          "x-cds-type": "CurrencyString"
+        },
+        "purses": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/BankingBalancePurse"
+          }
+        }
+      }
+    },
+    "BankingBalancePurse": {
+      "required": [
+        "amount"
+      ],
+      "type": "object",
+      "properties": {
+        "amount": {
+          "type": "string",
+          "x-cds-type": "AmountString"
+        },
+        "currency": {
+          "type": "string",
+          "x-cds-type": "CurrencyString"
+        }
+      }
+    },
+    "LinksPaginated": {
+      "required": [
+        "self"
+      ],
+      "type": "object",
+      "properties": {
+        "self": {
+          "type": "string",
+          "x-cds-type": "URIString"
+        },
+        "first": {
+          "type": "string",
+          "x-cds-type": "URIString"
+        },
+        "prev": {
+          "type": "string",
+          "x-cds-type": "URIString"
+        },
+        "next": {
+          "type": "string",
+          "x-cds-type": "URIString"
+        },
+        "last": {
+          "type": "string",
+          "x-cds-type": "URIString"
+        }
+      }
+    },
+    "MetaPaginated": {
+      "required": [
+        "totalPages",
+        "totalRecords"
+      ],
+      "type": "object",
+      "properties": {
+        "totalRecords": {
+          "type": "integer",
+          "x-cds-type": "NaturalNumber"
+        },
+        "totalPages": {
+          "type": "integer",
+          "x-cds-type": "NaturalNumber"
+        }
+      }
+    }
+  }
+}

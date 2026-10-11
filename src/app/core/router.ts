@@ -16,6 +16,13 @@ const loaders = import.meta.glob<unknown>('../components/*-page/*-page.ts');
 /** Fired on window after each navigation; detail is the matched route path. */
 export const ROUTE_EVENT = 'app:route';
 
+let active: Router | null = null;
+
+/** Navigate to an app path from anywhere (e.g. after an action completes). */
+export function navigate(path: string): void {
+  active?.navigate(path);
+}
+
 export class Router {
   private readonly routes: CompiledRoute[] = [];
   private readonly outlet: HTMLElement;
@@ -27,6 +34,7 @@ export class Router {
     this.outlet = outlet;
     this.base = base;
     this.appTitle = appTitle;
+    active = this;
     window.addEventListener('popstate', () => void this.render());
     document.addEventListener('click', (e) => this.interceptLink(e));
   }

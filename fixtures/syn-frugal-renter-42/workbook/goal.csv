@@ -1,0 +1,9 @@
+# x-synthetic: generator=budget-app/synth@0.1.0, seed=42, persona=frugal-renter
+Field,Value
+Starting balance,10800.00
+"Budget need (per year, secure tier)",22332.00
+Return,0.05
+Inflation,0.03
+Tax rate,0.30
+CGT discount,0.50
+Years,40

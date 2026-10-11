@@ -1,0 +1,6 @@
+# x-synthetic: generator=budget-app/synth@0.1.0, seed=42, persona=frugal-renter
+Source Year,Item,Forecast Spend,Paid?,Date Paid,Actual Spend,Expected Life,Replacement Year,Product URL
+2020,Laptop,1400.00,Yes,2020-02-01,1400.00,6,2026,
+2025,Laptop,1400.00,Yes,2025-09-28,1400.00,6,2031,
+2022,Phone,700.00,Yes,2022-09-01,700.00,4,2026,
+2024,Bicycle,650.00,No,,,10,,

@@ -1,0 +1,140 @@
+{
+  "x-synthetic": {
+    "generator": "budget-app/synth@0.1.0",
+    "seed": "42",
+    "persona": "default"
+  },
+  "data": {
+    "transactions": [
+      {
+        "accountId": "SYN-CC",
+        "transactionId": "SYN-CC-000008",
+        "isDetailAvailable": false,
+        "type": "PAYMENT",
+        "status": "POSTED",
+        "description": "TRAM STOP CAFE 6104 ANNANDALE AU",
+        "postingDateTime": "2024-07-07T02:35:00+10:00",
+        "executionDateTime": "2024-07-05T11:45:00+10:00",
+        "amount": "-4.89",
+        "currency": "AUD",
+        "reference": "",
+        "merchantName": "Tram Stop Cafe",
+        "merchantCategoryCode": "5814"
+      },
+      {
+        "accountId": "SYN-CC",
+        "transactionId": "SYN-CC-000007",
+        "isDetailAvailable": false,
+        "type": "PAYMENT",
+        "status": "POSTED",
+        "description": "ROADWAY FUEL PTY LTD 4218",
+        "postingDateTime": "2024-07-06T02:01:00+10:00",
+        "executionDateTime": "2024-07-04T20:54:00+10:00",
+        "amount": "-109.64",
+        "currency": "AUD",
+        "reference": "",
+        "merchantName": "Roadway Fuel",
+        "merchantCategoryCode": "5541"
+      },
+      {
+        "accountId": "SYN-CC",
+        "transactionId": "SYN-CC-000006",
+        "isDetailAvailable": false,
+        "type": "PAYMENT",
+        "status": "POSTED",
+        "description": "TRAM STOP CAFE 6104 ANNANDALE AU",
+        "postingDateTime": "2024-07-05T05:31:00+10:00",
+        "executionDateTime": "2024-07-03T15:52:00+10:00",
+        "amount": "-3.84",
+        "currency": "AUD",
+        "reference": "",
+        "merchantName": "Tram Stop Cafe",
+        "merchantCategoryCode": "5814"
+      },
+      {
+        "accountId": "SYN-CC",
+        "transactionId": "SYN-CC-000005",
+        "isDetailAvailable": false,
+        "type": "PAYMENT",
+        "status": "POSTED",
+        "description": "LITTLE BEAN ESPRESSO 2927 SURRY HILLS AU",
+        "postingDateTime": "2024-07-04T13:03:00+10:00",
+        "executionDateTime": "2024-07-04T12:54:00+10:00",
+        "amount": "-3.37",
+        "currency": "AUD",
+        "reference": "",
+        "merchantName": "Little Bean Espresso",
+        "merchantCategoryCode": "5814"
+      },
+      {
+        "accountId": "SYN-CC",
+        "transactionId": "SYN-CC-000004",
+        "isDetailAvailable": false,
+        "type": "PAYMENT",
+        "status": "POSTED",
+        "description": "TRAM STOP CAFE 6104 ANNANDALE AU",
+        "postingDateTime": "2024-07-04T05:45:00+10:00",
+        "executionDateTime": "2024-07-02T10:48:00+10:00",
+        "amount": "-5.69",
+        "currency": "AUD",
+        "reference": "",
+        "merchantName": "Tram Stop Cafe",
+        "merchantCategoryCode": "5814"
+      },
+      {
+        "accountId": "SYN-CC",
+        "transactionId": "SYN-CC-000003",
+        "isDetailAvailable": false,
+        "type": "PAYMENT",
+        "status": "POSTED",
+        "description": "TRAM STOP CAFE ANNANDALE",
+        "postingDateTime": "2024-07-04T02:58:00+10:00",
+        "executionDateTime": "2024-07-01T07:54:00+10:00",
+        "amount": "-5.26",
+        "currency": "AUD",
+        "reference": "",
+        "merchantName": "Tram Stop Cafe",
+        "merchantCategoryCode": "5814"
+      },
+      {
+        "accountId": "SYN-CC",
+        "transactionId": "SYN-CC-000002",
+        "isDetailAvailable": false,
+        "type": "PAYMENT",
+        "status": "POSTED",
+        "description": "CORNER GROCER PTY LTD 3856",
+        "postingDateTime": "2024-07-03T04:22:00+10:00",
+        "executionDateTime": "2024-07-02T16:07:00+10:00",
+        "amount": "-85.14",
+        "currency": "AUD",
+        "reference": "",
+        "merchantName": "Corner Grocer",
+        "merchantCategoryCode": "5411"
+      },
+      {
+        "accountId": "SYN-CC",
+        "transactionId": "SYN-CC-P000001",
+        "isDetailAvailable": false,
+        "type": "PAYMENT",
+        "status": "PENDING",
+        "description": "TRAM STOP CAFE ANNANDA",
+        "executionDateTime": "2024-07-01T07:54:00+10:00",
+        "amount": "-5.26",
+        "currency": "AUD",
+        "reference": "",
+        "merchantName": "Tram Stop Cafe",
+        "merchantCategoryCode": "5814"
+      }
+    ]
+  },
+  "links": {
+    "self": "https://synthetic.invalid/banking/accounts/SYN-CC/transactions?page=10",
+    "first": "https://synthetic.invalid/banking/accounts/SYN-CC/transactions?page=1",
+    "prev": "https://synthetic.invalid/banking/accounts/SYN-CC/transactions?page=9",
+    "last": "https://synthetic.invalid/banking/accounts/SYN-CC/transactions?page=10"
+  },
+  "meta": {
+    "totalRecords": 908,
+    "totalPages": 10
+  }
+}

@@ -1,0 +1,5366 @@
+{
+  "x-synthetic": {
+    "generator": "budget-app/synth@0.1.0",
+    "seed": "42",
+    "persona": "default"
+  },
+  "transactions": {
+    "SYN-CC/SYN-CC-P000001": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000003"
+    },
+    "SYN-TXN/SYN-TXN-000001": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-TXN/SYN-TXN-000002": {
+      "kind": "opex",
+      "categoryId": "utilities.electricity"
+    },
+    "SYN-CC/SYN-CC-000002": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000003": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000003": {
+      "kind": "income",
+      "categoryId": "income.salary"
+    },
+    "SYN-CC/SYN-CC-000004": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000005": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000006": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000007": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-000008": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000009": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000004": {
+      "kind": "opex",
+      "categoryId": "comms.mobile"
+    },
+    "SYN-CC/SYN-CC-000010": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000011": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000005": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000012": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000013": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-P000014": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000023"
+    },
+    "SYN-CC/SYN-CC-P000015": {
+      "kind": "opex",
+      "categoryId": "food.groceries",
+      "supersededBy": "SYN-CC-000018"
+    },
+    "SYN-CC/SYN-CC-000016": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000017": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000018": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000019": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-P000020": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000025"
+    },
+    "SYN-CC/SYN-CC-000021": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000006": {
+      "kind": "investment",
+      "categoryId": "investment.syn-broker"
+    },
+    "SYN-CC/SYN-CC-000022": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000023": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000007": {
+      "kind": "opex",
+      "categoryId": "health.insurance"
+    },
+    "SYN-CC/SYN-CC-000024": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000025": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000008": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-P000026": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000028"
+    },
+    "SYN-CC/SYN-CC-000027": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000028": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000009": {
+      "kind": "income",
+      "categoryId": "income.salary"
+    },
+    "SYN-CC/SYN-CC-000029": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000030": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000031": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-000032": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-000033": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000034": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-TXN/SYN-TXN-000010": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000035": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000036": {
+      "kind": "capex",
+      "categoryId": "capex.travel",
+      "assetId": "holiday-international"
+    },
+    "SYN-SAV/SYN-SAV-000001": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00001"
+    },
+    "SYN-TXN/SYN-TXN-000011": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00001"
+    },
+    "SYN-TXN/SYN-TXN-000012": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00002"
+    },
+    "SYN-CC/SYN-CC-000037": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00002"
+    },
+    "SYN-CC/SYN-CC-000038": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000039": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-000040": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000041": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000013": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000042": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000043": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000014": {
+      "kind": "fee",
+      "categoryId": "fees.bank"
+    },
+    "SYN-CC/SYN-CC-000044": {
+      "kind": "fee",
+      "categoryId": "fees.bank"
+    },
+    "SYN-SAV/SYN-SAV-000002": {
+      "kind": "interest",
+      "categoryId": "income.interest"
+    },
+    "SYN-TXN/SYN-TXN-000015": {
+      "kind": "income",
+      "categoryId": "income.salary"
+    },
+    "SYN-CC/SYN-CC-000045": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000046": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-000047": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000016": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000048": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-P000049": {
+      "kind": "opex",
+      "categoryId": "transport.fuel",
+      "supersededBy": "SYN-CC-000052"
+    },
+    "SYN-CC/SYN-CC-000050": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000017": {
+      "kind": "opex",
+      "categoryId": "comms.mobile"
+    },
+    "SYN-CC/SYN-CC-000051": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000052": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-000053": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-P000054": {
+      "kind": "opex",
+      "categoryId": "transport.fuel",
+      "supersededBy": "SYN-CC-000057"
+    },
+    "SYN-CC/SYN-CC-000055": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000056": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000057": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-TXN/SYN-TXN-000018": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-TXN/SYN-TXN-000019": {
+      "kind": "investment",
+      "categoryId": "investment.syn-broker"
+    },
+    "SYN-CC/SYN-CC-000058": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000059": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000020": {
+      "kind": "opex",
+      "categoryId": "health.insurance"
+    },
+    "SYN-TXN/SYN-TXN-000021": {
+      "kind": "income",
+      "categoryId": "income.salary"
+    },
+    "SYN-CC/SYN-CC-000060": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000061": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000062": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000063": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000064": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000022": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-P000065": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000068"
+    },
+    "SYN-CC/SYN-CC-000066": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000067": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000068": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000069": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000070": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000071": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000072": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-P000073": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000077"
+    },
+    "SYN-CC/SYN-CC-000074": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000023": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00003"
+    },
+    "SYN-CC/SYN-CC-000075": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00003"
+    },
+    "SYN-TXN/SYN-TXN-000024": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000076": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000077": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000078": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000025": {
+      "kind": "income",
+      "categoryId": "income.salary"
+    },
+    "SYN-CC/SYN-CC-000079": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000080": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000026": {
+      "kind": "fee",
+      "categoryId": "fees.bank"
+    },
+    "SYN-SAV/SYN-SAV-000003": {
+      "kind": "interest",
+      "categoryId": "income.interest"
+    },
+    "SYN-TXN/SYN-TXN-000027": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00004"
+    },
+    "SYN-SAV/SYN-SAV-000004": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00004"
+    },
+    "SYN-CC/SYN-CC-000081": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000082": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000028": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000083": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000084": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000085": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-P000086": {
+      "kind": "opex",
+      "categoryId": "transport.fuel",
+      "supersededBy": "SYN-CC-000090"
+    },
+    "SYN-CC/SYN-CC-000087": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000088": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000029": {
+      "kind": "opex",
+      "categoryId": "comms.mobile"
+    },
+    "SYN-CC/SYN-CC-000089": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000090": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-000091": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-000092": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000030": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000093": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000094": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-P000095": {
+      "kind": "opex",
+      "categoryId": "food.groceries",
+      "supersededBy": "SYN-CC-000098"
+    },
+    "SYN-TXN/SYN-TXN-000031": {
+      "kind": "income",
+      "categoryId": "income.salary"
+    },
+    "SYN-TXN/SYN-TXN-000032": {
+      "kind": "investment",
+      "categoryId": "investment.syn-broker"
+    },
+    "SYN-CC/SYN-CC-000096": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000097": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000033": {
+      "kind": "opex",
+      "categoryId": "health.insurance"
+    },
+    "SYN-CC/SYN-CC-000098": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000099": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000034": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000100": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000101": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-P000102": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000106"
+    },
+    "SYN-CC/SYN-CC-000103": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000104": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000105": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000106": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000107": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-P000108": {
+      "kind": "opex",
+      "categoryId": "food.groceries",
+      "supersededBy": "SYN-CC-000112"
+    },
+    "SYN-CC/SYN-CC-000109": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000035": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000110": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000111": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-TXN/SYN-TXN-000036": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00005"
+    },
+    "SYN-CC/SYN-CC-000112": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000037": {
+      "kind": "income",
+      "categoryId": "income.salary"
+    },
+    "SYN-CC/SYN-CC-000113": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00005"
+    },
+    "SYN-CC/SYN-CC-000114": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-P000115": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000117"
+    },
+    "SYN-CC/SYN-CC-000116": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000117": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000038": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000118": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000039": {
+      "kind": "fee",
+      "categoryId": "fees.bank"
+    },
+    "SYN-SAV/SYN-SAV-000005": {
+      "kind": "interest",
+      "categoryId": "income.interest"
+    },
+    "SYN-CC/SYN-CC-P000119": {
+      "kind": "opex",
+      "categoryId": "food.groceries",
+      "supersededBy": "SYN-CC-000123"
+    },
+    "SYN-TXN/SYN-TXN-000040": {
+      "kind": "opex",
+      "categoryId": "utilities.electricity"
+    },
+    "SYN-CC/SYN-CC-000120": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000121": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000122": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000123": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000124": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000125": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000041": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-TXN/SYN-TXN-000042": {
+      "kind": "opex",
+      "categoryId": "comms.mobile"
+    },
+    "SYN-CC/SYN-CC-000126": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-P000127": {
+      "kind": "opex",
+      "categoryId": "food.groceries",
+      "supersededBy": "SYN-CC-000130"
+    },
+    "SYN-CC/SYN-CC-000128": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000129": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000043": {
+      "kind": "income",
+      "categoryId": "income.salary"
+    },
+    "SYN-CC/SYN-CC-000130": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-P000131": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000133"
+    },
+    "SYN-CC/SYN-CC-000132": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000133": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000044": {
+      "kind": "investment",
+      "categoryId": "investment.syn-broker"
+    },
+    "SYN-CC/SYN-CC-P000134": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000135"
+    },
+    "SYN-TXN/SYN-TXN-000045": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-TXN/SYN-TXN-000046": {
+      "kind": "opex",
+      "categoryId": "health.insurance"
+    },
+    "SYN-CC/SYN-CC-000135": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-P000136": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000137"
+    },
+    "SYN-CC/SYN-CC-000137": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000138": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000139": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000140": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000047": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000141": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-P000142": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000144"
+    },
+    "SYN-TXN/SYN-TXN-000048": {
+      "kind": "income",
+      "categoryId": "income.salary"
+    },
+    "SYN-CC/SYN-CC-000143": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000144": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000049": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00006"
+    },
+    "SYN-CC/SYN-CC-000145": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00006"
+    },
+    "SYN-CC/SYN-CC-P000146": {
+      "kind": "opex",
+      "categoryId": "food.groceries",
+      "supersededBy": "SYN-CC-000150"
+    },
+    "SYN-CC/SYN-CC-000147": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000148": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000149": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000150": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000050": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000151": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000152": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000051": {
+      "kind": "fee",
+      "categoryId": "fees.bank"
+    },
+    "SYN-SAV/SYN-SAV-000006": {
+      "kind": "interest",
+      "categoryId": "income.interest"
+    },
+    "SYN-TXN/SYN-TXN-000052": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00007"
+    },
+    "SYN-SAV/SYN-SAV-000007": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00007"
+    },
+    "SYN-CC/SYN-CC-000153": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000154": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000155": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000156": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000157": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000053": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000158": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000159": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000160": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-P000161": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000164"
+    },
+    "SYN-TXN/SYN-TXN-000054": {
+      "kind": "income",
+      "categoryId": "income.salary"
+    },
+    "SYN-TXN/SYN-TXN-000055": {
+      "kind": "opex",
+      "categoryId": "comms.mobile"
+    },
+    "SYN-CC/SYN-CC-000162": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000163": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000164": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000165": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000056": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-TXN/SYN-TXN-000057": {
+      "kind": "investment",
+      "categoryId": "investment.syn-broker"
+    },
+    "SYN-CC/SYN-CC-P000166": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000170"
+    },
+    "SYN-CC/SYN-CC-000167": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000168": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000169": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000170": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000058": {
+      "kind": "opex",
+      "categoryId": "health.insurance"
+    },
+    "SYN-CC/SYN-CC-000171": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000172": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-P000173": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000176"
+    },
+    "SYN-CC/SYN-CC-P000174": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000175"
+    },
+    "SYN-TXN/SYN-TXN-000059": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000175": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000176": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000177": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000178": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000060": {
+      "kind": "income",
+      "categoryId": "income.salary"
+    },
+    "SYN-CC/SYN-CC-000179": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000180": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000181": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000061": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000182": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000062": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00008"
+    },
+    "SYN-CC/SYN-CC-000183": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000184": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00008"
+    },
+    "SYN-CC/SYN-CC-000185": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000186": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-TXN/SYN-TXN-000063": {
+      "kind": "fee",
+      "categoryId": "fees.bank"
+    },
+    "SYN-SAV/SYN-SAV-000008": {
+      "kind": "interest",
+      "categoryId": "income.interest"
+    },
+    "SYN-TXN/SYN-TXN-000064": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00009"
+    },
+    "SYN-CC/SYN-CC-000187": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-SAV/SYN-SAV-000009": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00009"
+    },
+    "SYN-CC/H-ed1d7e91fdcbc75b2b397d3a2ab248e2": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000065": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000189": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000066": {
+      "kind": "income",
+      "categoryId": "income.salary"
+    },
+    "SYN-CC/SYN-CC-000190": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000191": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000067": {
+      "kind": "opex",
+      "categoryId": "comms.mobile"
+    },
+    "SYN-CC/SYN-CC-P000192": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000194"
+    },
+    "SYN-CC/SYN-CC-000193": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000194": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000068": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000195": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000196": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000197": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000069": {
+      "kind": "investment",
+      "categoryId": "investment.syn-broker"
+    },
+    "SYN-CC/SYN-CC-000198": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-P000199": {
+      "kind": "opex",
+      "categoryId": "food.groceries",
+      "supersededBy": "SYN-CC-000202"
+    },
+    "SYN-TXN/SYN-TXN-000070": {
+      "kind": "opex",
+      "categoryId": "health.insurance"
+    },
+    "SYN-CC/SYN-CC-000200": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000201": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-000202": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000071": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000203": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000204": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000205": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-P000206": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000209"
+    },
+    "SYN-TXN/SYN-TXN-000072": {
+      "kind": "income",
+      "categoryId": "income.salary"
+    },
+    "SYN-CC/SYN-CC-000207": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000208": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000209": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000210": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000211": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000212": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000213": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000214": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000215": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000073": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000216": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000217": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-P000218": {
+      "kind": "opex",
+      "categoryId": "food.groceries",
+      "supersededBy": "SYN-CC-000224"
+    },
+    "SYN-CC/SYN-CC-000219": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000074": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00010"
+    },
+    "SYN-CC/SYN-CC-000220": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00010"
+    },
+    "SYN-CC/SYN-CC-000221": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000222": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000223": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000224": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000225": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000226": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000075": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-TXN/SYN-TXN-000076": {
+      "kind": "fee",
+      "categoryId": "fees.bank"
+    },
+    "SYN-SAV/SYN-SAV-000010": {
+      "kind": "interest",
+      "categoryId": "income.interest"
+    },
+    "SYN-TXN/SYN-TXN-000077": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00011"
+    },
+    "SYN-SAV/SYN-SAV-000011": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00011"
+    },
+    "SYN-TXN/SYN-TXN-000078": {
+      "kind": "opex",
+      "categoryId": "utilities.electricity"
+    },
+    "SYN-CC/SYN-CC-000227": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000079": {
+      "kind": "income",
+      "categoryId": "income.salary"
+    },
+    "SYN-CC/SYN-CC-P000228": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000234"
+    },
+    "SYN-CC/SYN-CC-000229": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000230": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-000231": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-P000232": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000239"
+    },
+    "SYN-CC/SYN-CC-000233": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000234": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000080": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000235": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-P000236": {
+      "kind": "opex",
+      "categoryId": "food.groceries",
+      "supersededBy": "SYN-CC-000241"
+    },
+    "SYN-TXN/SYN-TXN-000081": {
+      "kind": "opex",
+      "categoryId": "comms.mobile"
+    },
+    "SYN-CC/SYN-CC-P000237": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000245"
+    },
+    "SYN-CC/SYN-CC-000238": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000239": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000240": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-000241": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000242": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000243": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000244": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000245": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000246": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000247": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000082": {
+      "kind": "investment",
+      "categoryId": "investment.syn-broker"
+    },
+    "SYN-CC/SYN-CC-P000248": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000252"
+    },
+    "SYN-CC/SYN-CC-000249": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000083": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000250": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-P000251": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000256"
+    },
+    "SYN-CC/SYN-CC-000252": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000084": {
+      "kind": "opex",
+      "categoryId": "health.insurance"
+    },
+    "SYN-CC/SYN-CC-P000253": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000257"
+    },
+    "SYN-CC/SYN-CC-000254": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000085": {
+      "kind": "income",
+      "categoryId": "income.salary"
+    },
+    "SYN-CC/SYN-CC-000255": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000256": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000257": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-P000258": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000261"
+    },
+    "SYN-CC/SYN-CC-000259": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000260": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000086": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000261": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000262": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000263": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000264": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000265": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-000266": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-000267": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000268": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-000269": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-000270": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000087": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00012"
+    },
+    "SYN-CC/SYN-CC-000271": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000272": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00012"
+    },
+    "SYN-CC/SYN-CC-000273": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000274": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-TXN/SYN-TXN-000088": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000275": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000089": {
+      "kind": "income",
+      "categoryId": "income.salary"
+    },
+    "SYN-CC/SYN-CC-000276": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000277": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000278": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000090": {
+      "kind": "fee",
+      "categoryId": "fees.bank"
+    },
+    "SYN-SAV/SYN-SAV-000012": {
+      "kind": "interest",
+      "categoryId": "income.interest"
+    },
+    "SYN-TXN/SYN-TXN-000091": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00013"
+    },
+    "SYN-SAV/SYN-SAV-000013": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00013"
+    },
+    "SYN-CC/SYN-CC-000279": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000092": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000280": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000281": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-P000282": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000287"
+    },
+    "SYN-CC/SYN-CC-000283": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000284": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000285": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/H-8cbefb308966d6a503bd3d6277b1897f": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-000287": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000093": {
+      "kind": "opex",
+      "categoryId": "comms.mobile"
+    },
+    "SYN-CC/SYN-CC-000288": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-P000289": {
+      "kind": "opex",
+      "categoryId": "food.groceries",
+      "supersededBy": "SYN-CC-000295"
+    },
+    "SYN-CC/SYN-CC-000290": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000291": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000292": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000094": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000293": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000294": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000295": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-SAV/SYN-SAV-000014": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00014"
+    },
+    "SYN-TXN/SYN-TXN-000095": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00014"
+    },
+    "SYN-TXN/SYN-TXN-000096": {
+      "kind": "investment",
+      "categoryId": "investment.syn-broker"
+    },
+    "SYN-TXN/SYN-TXN-000097": {
+      "kind": "income",
+      "categoryId": "income.salary"
+    },
+    "SYN-CC/SYN-CC-000296": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000098": {
+      "kind": "opex",
+      "categoryId": "health.insurance"
+    },
+    "SYN-CC/SYN-CC-000297": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000298": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000099": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000299": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000300": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000301": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/H-736e86f4bfe404055d294fb1fcb8eb72": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000303": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-P000304": {
+      "kind": "opex",
+      "categoryId": "food.groceries",
+      "supersededBy": "SYN-CC-000307"
+    },
+    "SYN-CC/SYN-CC-000305": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000100": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000306": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000307": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000101": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00015"
+    },
+    "SYN-CC/SYN-CC-000308": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00015"
+    },
+    "SYN-CC/SYN-CC-000309": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000310": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-TXN/SYN-TXN-000102": {
+      "kind": "income",
+      "categoryId": "income.salary"
+    },
+    "SYN-CC/SYN-CC-000311": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000312": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000313": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000103": {
+      "kind": "fee",
+      "categoryId": "fees.bank"
+    },
+    "SYN-SAV/SYN-SAV-000015": {
+      "kind": "interest",
+      "categoryId": "income.interest"
+    },
+    "SYN-TXN/SYN-TXN-000104": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00016"
+    },
+    "SYN-CC/SYN-CC-P000314": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000317"
+    },
+    "SYN-CC/SYN-CC-000315": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-SAV/SYN-SAV-000016": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00016"
+    },
+    "SYN-CC/SYN-CC-000316": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000317": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000105": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000318": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000319": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000320": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-000321": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000322": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000106": {
+      "kind": "opex",
+      "categoryId": "comms.mobile"
+    },
+    "SYN-CC/SYN-CC-000323": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000324": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000325": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000107": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000326": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000327": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000328": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-SAV/SYN-SAV-000017": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00017"
+    },
+    "SYN-TXN/SYN-TXN-000108": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00017"
+    },
+    "SYN-TXN/SYN-TXN-000109": {
+      "kind": "investment",
+      "categoryId": "investment.syn-broker"
+    },
+    "SYN-TXN/SYN-TXN-000110": {
+      "kind": "income",
+      "categoryId": "income.salary"
+    },
+    "SYN-CC/SYN-CC-000329": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-P000330": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000334"
+    },
+    "SYN-CC/SYN-CC-000331": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000111": {
+      "kind": "opex",
+      "categoryId": "health.insurance"
+    },
+    "SYN-CC/SYN-CC-P000332": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000338"
+    },
+    "SYN-CC/SYN-CC-000333": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000334": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000335": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000112": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000336": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-P000337": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000339"
+    },
+    "SYN-CC/SYN-CC-000338": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000339": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000340": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000341": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000342": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-P000343": {
+      "kind": "opex",
+      "categoryId": "food.groceries",
+      "supersededBy": "SYN-CC-000346"
+    },
+    "SYN-CC/SYN-CC-000344": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000345": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000346": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000113": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000347": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000348": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000114": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00018"
+    },
+    "SYN-CC/SYN-CC-000349": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00018"
+    },
+    "SYN-CC/SYN-CC-000350": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000351": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000115": {
+      "kind": "income",
+      "categoryId": "income.salary"
+    },
+    "SYN-CC/SYN-CC-000352": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-P000353": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000354"
+    },
+    "SYN-CC/SYN-CC-000354": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000355": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/H-b6b69c7ab23c6cb390792fe98882e9c6": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-P000357": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000358"
+    },
+    "SYN-TXN/SYN-TXN-000116": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-TXN/SYN-TXN-000117": {
+      "kind": "fee",
+      "categoryId": "fees.bank"
+    },
+    "SYN-SAV/SYN-SAV-000018": {
+      "kind": "interest",
+      "categoryId": "income.interest"
+    },
+    "SYN-TXN/SYN-TXN-000118": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00019"
+    },
+    "SYN-CC/SYN-CC-000358": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-SAV/SYN-SAV-000019": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00019"
+    },
+    "SYN-TXN/SYN-TXN-000119": {
+      "kind": "opex",
+      "categoryId": "utilities.electricity"
+    },
+    "SYN-CC/SYN-CC-000359": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000360": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000361": {
+      "kind": "refund",
+      "categoryId": "transport.fuel",
+      "refundOf": "SYN-CC-000310"
+    },
+    "SYN-CC/SYN-CC-000362": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000363": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-P000364": {
+      "kind": "opex",
+      "categoryId": "transport.fuel",
+      "supersededBy": "SYN-CC-000366"
+    },
+    "SYN-CC/SYN-CC-000365": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000120": {
+      "kind": "opex",
+      "categoryId": "comms.mobile"
+    },
+    "SYN-TXN/SYN-TXN-000121": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000366": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-000367": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000368": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000369": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-P000370": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000374"
+    },
+    "SYN-TXN/SYN-TXN-000122": {
+      "kind": "income",
+      "categoryId": "income.salary"
+    },
+    "SYN-CC/SYN-CC-000371": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-000372": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000123": {
+      "kind": "investment",
+      "categoryId": "investment.syn-broker"
+    },
+    "SYN-CC/SYN-CC-000373": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-000374": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000375": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000124": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-TXN/SYN-TXN-000125": {
+      "kind": "opex",
+      "categoryId": "health.insurance"
+    },
+    "SYN-CC/SYN-CC-000376": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000377": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-P000378": {
+      "kind": "opex",
+      "categoryId": "transport.fuel",
+      "supersededBy": "SYN-CC-000381"
+    },
+    "SYN-CC/SYN-CC-000379": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000380": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000381": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-000382": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000383": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000384": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-000385": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000386": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000126": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000387": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-P000388": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000391"
+    },
+    "SYN-CC/SYN-CC-000389": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000127": {
+      "kind": "income",
+      "categoryId": "income.salary"
+    },
+    "SYN-CC/SYN-CC-000390": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000391": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000392": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000128": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00020"
+    },
+    "SYN-CC/SYN-CC-000393": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00020"
+    },
+    "SYN-CC/SYN-CC-P000394": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000399"
+    },
+    "SYN-CC/SYN-CC-000395": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000396": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000397": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000129": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000398": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000399": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000400": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000401": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000130": {
+      "kind": "fee",
+      "categoryId": "fees.bank"
+    },
+    "SYN-SAV/SYN-SAV-000020": {
+      "kind": "interest",
+      "categoryId": "income.interest"
+    },
+    "SYN-TXN/SYN-TXN-000131": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00021"
+    },
+    "SYN-SAV/SYN-SAV-000021": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00021"
+    },
+    "SYN-CC/SYN-CC-000402": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000403": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000404": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000132": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000405": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-P000406": {
+      "kind": "opex",
+      "categoryId": "food.groceries",
+      "supersededBy": "SYN-CC-000408"
+    },
+    "SYN-TXN/SYN-TXN-000133": {
+      "kind": "opex",
+      "categoryId": "comms.mobile"
+    },
+    "SYN-TXN/SYN-TXN-000134": {
+      "kind": "income",
+      "categoryId": "income.salary"
+    },
+    "SYN-CC/SYN-CC-000407": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000408": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000409": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000410": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000411": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000412": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000413": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000135": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-TXN/SYN-TXN-000136": {
+      "kind": "investment",
+      "categoryId": "investment.syn-broker"
+    },
+    "SYN-CC/SYN-CC-000414": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-TXN/SYN-TXN-000137": {
+      "kind": "opex",
+      "categoryId": "health.insurance"
+    },
+    "SYN-CC/SYN-CC-000415": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000416": {
+      "kind": "refund",
+      "categoryId": "food.cafe",
+      "refundOf": "SYN-CC-000395"
+    },
+    "SYN-CC/SYN-CC-000417": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000418": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-000419": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000420": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000421": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000138": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-P000422": {
+      "kind": "opex",
+      "categoryId": "food.groceries",
+      "supersededBy": "SYN-CC-000426"
+    },
+    "SYN-CC/SYN-CC-P000423": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000428"
+    },
+    "SYN-CC/SYN-CC-000424": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-000425": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000426": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000139": {
+      "kind": "income",
+      "categoryId": "income.salary"
+    },
+    "SYN-CC/SYN-CC-P000427": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000429"
+    },
+    "SYN-CC/SYN-CC-000428": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000429": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000430": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000140": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00022"
+    },
+    "SYN-CC/SYN-CC-000431": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00022"
+    },
+    "SYN-CC/SYN-CC-000432": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000141": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000433": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-P000434": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000437"
+    },
+    "SYN-CC/SYN-CC-000435": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000436": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000142": {
+      "kind": "fee",
+      "categoryId": "fees.bank"
+    },
+    "SYN-SAV/SYN-SAV-000022": {
+      "kind": "interest",
+      "categoryId": "income.interest"
+    },
+    "SYN-TXN/SYN-TXN-000143": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00023"
+    },
+    "SYN-SAV/SYN-SAV-000023": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00023"
+    },
+    "SYN-CC/SYN-CC-000437": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000438": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000439": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000144": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000440": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000441": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000442": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000443": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000444": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000145": {
+      "kind": "income",
+      "categoryId": "income.salary"
+    },
+    "SYN-CC/SYN-CC-000445": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000446": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000447": {
+      "kind": "refund",
+      "categoryId": "food.cafe",
+      "refundOf": "SYN-CC-000439"
+    },
+    "SYN-CC/SYN-CC-000448": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000146": {
+      "kind": "opex",
+      "categoryId": "comms.mobile"
+    },
+    "SYN-CC/SYN-CC-P000449": {
+      "kind": "opex",
+      "categoryId": "food.groceries",
+      "supersededBy": "SYN-CC-000452"
+    },
+    "SYN-TXN/SYN-TXN-000147": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-P000450": {
+      "kind": "opex",
+      "categoryId": "food.groceries",
+      "supersededBy": "SYN-CC-000457"
+    },
+    "SYN-CC/SYN-CC-000451": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000452": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000453": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000454": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000148": {
+      "kind": "investment",
+      "categoryId": "investment.syn-broker"
+    },
+    "SYN-CC/SYN-CC-000455": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-P000456": {
+      "kind": "opex",
+      "categoryId": "food.groceries",
+      "supersededBy": "SYN-CC-000459"
+    },
+    "SYN-CC/SYN-CC-000457": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000458": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000459": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000149": {
+      "kind": "opex",
+      "categoryId": "health.insurance"
+    },
+    "SYN-CC/SYN-CC-000460": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-P000461": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000462"
+    },
+    "SYN-TXN/SYN-TXN-000150": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000462": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000151": {
+      "kind": "income",
+      "categoryId": "income.salary"
+    },
+    "SYN-CC/SYN-CC-000463": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000152": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000464": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000465": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000153": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00024"
+    },
+    "SYN-CC/SYN-CC-000466": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00024"
+    },
+    "SYN-CC/SYN-CC-000467": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-P000468": {
+      "kind": "opex",
+      "categoryId": "food.groceries",
+      "supersededBy": "SYN-CC-000472"
+    },
+    "SYN-CC/SYN-CC-P000469": {
+      "kind": "opex",
+      "categoryId": "food.groceries",
+      "supersededBy": "SYN-CC-000471"
+    },
+    "SYN-CC/SYN-CC-000470": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000471": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000472": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000154": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-TXN/SYN-TXN-000155": {
+      "kind": "fee",
+      "categoryId": "fees.bank"
+    },
+    "SYN-SAV/SYN-SAV-000024": {
+      "kind": "interest",
+      "categoryId": "income.interest"
+    },
+    "SYN-TXN/SYN-TXN-000156": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00025"
+    },
+    "SYN-CC/SYN-CC-000473": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-SAV/SYN-SAV-000025": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00025"
+    },
+    "SYN-TXN/SYN-TXN-000157": {
+      "kind": "opex",
+      "categoryId": "utilities.electricity"
+    },
+    "SYN-CC/SYN-CC-P000474": {
+      "kind": "opex",
+      "categoryId": "food.groceries",
+      "supersededBy": "SYN-CC-000477"
+    },
+    "SYN-TXN/SYN-TXN-000158": {
+      "kind": "income",
+      "categoryId": "income.salary"
+    },
+    "SYN-CC/SYN-CC-000475": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-000476": {
+      "kind": "capex",
+      "categoryId": "capex.travel",
+      "assetId": "holiday-international"
+    },
+    "SYN-CC/SYN-CC-000477": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000478": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-P000479": {
+      "kind": "opex",
+      "categoryId": "transport.fuel",
+      "supersededBy": "SYN-CC-000484"
+    },
+    "SYN-CC/SYN-CC-000480": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000159": {
+      "kind": "opex",
+      "categoryId": "comms.mobile"
+    },
+    "SYN-TXN/SYN-TXN-000160": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000481": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-P000482": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000485"
+    },
+    "SYN-CC/SYN-CC-000483": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000484": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-000485": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000486": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000487": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000161": {
+      "kind": "investment",
+      "categoryId": "investment.syn-broker"
+    },
+    "SYN-CC/SYN-CC-P000488": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000493"
+    },
+    "SYN-CC/SYN-CC-000489": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000162": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-TXN/SYN-TXN-000163": {
+      "kind": "opex",
+      "categoryId": "health.insurance"
+    },
+    "SYN-CC/SYN-CC-000490": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000491": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000492": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000493": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000164": {
+      "kind": "income",
+      "categoryId": "income.salary"
+    },
+    "SYN-CC/SYN-CC-000494": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000495": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000496": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000497": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000498": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000165": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000499": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000500": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000501": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000502": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-P000503": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000507"
+    },
+    "SYN-CC/SYN-CC-000504": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-SAV/H-e4e300c4c5f97051ff4b773ebd4a199c": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00026"
+    },
+    "SYN-TXN/SYN-TXN-000166": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00026"
+    },
+    "SYN-TXN/SYN-TXN-000167": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00027"
+    },
+    "SYN-CC/SYN-CC-P000505": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000511"
+    },
+    "SYN-CC/SYN-CC-000506": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00027"
+    },
+    "SYN-CC/SYN-CC-000507": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000508": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-P000509": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000513"
+    },
+    "SYN-CC/SYN-CC-000510": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000168": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000511": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000512": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000513": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000169": {
+      "kind": "income",
+      "categoryId": "income.salary"
+    },
+    "SYN-TXN/SYN-TXN-000170": {
+      "kind": "fee",
+      "categoryId": "fees.bank"
+    },
+    "SYN-CC/SYN-CC-000514": {
+      "kind": "fee",
+      "categoryId": "fees.bank"
+    },
+    "SYN-SAV/SYN-SAV-000027": {
+      "kind": "interest",
+      "categoryId": "income.interest"
+    },
+    "SYN-TXN/SYN-TXN-000171": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00028"
+    },
+    "SYN-CC/SYN-CC-000515": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-SAV/SYN-SAV-000028": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00028"
+    },
+    "SYN-CC/SYN-CC-000516": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000517": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000518": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000519": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000520": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000521": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000172": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000522": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000523": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000524": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000525": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000526": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000173": {
+      "kind": "opex",
+      "categoryId": "comms.mobile"
+    },
+    "SYN-CC/SYN-CC-P000527": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000531"
+    },
+    "SYN-CC/SYN-CC-000528": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-000529": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000530": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-000531": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000532": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000533": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000174": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-SAV/SYN-SAV-000029": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00029"
+    },
+    "SYN-TXN/SYN-TXN-000175": {
+      "kind": "investment",
+      "categoryId": "investment.syn-broker"
+    },
+    "SYN-CC/SYN-CC-P000534": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000535"
+    },
+    "SYN-TXN/SYN-TXN-000176": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00029"
+    },
+    "SYN-TXN/SYN-TXN-000177": {
+      "kind": "income",
+      "categoryId": "income.salary"
+    },
+    "SYN-CC/SYN-CC-000535": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000178": {
+      "kind": "opex",
+      "categoryId": "health.insurance"
+    },
+    "SYN-CC/SYN-CC-000536": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000537": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-P000538": {
+      "kind": "opex",
+      "categoryId": "transport.fuel",
+      "supersededBy": "SYN-CC-000540"
+    },
+    "SYN-CC/SYN-CC-000539": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000540": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-TXN/SYN-TXN-000179": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000541": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000542": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000543": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000544": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000545": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-P000546": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000550"
+    },
+    "SYN-CC/SYN-CC-000547": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000180": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-TXN/SYN-TXN-000181": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00030"
+    },
+    "SYN-CC/SYN-CC-000548": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000549": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00030"
+    },
+    "SYN-CC/SYN-CC-000550": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000551": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-TXN/SYN-TXN-000182": {
+      "kind": "income",
+      "categoryId": "income.salary"
+    },
+    "SYN-CC/SYN-CC-P000552": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000553"
+    },
+    "SYN-CC/SYN-CC-000553": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000554": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000555": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000183": {
+      "kind": "fee",
+      "categoryId": "fees.bank"
+    },
+    "SYN-SAV/SYN-SAV-000030": {
+      "kind": "interest",
+      "categoryId": "income.interest"
+    },
+    "SYN-TXN/SYN-TXN-000184": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00031"
+    },
+    "SYN-CC/SYN-CC-000556": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-SAV/SYN-SAV-000031": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00031"
+    },
+    "SYN-TXN/SYN-TXN-000185": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000557": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000558": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000559": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-000560": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000561": {
+      "kind": "capex",
+      "categoryId": "capex.computing",
+      "assetId": "laptop"
+    },
+    "SYN-TXN/SYN-TXN-000186": {
+      "kind": "opex",
+      "categoryId": "comms.mobile"
+    },
+    "SYN-TXN/SYN-TXN-000187": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000562": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000563": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000188": {
+      "kind": "income",
+      "categoryId": "income.salary"
+    },
+    "SYN-CC/SYN-CC-000564": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000565": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000189": {
+      "kind": "investment",
+      "categoryId": "investment.syn-broker"
+    },
+    "SYN-CC/SYN-CC-000566": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-P000567": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000571"
+    },
+    "SYN-CC/SYN-CC-000568": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-TXN/SYN-TXN-000190": {
+      "kind": "opex",
+      "categoryId": "health.insurance"
+    },
+    "SYN-TXN/SYN-TXN-000191": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-P000569": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000574"
+    },
+    "SYN-CC/SYN-CC-000570": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000571": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000572": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-000573": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000574": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000575": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000576": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000192": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000577": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000193": {
+      "kind": "income",
+      "categoryId": "income.salary"
+    },
+    "SYN-TXN/SYN-TXN-000194": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00032"
+    },
+    "SYN-CC/SYN-CC-000578": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00032"
+    },
+    "SYN-CC/SYN-CC-000579": {
+      "kind": "refund",
+      "categoryId": "food.groceries",
+      "refundOf": "SYN-CC-000562"
+    },
+    "SYN-CC/SYN-CC-000580": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/H-58ecd9d1b9848ac1995b86660e7455d9": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000582": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000583": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000584": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000195": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000585": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000586": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000196": {
+      "kind": "fee",
+      "categoryId": "fees.bank"
+    },
+    "SYN-SAV/SYN-SAV-000032": {
+      "kind": "interest",
+      "categoryId": "income.interest"
+    },
+    "SYN-SAV/SYN-SAV-000033": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00033"
+    },
+    "SYN-TXN/SYN-TXN-000197": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00033"
+    },
+    "SYN-TXN/SYN-TXN-000198": {
+      "kind": "opex",
+      "categoryId": "utilities.electricity"
+    },
+    "SYN-CC/SYN-CC-000587": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000588": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000589": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000590": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000591": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-TXN/SYN-TXN-000199": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000592": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000200": {
+      "kind": "opex",
+      "categoryId": "comms.mobile"
+    },
+    "SYN-CC/SYN-CC-000593": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000201": {
+      "kind": "income",
+      "categoryId": "income.salary"
+    },
+    "SYN-CC/SYN-CC-000594": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-P000595": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000599"
+    },
+    "SYN-CC/SYN-CC-000596": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000597": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-000598": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000599": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000202": {
+      "kind": "investment",
+      "categoryId": "investment.syn-broker"
+    },
+    "SYN-CC/SYN-CC-000600": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000601": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000203": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000602": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000204": {
+      "kind": "opex",
+      "categoryId": "health.insurance"
+    },
+    "SYN-CC/SYN-CC-000603": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000604": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000605": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000606": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000607": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000608": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-TXN/SYN-TXN-000205": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000609": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000610": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000611": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000612": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000206": {
+      "kind": "income",
+      "categoryId": "income.salary"
+    },
+    "SYN-CC/SYN-CC-000613": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000614": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000207": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00034"
+    },
+    "SYN-CC/SYN-CC-000615": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00034"
+    },
+    "SYN-TXN/SYN-TXN-000208": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000616": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000617": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000618": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000209": {
+      "kind": "fee",
+      "categoryId": "fees.bank"
+    },
+    "SYN-SAV/SYN-SAV-000034": {
+      "kind": "interest",
+      "categoryId": "income.interest"
+    },
+    "SYN-TXN/SYN-TXN-000210": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00035"
+    },
+    "SYN-SAV/SYN-SAV-000035": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00035"
+    },
+    "SYN-CC/SYN-CC-P000619": {
+      "kind": "opex",
+      "categoryId": "food.groceries",
+      "supersededBy": "SYN-CC-000622"
+    },
+    "SYN-CC/SYN-CC-000620": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000211": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000621": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000622": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000623": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-P000624": {
+      "kind": "opex",
+      "categoryId": "transport.fuel",
+      "supersededBy": "SYN-CC-000627"
+    },
+    "SYN-CC/SYN-CC-000625": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000626": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000212": {
+      "kind": "income",
+      "categoryId": "income.salary"
+    },
+    "SYN-CC/SYN-CC-000627": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-P000628": {
+      "kind": "opex",
+      "categoryId": "transport.fuel",
+      "supersededBy": "SYN-CC-000630"
+    },
+    "SYN-TXN/SYN-TXN-000213": {
+      "kind": "opex",
+      "categoryId": "comms.mobile"
+    },
+    "SYN-CC/SYN-CC-000629": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000630": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-000631": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000214": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000632": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-P000633": {
+      "kind": "opex",
+      "categoryId": "food.groceries",
+      "supersededBy": "SYN-CC-000635"
+    },
+    "SYN-TXN/SYN-TXN-000215": {
+      "kind": "investment",
+      "categoryId": "investment.syn-broker"
+    },
+    "SYN-CC/SYN-CC-P000634": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000636"
+    },
+    "SYN-CC/SYN-CC-000635": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000216": {
+      "kind": "opex",
+      "categoryId": "health.insurance"
+    },
+    "SYN-CC/SYN-CC-000636": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000637": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000638": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000217": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-P000639": {
+      "kind": "opex",
+      "categoryId": "transport.fuel",
+      "supersededBy": "SYN-CC-000643"
+    },
+    "SYN-CC/SYN-CC-000640": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000641": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000642": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000218": {
+      "kind": "income",
+      "categoryId": "income.salary"
+    },
+    "SYN-CC/SYN-CC-000643": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-000644": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000645": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000646": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000647": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000219": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000648": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000220": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00036"
+    },
+    "SYN-CC/SYN-CC-P000649": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000653"
+    },
+    "SYN-CC/SYN-CC-000650": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00036"
+    },
+    "SYN-CC/SYN-CC-000651": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000652": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000653": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-P000654": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000658"
+    },
+    "SYN-CC/SYN-CC-000655": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000656": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000657": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000658": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000221": {
+      "kind": "fee",
+      "categoryId": "fees.bank"
+    },
+    "SYN-SAV/SYN-SAV-000036": {
+      "kind": "interest",
+      "categoryId": "income.interest"
+    },
+    "SYN-TXN/SYN-TXN-000222": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00037"
+    },
+    "SYN-SAV/SYN-SAV-000037": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00037"
+    },
+    "SYN-CC/SYN-CC-000659": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000223": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000660": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000661": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000224": {
+      "kind": "income",
+      "categoryId": "income.salary"
+    },
+    "SYN-CC/SYN-CC-000662": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000663": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000664": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000225": {
+      "kind": "opex",
+      "categoryId": "comms.mobile"
+    },
+    "SYN-CC/SYN-CC-000665": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000226": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000666": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000667": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000668": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000669": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000670": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000227": {
+      "kind": "investment",
+      "categoryId": "investment.syn-broker"
+    },
+    "SYN-TXN/SYN-TXN-000228": {
+      "kind": "opex",
+      "categoryId": "health.insurance"
+    },
+    "SYN-CC/SYN-CC-000671": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000229": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000672": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000673": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000674": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000230": {
+      "kind": "income",
+      "categoryId": "income.salary"
+    },
+    "SYN-CC/SYN-CC-000675": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/H-dd424c7cfd7ea299452511a178ef3e03": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000677": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000678": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-000679": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000680": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000231": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000681": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000232": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00038"
+    },
+    "SYN-CC/SYN-CC-000682": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00038"
+    },
+    "SYN-CC/SYN-CC-000683": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000684": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000685": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-TXN/SYN-TXN-000233": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000686": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000687": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000234": {
+      "kind": "fee",
+      "categoryId": "fees.bank"
+    },
+    "SYN-SAV/SYN-SAV-000038": {
+      "kind": "interest",
+      "categoryId": "income.interest"
+    },
+    "SYN-TXN/SYN-TXN-000235": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00039"
+    },
+    "SYN-CC/SYN-CC-P000688": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000692"
+    },
+    "SYN-CC/SYN-CC-000689": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000236": {
+      "kind": "income",
+      "categoryId": "income.salary"
+    },
+    "SYN-SAV/SYN-SAV-000039": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00039"
+    },
+    "SYN-TXN/SYN-TXN-000237": {
+      "kind": "opex",
+      "categoryId": "utilities.electricity"
+    },
+    "SYN-CC/SYN-CC-000690": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000691": {
+      "kind": "refund",
+      "categoryId": "food.groceries",
+      "refundOf": "SYN-CC-000659"
+    },
+    "SYN-CC/SYN-CC-000692": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000693": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000238": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000694": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000695": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-P000696": {
+      "kind": "opex",
+      "categoryId": "transport.fuel",
+      "supersededBy": "SYN-CC-000699"
+    },
+    "SYN-CC/SYN-CC-000697": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000239": {
+      "kind": "opex",
+      "categoryId": "comms.mobile"
+    },
+    "SYN-CC/SYN-CC-000698": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000699": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-000700": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-000701": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000702": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-P000703": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000707"
+    },
+    "SYN-CC/SYN-CC-000704": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000705": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000240": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-TXN/SYN-TXN-000241": {
+      "kind": "investment",
+      "categoryId": "investment.syn-broker"
+    },
+    "SYN-CC/SYN-CC-P000706": {
+      "kind": "opex",
+      "categoryId": "food.groceries",
+      "supersededBy": "SYN-CC-000709"
+    },
+    "SYN-CC/SYN-CC-000707": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000708": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000709": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000242": {
+      "kind": "opex",
+      "categoryId": "health.insurance"
+    },
+    "SYN-TXN/SYN-TXN-000243": {
+      "kind": "income",
+      "categoryId": "income.salary"
+    },
+    "SYN-CC/SYN-CC-P000710": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000713"
+    },
+    "SYN-CC/SYN-CC-000711": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000712": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/H-a30cdf580974bf20e2f34fd286aa19ba": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000713": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000714": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000715": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000716": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000717": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000718": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000245": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00040"
+    },
+    "SYN-CC/SYN-CC-P000719": {
+      "kind": "opex",
+      "categoryId": "food.groceries",
+      "supersededBy": "SYN-CC-000724"
+    },
+    "SYN-CC/SYN-CC-000720": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000721": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00040"
+    },
+    "SYN-TXN/SYN-TXN-000246": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000722": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000723": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000724": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000247": {
+      "kind": "income",
+      "categoryId": "income.salary"
+    },
+    "SYN-CC/SYN-CC-000725": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000248": {
+      "kind": "fee",
+      "categoryId": "fees.bank"
+    },
+    "SYN-SAV/SYN-SAV-000040": {
+      "kind": "interest",
+      "categoryId": "income.interest"
+    },
+    "SYN-TXN/SYN-TXN-000249": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00041"
+    },
+    "SYN-SAV/SYN-SAV-000041": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00041"
+    },
+    "SYN-CC/SYN-CC-000726": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000727": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000250": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000728": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000729": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-P000730": {
+      "kind": "opex",
+      "categoryId": "transport.fuel",
+      "supersededBy": "SYN-CC-000734"
+    },
+    "SYN-CC/SYN-CC-000731": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000732": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000251": {
+      "kind": "opex",
+      "categoryId": "comms.mobile"
+    },
+    "SYN-CC/SYN-CC-000733": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000734": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-000735": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000736": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000252": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000737": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000253": {
+      "kind": "income",
+      "categoryId": "income.salary"
+    },
+    "SYN-TXN/SYN-TXN-000254": {
+      "kind": "investment",
+      "categoryId": "investment.syn-broker"
+    },
+    "SYN-CC/SYN-CC-000738": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000739": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000740": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000741": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000742": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000255": {
+      "kind": "opex",
+      "categoryId": "health.insurance"
+    },
+    "SYN-CC/SYN-CC-P000743": {
+      "kind": "opex",
+      "categoryId": "food.groceries",
+      "supersededBy": "SYN-CC-000746"
+    },
+    "SYN-CC/SYN-CC-000744": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000256": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000745": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000746": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-P000747": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000751"
+    },
+    "SYN-CC/SYN-CC-000748": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000749": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000750": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000751": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000752": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000753": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000754": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-P000755": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000759"
+    },
+    "SYN-CC/SYN-CC-000756": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000757": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000257": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000758": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000759": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000760": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000761": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000762": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000258": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00042"
+    },
+    "SYN-CC/SYN-CC-000763": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00042"
+    },
+    "SYN-TXN/SYN-TXN-000259": {
+      "kind": "income",
+      "categoryId": "income.salary"
+    },
+    "SYN-CC/SYN-CC-000764": {
+      "kind": "refund",
+      "categoryId": "food.cafe",
+      "refundOf": "SYN-CC-000720"
+    },
+    "SYN-CC/SYN-CC-000765": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000260": {
+      "kind": "fee",
+      "categoryId": "fees.bank"
+    },
+    "SYN-SAV/SYN-SAV-000042": {
+      "kind": "interest",
+      "categoryId": "income.interest"
+    },
+    "SYN-TXN/SYN-TXN-000261": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00043"
+    },
+    "SYN-SAV/H-8d1f9cf944a96bb89f5986bc9a049b7e": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00043"
+    },
+    "SYN-CC/SYN-CC-000766": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000262": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000767": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000768": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000769": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000770": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000771": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000772": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000773": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000263": {
+      "kind": "opex",
+      "categoryId": "comms.mobile"
+    },
+    "SYN-CC/SYN-CC-000774": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000264": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-TXN/SYN-TXN-000265": {
+      "kind": "income",
+      "categoryId": "income.salary"
+    },
+    "SYN-TXN/SYN-TXN-000266": {
+      "kind": "investment",
+      "categoryId": "investment.syn-broker"
+    },
+    "SYN-CC/SYN-CC-P000775": {
+      "kind": "opex",
+      "categoryId": "food.groceries",
+      "supersededBy": "SYN-CC-000778"
+    },
+    "SYN-CC/SYN-CC-000776": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000777": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000267": {
+      "kind": "opex",
+      "categoryId": "health.insurance"
+    },
+    "SYN-CC/SYN-CC-000778": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000779": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000268": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000780": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-000781": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000782": {
+      "kind": "refund",
+      "categoryId": "food.cafe",
+      "refundOf": "SYN-CC-000766"
+    },
+    "SYN-CC/SYN-CC-000783": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000784": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-000785": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000786": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000787": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000788": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000789": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-000790": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000269": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000791": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000792": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000270": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00044"
+    },
+    "SYN-CC/SYN-CC-000793": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00044"
+    },
+    "SYN-TXN/SYN-TXN-000271": {
+      "kind": "income",
+      "categoryId": "income.salary"
+    },
+    "SYN-CC/SYN-CC-000794": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000795": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000796": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000272": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-TXN/SYN-TXN-000273": {
+      "kind": "fee",
+      "categoryId": "fees.bank"
+    },
+    "SYN-SAV/SYN-SAV-000044": {
+      "kind": "interest",
+      "categoryId": "income.interest"
+    },
+    "SYN-TXN/SYN-TXN-000274": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00045"
+    },
+    "SYN-SAV/SYN-SAV-000045": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00045"
+    },
+    "SYN-TXN/SYN-TXN-000275": {
+      "kind": "opex",
+      "categoryId": "utilities.electricity"
+    },
+    "SYN-CC/SYN-CC-000797": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000798": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000799": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000800": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000276": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000801": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000802": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-TXN/SYN-TXN-000277": {
+      "kind": "opex",
+      "categoryId": "comms.mobile"
+    },
+    "SYN-CC/SYN-CC-P000803": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000809"
+    },
+    "SYN-CC/SYN-CC-000804": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000278": {
+      "kind": "income",
+      "categoryId": "income.salary"
+    },
+    "SYN-CC/SYN-CC-000805": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-000806": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-P000807": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000811"
+    },
+    "SYN-CC/SYN-CC-P000808": {
+      "kind": "opex",
+      "categoryId": "transport.fuel",
+      "supersededBy": "SYN-CC-000818"
+    },
+    "SYN-CC/SYN-CC-000809": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000810": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000811": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000812": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000813": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000279": {
+      "kind": "investment",
+      "categoryId": "investment.syn-broker"
+    },
+    "SYN-CC/SYN-CC-000814": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000815": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000816": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-TXN/SYN-TXN-000280": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000817": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000281": {
+      "kind": "opex",
+      "categoryId": "health.insurance"
+    },
+    "SYN-CC/SYN-CC-000818": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-000819": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000820": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000821": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000822": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000823": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000824": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000825": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-TXN/SYN-TXN-000282": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000826": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000827": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-P000828": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000830"
+    },
+    "SYN-TXN/SYN-TXN-000283": {
+      "kind": "income",
+      "categoryId": "income.salary"
+    },
+    "SYN-CC/SYN-CC-000829": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000830": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000284": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00046"
+    },
+    "SYN-CC/SYN-CC-000831": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00046"
+    },
+    "SYN-CC/SYN-CC-P000832": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000833"
+    },
+    "SYN-CC/SYN-CC-000833": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000285": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000834": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000835": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-000836": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000837": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000838": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-TXN/SYN-TXN-000286": {
+      "kind": "fee",
+      "categoryId": "fees.bank"
+    },
+    "SYN-SAV/SYN-SAV-000046": {
+      "kind": "interest",
+      "categoryId": "income.interest"
+    },
+    "SYN-TXN/SYN-TXN-000287": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00047"
+    },
+    "SYN-SAV/SYN-SAV-000047": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00047"
+    },
+    "SYN-CC/SYN-CC-000839": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000840": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000841": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-000842": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-P000843": {
+      "kind": "opex",
+      "categoryId": "food.groceries",
+      "supersededBy": "SYN-CC-000848"
+    },
+    "SYN-CC/SYN-CC-000844": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000845": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000288": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000846": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000847": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000848": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000849": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000850": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000289": {
+      "kind": "income",
+      "categoryId": "income.salary"
+    },
+    "SYN-CC/SYN-CC-000851": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000290": {
+      "kind": "opex",
+      "categoryId": "comms.mobile"
+    },
+    "SYN-CC/SYN-CC-000852": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000853": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000854": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000291": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000855": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000856": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000292": {
+      "kind": "investment",
+      "categoryId": "investment.syn-broker"
+    },
+    "SYN-CC/SYN-CC-000857": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000858": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000859": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000293": {
+      "kind": "opex",
+      "categoryId": "health.insurance"
+    },
+    "SYN-CC/SYN-CC-000860": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000861": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-P000862": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000864"
+    },
+    "SYN-CC/SYN-CC-000863": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-000864": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000865": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000294": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-TXN/SYN-TXN-000295": {
+      "kind": "income",
+      "categoryId": "income.salary"
+    },
+    "SYN-CC/SYN-CC-000866": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000867": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000868": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-000869": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000870": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000871": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000296": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-TXN/SYN-TXN-000297": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00048"
+    },
+    "SYN-CC/SYN-CC-000872": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00048"
+    },
+    "SYN-CC/SYN-CC-P000873": {
+      "kind": "opex",
+      "categoryId": "food.groceries",
+      "supersededBy": "SYN-CC-000876"
+    },
+    "SYN-CC/SYN-CC-P000874": {
+      "kind": "opex",
+      "categoryId": "food.groceries",
+      "supersededBy": "SYN-CC-000877"
+    },
+    "SYN-CC/SYN-CC-000875": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000876": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000877": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-P000878": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000879"
+    },
+    "SYN-TXN/SYN-TXN-000298": {
+      "kind": "fee",
+      "categoryId": "fees.bank"
+    },
+    "SYN-SAV/SYN-SAV-000048": {
+      "kind": "interest",
+      "categoryId": "income.interest"
+    },
+    "SYN-TXN/SYN-TXN-000299": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00049"
+    },
+    "SYN-SAV/SYN-SAV-000049": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00049"
+    },
+    "SYN-TXN/SYN-TXN-000300": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000879": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000880": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000881": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000301": {
+      "kind": "income",
+      "categoryId": "income.salary"
+    },
+    "SYN-CC/SYN-CC-000882": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000883": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000884": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000885": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-TXN/SYN-TXN-000302": {
+      "kind": "opex",
+      "categoryId": "comms.mobile"
+    },
+    "SYN-TXN/SYN-TXN-000303": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000886": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000887": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-P000888": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000892"
+    },
+    "SYN-CC/SYN-CC-000889": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-P000890": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000893"
+    },
+    "SYN-TXN/SYN-TXN-000304": {
+      "kind": "investment",
+      "categoryId": "investment.syn-broker"
+    },
+    "SYN-CC/SYN-CC-000891": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000892": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000893": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000894": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000305": {
+      "kind": "opex",
+      "categoryId": "health.insurance"
+    },
+    "SYN-TXN/SYN-TXN-000306": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000895": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/H-2ece359d367bcf1fb87d80c36f5fa26b": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-TXN/SYN-TXN-000307": {
+      "kind": "income",
+      "categoryId": "income.salary"
+    },
+    "SYN-TXN/SYN-TXN-000308": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000897": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-P000898": {
+      "kind": "opex",
+      "categoryId": "food.cafe",
+      "supersededBy": "SYN-CC-000905"
+    },
+    "SYN-CC/SYN-CC-000899": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000309": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00050"
+    },
+    "SYN-CC/SYN-CC-000900": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000901": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00050"
+    },
+    "SYN-CC/SYN-CC-000902": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-P000903": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000904": {
+      "kind": "opex",
+      "categoryId": "food.groceries"
+    },
+    "SYN-CC/SYN-CC-000905": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-CC/SYN-CC-000906": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000310": {
+      "kind": "opex",
+      "categoryId": "housing.rent"
+    },
+    "SYN-CC/SYN-CC-000907": {
+      "kind": "opex",
+      "categoryId": "transport.fuel"
+    },
+    "SYN-CC/SYN-CC-000908": {
+      "kind": "opex",
+      "categoryId": "food.cafe"
+    },
+    "SYN-TXN/SYN-TXN-000311": {
+      "kind": "fee",
+      "categoryId": "fees.bank"
+    },
+    "SYN-SAV/SYN-SAV-000050": {
+      "kind": "interest",
+      "categoryId": "income.interest"
+    },
+    "SYN-TXN/SYN-TXN-000312": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00051"
+    },
+    "SYN-SAV/SYN-SAV-000051": {
+      "kind": "transfer",
+      "categoryId": "transfer.internal",
+      "transferPairId": "T-00051"
+    }
+  },
+  "assets": [
+    {
+      "assetId": "laptop",
+      "name": "Laptop",
+      "categoryId": "capex.computing",
+      "lifeYears": 5,
+      "shape": 3,
+      "lastBought": "2021-03-01",
+      "lastBoughtAssumed": false,
+      "purchases": [
+        "2025-09-05"
+      ],
+      "nextReplacement": "2032-07-17"
+    },
+    {
+      "assetId": "watch",
+      "name": "Watch",
+      "categoryId": "capex.personal",
+      "lifeYears": 10,
+      "shape": 3,
+      "lastBought": null,
+      "lastBoughtAssumed": false,
+      "purchases": [],
+      "nextReplacement": null
+    },
+    {
+      "assetId": "fountain-pen",
+      "name": "Fountain pen",
+      "categoryId": "capex.personal",
+      "lifeYears": 8,
+      "shape": 3,
+      "lastBought": "2019-11-13",
+      "lastBoughtAssumed": true,
+      "purchases": [],
+      "nextReplacement": "2032-12-10"
+    },
+    {
+      "assetId": "holiday-international",
+      "name": "Holiday (international)",
+      "categoryId": "capex.travel",
+      "lifeYears": null,
+      "shape": null,
+      "lastBought": null,
+      "lastBoughtAssumed": false,
+      "purchases": [
+        "2024-07-24",
+        "2025-07-03"
+      ],
+      "nextReplacement": null
+    }
+  ]
+}

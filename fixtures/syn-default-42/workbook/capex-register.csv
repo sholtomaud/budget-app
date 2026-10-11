@@ -1,0 +1,8 @@
+# x-synthetic: generator=budget-app/synth@0.1.0, seed=42, persona=default
+Source Year,Item,Forecast Spend,Paid?,Date Paid,Actual Spend,Expected Life,Replacement Year,Product URL
+2021,Laptop,3200.00,Yes,2021-03-01,3200.00,5,2026,
+2025,Laptop,3200.00,Yes,2025-09-05,3200.00,5,2030,
+2024,Watch,900.00,No,,,10,,
+2024,Fountain pen,180.00,No,,,8,,
+2024,Holiday (international),6000.00,Yes,2024-07-24,6000.00,1,2025,
+2025,Holiday (international),6000.00,Yes,2025-07-03,6000.00,1,2026,

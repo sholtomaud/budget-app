@@ -1,0 +1,54 @@
+{
+  "x-synthetic": {
+    "generator": "budget-app/synth@0.1.0",
+    "seed": "42",
+    "persona": "default"
+  },
+  "data": {
+    "accounts": [
+      {
+        "accountId": "SYN-TXN",
+        "creationDate": "2022-07-02",
+        "displayName": "Everyday",
+        "nickname": "Everyday",
+        "openStatus": "OPEN",
+        "isOwned": true,
+        "accountOwnership": "ONE_PARTY",
+        "maskedNumber": "xxxx xxxx xxxx 1SYN",
+        "productCategory": "TRANS_AND_SAVINGS_ACCOUNTS",
+        "productName": "Synthetic Everyday Account"
+      },
+      {
+        "accountId": "SYN-SAV",
+        "creationDate": "2021-07-02",
+        "displayName": "Savings",
+        "nickname": "Savings",
+        "openStatus": "OPEN",
+        "isOwned": true,
+        "accountOwnership": "ONE_PARTY",
+        "maskedNumber": "xxxx xxxx xxxx 2SYN",
+        "productCategory": "TRANS_AND_SAVINGS_ACCOUNTS",
+        "productName": "Synthetic Saver"
+      },
+      {
+        "accountId": "SYN-CC",
+        "creationDate": "2020-07-02",
+        "displayName": "Rewards Card",
+        "nickname": "Rewards Card",
+        "openStatus": "OPEN",
+        "isOwned": true,
+        "accountOwnership": "ONE_PARTY",
+        "maskedNumber": "xxxx xxxx xxxx 3SYN",
+        "productCategory": "CRED_AND_CHRG_CARDS",
+        "productName": "Synthetic Card"
+      }
+    ]
+  },
+  "links": {
+    "self": "https://synthetic.invalid/banking/accounts"
+  },
+  "meta": {
+    "totalRecords": 3,
+    "totalPages": 1
+  }
+}

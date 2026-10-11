@@ -3,6 +3,7 @@
 | Layer      | Tool       | Where                                                                                                                                                                    |
 | ---------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Unit       | Vitest     | `tests/unit/` — pure logic: routes, store, chart scales, data hygiene                                                                                                    |
+| Property   | Vitest     | `tests/property/` — invariants over many seeded random cases: import order and page overlap never change the ledger; synthetic balances always reconcile                 |
 | Kernel     | Vitest     | `tests/kernel/` — the GSSK wrapper against the vendored wasm: pin check, init, step, reset, `setEdgeK` with cause, mutation log, replay, conservation, sink accumulation |
 | End to end | Playwright | `tests/e2e/` — the production build in Chromium: custom elements, router, kernel run in the worker, CSP, offline reload, no-egress privacy                               |
 
@@ -30,3 +31,11 @@ Property tests (from M1) use in-house seeded generators on SplitMix64, so failur
 - a fixture without its `x-synthetic` marker
 
 Test files that need real-looking values assemble them at runtime, so they pass the gate they test.
+
+## Synthetic fixtures and golden tests
+
+`fixtures/syn-<persona>-42/` holds generated CDR exports for each committed persona. A test
+regenerates them and compares byte for byte, and another pins the generator's output hashes in a
+snapshot. After a deliberate generator change, run `npm run fixtures` and `npx vitest run -u`, and
+commit both. Tests check the importer against `truth.json`: pending→posted matches, transfer
+pairing precision and recall, and that every transaction has a label.
