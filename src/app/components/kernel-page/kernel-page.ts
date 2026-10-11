@@ -1,5 +1,5 @@
 import { BaseComponent, define } from '../../core/base-component.ts';
-import { sim } from '../../sim-client.ts';
+import { sim } from '../../workers.ts';
 import '../line-chart/line-chart.ts';
 import type { LineChart } from '../line-chart/line-chart.ts';
 import template from './kernel-page.html?raw';

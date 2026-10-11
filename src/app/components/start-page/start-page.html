@@ -7,14 +7,32 @@
   </p>
 
   <div class="choices">
-    <article class="card">
+    <article class="card synth">
       <h2>Try synthetic data</h2>
       <p>
         Explore every screen with a generated household before loading anything real. Every number
         is labelled <span class="prov" data-prov="illustrative">illustrative</span>.
       </p>
-      <button type="button" disabled aria-describedby="synth-note">Choose a persona</button>
-      <p class="note" id="synth-note">The synthetic generator arrives in milestone M1.</p>
+      <form class="synth-form">
+        <label>
+          Household
+          <select name="persona" required></select>
+        </label>
+        <p class="persona-desc muted"></p>
+        <label>
+          Seed
+          <input
+            name="seed"
+            value="42"
+            inputmode="numeric"
+            pattern="(0x[0-9a-fA-F]+|[0-9]+)"
+            required
+            size="12"
+          />
+        </label>
+        <button type="submit">Generate and load</button>
+      </form>
+      <p class="synth-status muted" role="status" aria-live="polite"></p>
     </article>
     <article class="card">
       <h2>Import my data</h2>
@@ -40,6 +58,8 @@
       </li>
     </ul>
   </article>
+
+  <p class="loaded muted" hidden></p>
 
   <p class="kernel-status" role="status">
     Simulation kernel: <span class="kstate">checking…</span>

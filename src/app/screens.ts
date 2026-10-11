@@ -24,14 +24,7 @@ function planned(
 
 export const screens: Screen[] = [
   { path: '/', nav: 'Start', title: 'Start', component: 'start-page' },
-  planned(
-    '/import',
-    'Import',
-    'Import',
-    '§6',
-    'M1 (CDR) · M3 (CSV budget)',
-    'Drop CDR JSON or ZIP files and CSV budget exports. Per-file results, a mapping wizard, and undo per import.'
-  ),
+  { path: '/import', nav: 'Import', title: 'Import', component: 'import-page' },
   planned(
     '/ledger',
     'Ledger',

@@ -1,0 +1,91 @@
+<section class="screen">
+  <h1>Import</h1>
+  <p class="lede">
+    Load Consumer Data Right (Open Banking) exports: the account list, balances, and transaction
+    pages, as JSON files or a ZIP of them. Files are read on this device and never uploaded.
+  </p>
+
+  <div class="drop" tabindex="0" aria-describedby="drop-help">
+    <p id="drop-help">Drop files or a folder here, or</p>
+    <div class="pickers">
+      <label class="button"
+        >Choose files<input
+          type="file"
+          class="pick-files"
+          multiple
+          accept=".json,.zip,application/json,application/zip"
+      /></label>
+      <label class="button secondary"
+        >Choose a folder<input type="file" class="pick-folder" webkitdirectory multiple
+      /></label>
+    </div>
+  </div>
+  <p class="status" role="status" aria-live="polite"></p>
+  <p class="error" role="alert" hidden></p>
+
+  <article class="card last" hidden>
+    <h2>Last import</h2>
+    <p class="last-summary"></p>
+    <details class="file-details">
+      <summary class="file-count"></summary>
+      <div class="scroll">
+        <table class="files">
+          <thead>
+            <tr>
+              <th scope="col">File</th>
+              <th scope="col">Kind</th>
+              <th scope="col">Result</th>
+              <th scope="col" class="num">New</th>
+              <th scope="col" class="num">Duplicate</th>
+              <th scope="col" class="num">Superseded</th>
+              <th scope="col" class="num">Rejected</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </details>
+  </article>
+
+  <article class="card">
+    <h2>Accounts</h2>
+    <p class="empty">
+      No data yet. Import files above, or <a href="/" data-route="/">try a synthetic household</a>.
+    </p>
+    <div class="scroll">
+      <table class="accounts" hidden>
+        <thead>
+          <tr>
+            <th scope="col">Account</th>
+            <th scope="col">Role</th>
+            <th scope="col" class="num">Transactions</th>
+            <th scope="col">Covers</th>
+            <th scope="col" class="num">Latest balance</th>
+            <th scope="col">Reconciliation</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </article>
+
+  <article class="card">
+    <h2>Import history</h2>
+    <p class="none">Nothing imported yet.</p>
+    <div class="scroll">
+      <table class="history" hidden>
+        <thead>
+          <tr>
+            <th scope="col">When</th>
+            <th scope="col">Import</th>
+            <th scope="col" class="num">Files</th>
+            <th scope="col" class="num">New</th>
+            <th scope="col" class="num">Duplicate</th>
+            <th scope="col"><span class="visually-hidden">Actions</span></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </article>
+</section>

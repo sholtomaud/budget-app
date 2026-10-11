@@ -1,0 +1,67 @@
+:host {
+  display: block;
+}
+:host .drop {
+  border: 2px dashed var(--border-strong);
+  border-radius: var(--radius);
+  padding: var(--space-5);
+  text-align: center;
+  background: var(--surface);
+  margin-bottom: var(--space-3);
+}
+:host .drop.over {
+  border-color: var(--accent);
+  background: var(--surface-2);
+}
+:host .drop p {
+  margin: 0 0 var(--space-2);
+}
+:host .pickers {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+:host .pickers input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+:host .pickers label:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+:host .status {
+  min-height: 1.5em;
+  color: var(--text-muted);
+}
+:host .error {
+  color: var(--bad);
+  font-weight: 600;
+}
+:host .ok {
+  color: var(--ok);
+}
+:host .warn {
+  color: var(--bad);
+}
+:host .muted {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+:host td.file {
+  font-family: var(--mono);
+  font-size: 0.8125rem;
+  overflow-wrap: anywhere;
+}
+:host .gaps {
+  margin: var(--space-1) 0 0;
+  padding-left: 1.1rem;
+  font-size: 0.875rem;
+}
+:host .file-details summary {
+  cursor: pointer;
+  color: var(--accent);
+  margin-bottom: var(--space-2);
+}

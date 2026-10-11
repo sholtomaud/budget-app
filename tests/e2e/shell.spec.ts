@@ -16,7 +16,6 @@ test('every SPEC §12 screen is reachable from the nav', async ({ page }) => {
   await page.goto('/');
   const nav = page.getByRole('navigation', { name: 'Screens' });
   for (const [label, milestone] of [
-    ['Import', 'M1'],
     ['Ledger', 'M2'],
     ['Budget', 'M3'],
     ['CAPEX', 'M3'],
@@ -33,6 +32,10 @@ test('every SPEC §12 screen is reachable from the nav', async ({ page }) => {
     );
     await expect(page.locator('placeholder-page .milestone')).toContainText(milestone!);
   }
+  await nav.getByRole('link', { name: 'Import', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Import', level: 1 })).toBeVisible();
+  await page.goBack();
+  await expect(page).toHaveURL(/\/settings$/);
   await page.goBack();
   await expect(page).toHaveURL(/\/advisor$/);
   await expect(page.getByRole('heading', { name: 'Advisor' })).toBeVisible();

@@ -27,6 +27,13 @@ and tests.
 | Path                         | What                                                                                                                                                              |
 | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `src/app/`                   | UI shell. `core/` holds the Boba-style `BaseComponent`, `Store` and `Router`. `components/<tag>/` holds one folder per custom element (`.html` + `.css` + `.ts`). |
+| `src/lib/`                   | Shared primitives: SplitMix64 PRNG, money (bigint minor units), dates and time zones, hashing, JSON Schema subset, CSV, ZIP.                                      |
+| `src/domain/`                | Canonical types (SPEC §5).                                                                                                                                        |
+| `src/ingest/`                | CDR parsing and validation, the ledger (dedupe, pending→posted, transfers, reconciliation), the import service.                                                   |
+| `src/synth/`                 | Persona validation, the seeded generator, the CLI.                                                                                                                |
+| `src/store/`                 | IndexedDB wrapper with versioned migrations.                                                                                                                      |
+| `fixtures/`                  | Personas and generated synthetic exports; `npm run fixtures` regenerates them.                                                                                    |
+| `schemas/`                   | Persona schema; CDR schemas derived by `scripts/cdr-schemas.ts`.                                                                                                  |
 | `src/sim/`                   | `gssk.ts` is the only code that touches WASM memory. `run.ts` steps a model.                                                                                      |
 | `src/workers/`               | One entry per worker, exposed with the in-house RPC in `rpc.ts`. The UI never touches WASM directly.                                                              |
 | `src/sw/sw.js`               | Service-worker template. The build fills in the precache list (`vite.config.ts`).                                                                                 |

@@ -213,3 +213,15 @@ describe('timezone bucketing (FR-ING-008)', () => {
     expect(syd.view().txns[0]!.postedAt).toBe('2025-03-13T14:30:00Z');
   });
 });
+
+describe('performance (SPEC §16.3)', () => {
+  test('imports 10 000 transactions in under 3 s', async () => {
+    const out = await synth('high-capex-crypto', '7', 116);
+    const inputs = cdrInputs(out);
+    const t0 = performance.now();
+    const svc = await ingest(inputs);
+    const ms = performance.now() - t0;
+    expect(svc.current.txns.size).toBeGreaterThan(9500);
+    expect(ms).toBeLessThan(3000);
+  }, 20_000);
+});
