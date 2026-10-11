@@ -15,6 +15,7 @@ const adrs = [
   ['0007', 'No third-party runtime code', '0007-no-third-party-runtime'],
   ['0008', 'CDR ingest and synthetic data', '0008-cdr-ingest-and-synthetic-data'],
   ['0009', 'Classification', '0009-classification'],
+  ['0010', 'Budget and CAPEX register', '0010-budget-and-capex'],
 ] as const;
 
 export default defineConfig({

@@ -1,0 +1,116 @@
+:host {
+  display: block;
+}
+:host .controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  align-items: end;
+  margin-bottom: var(--space-4);
+}
+:host fieldset {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-1) var(--space-3) var(--space-2);
+  display: flex;
+  gap: var(--space-3);
+}
+:host legend {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  padding: 0 var(--space-1);
+}
+:host .ending {
+  display: grid;
+  gap: 2px;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+:host .cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+:host .stat h2 {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+:host .stat .v {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+:host .stat p {
+  margin: var(--space-1) 0 0;
+}
+:host td.over {
+  color: var(--bad);
+}
+:host td.under {
+  color: var(--ok);
+}
+:host tr.unbudgeted th::after {
+  content: ' · no budget';
+  font-weight: 400;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+}
+:host tfoot th,
+:host tfoot td {
+  font-weight: 700;
+  border-top: 2px solid var(--border-strong);
+}
+:host .pick-csv {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+:host .wizard .sheet {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-3);
+  margin: var(--space-3) 0;
+}
+:host .wizard .grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+  gap: var(--space-2);
+}
+:host .wizard label,
+:host .add-line label {
+  display: grid;
+  gap: 2px;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+:host .issues {
+  font-size: 0.875rem;
+  color: var(--bad);
+}
+:host .ok {
+  color: var(--ok);
+}
+:host .warn {
+  color: var(--bad);
+}
+:host .add-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: end;
+}
+:host .add-line h3 {
+  width: 100%;
+  margin: var(--space-3) 0 0;
+  font-size: 1rem;
+}
+:host details summary {
+  cursor: pointer;
+}
+:host details summary h2 {
+  display: inline;
+}

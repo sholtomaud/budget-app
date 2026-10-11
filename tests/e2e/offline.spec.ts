@@ -29,5 +29,5 @@ test('works offline after first load, including the kernel (NFR-STO-005)', async
 
   // A deep link typed while offline is served the cached shell.
   await page.goto('/budget');
-  await expect(page.getByRole('heading', { name: 'Budget' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Budget', level: 1 })).toBeVisible();
 });

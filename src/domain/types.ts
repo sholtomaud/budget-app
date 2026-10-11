@@ -122,7 +122,11 @@ export interface Asset {
   replacementCostGrowth?: number;
   status: 'wish' | 'planned' | 'owned' | 'retired';
   tier?: string;
+  /** Wish-list decision (FR-CAP-004). */
+  decision?: { action: 'buy' | 'defer' | 'drop'; by?: string };
   linkedTxnIds: string[];
   url?: string;
+  /** Where it came from when imported from a CAPEX register CSV (FR-ING-013). */
+  source?: { file: string; row: number };
   provenance: Provenance;
 }

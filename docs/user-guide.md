@@ -1,7 +1,7 @@
 # Using the app
 
 ::: info Status
-M0–M2 are done: synthetic data, import, reconciliation, and the categorised ledger work. Other screens fill in with
+M0–M3 are done: synthetic data, import, reconciliation, the categorised ledger, the budget and the CAPEX register work. Other screens fill in with
 later milestones ([SPEC §19](./spec.md#_19-milestones)).
 :::
 
@@ -60,6 +60,35 @@ corrections. The **Source** column says which one decided, and how confident it 
 - **Transfers** between your accounts and **refunds** (netted against their purchase) have their own
   views.
 - Rules and remembered merchants are listed at the bottom, where you can reorder or remove them.
+
+## Budget
+
+Import your budget workbook as CSV, one file per sheet: the OPEX budget, CAPEX register, wish
+list, renewals or goal sheet. The app recognises the sheet from its headers and shows how it read
+each column. Change anything that's wrong, then import.
+
+- For an OPEX sheet it checks the per-week totals against the sheet's own totals row. Anything
+  more than 0.5 % out is flagged.
+- Cells with spreadsheet errors (`#DIV/0!`, `#REF!`) are listed and skipped.
+- Importing the same file again replaces it.
+
+Then choose a **tier** (Secure, Independent, Luxury), a **period** (week, month, year) and when
+it ends. For each category you see the budget, what you actually spent (net of refunds, without
+transfers), the variance, and 3-, 6- and 12-month run rates. Click a category to see its
+transactions. The budget total adds annualised capital spend to operating spend.
+
+## CAPEX register
+
+Every capital item — confirmed from the Ledger, imported from your CAPEX sheet, or added by
+hand — with:
+
+- **Replacement window**: when it's likely to need replacing. P50 is the middle; there's an 80 %
+  chance it falls between P10 and P90. Edit an item's expected life to refine it.
+- **Sinking fund**: how much to set aside each week, from today, to pay for the expected
+  replacements over the horizon.
+- **Tier**: the lowest standard of living that includes the item. The budget total per tier counts
+  only its items.
+- **Wish-list decisions**: buy by a date, defer, or drop.
 
 ## Screens
 

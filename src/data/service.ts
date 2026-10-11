@@ -4,7 +4,10 @@
  * annotates every transaction (ADR 0009).
  */
 import type { Asset } from '../domain/types.ts';
-import { Classifier, type StateStore } from '../classify/service.ts';
+import { Classifier, defaultLife, type StateStore } from '../classify/service.ts';
+import { emptyBudget, type BudgetState, type WorkbookImport } from '../budget/state.ts';
+import type { BudgetLine, BudgetSettings } from '../budget/model.ts';
+import { preview, type Mapping, type WorkbookPreview } from '../budget/workbook.ts';
 import type { Category } from '../classify/categories.ts';
 import type { MemoryEntry } from '../classify/memory.ts';
 import type { Rule } from '../classify/rules.ts';
@@ -24,15 +27,43 @@ export interface DataView extends LedgerView {
   refunds: [string, string][];
   /** txnKeys the user labelled themselves. */
   userLabelled: string[];
+  budget: BudgetState;
+}
+
+export interface BudgetStore {
+  load(): Promise<BudgetState | null>;
+  save(s: BudgetState): Promise<void>;
+}
+
+export class MemoryBudgetStore implements BudgetStore {
+  private s: BudgetState | null = null;
+  async load() {
+    return this.s ? structuredClone(this.s) : null;
+  }
+  async save(s: BudgetState) {
+    this.s = structuredClone(s);
+  }
+}
+
+export interface WorkbookOptions {
+  mapping?: Mapping;
+  categoryMap?: Record<string, string>;
 }
 
 export class DataService {
   readonly ingest: IngestService;
   readonly classifier: Classifier;
+  private readonly budgetStore: BudgetStore;
+  budget: BudgetState = emptyBudget();
 
-  constructor(imports: ImportStore, classifyState: StateStore, timezone?: string) {
+  constructor(imports: ImportStore, classifyState: StateStore, budgetStore: BudgetStore = new MemoryBudgetStore(), timezone?: string) {
     this.ingest = new IngestService(imports, timezone);
     this.classifier = new Classifier(classifyState);
+    this.budgetStore = budgetStore;
+  }
+
+  private async saveBudget() {
+    await this.budgetStore.save(this.budget);
   }
 
   private txns() {
@@ -44,7 +75,8 @@ export class DataService {
   }
 
   async load(): Promise<void> {
-    await Promise.all([this.ingest.load(), this.classifier.load()]);
+    const [, , budget] = await Promise.all([this.ingest.load(), this.classifier.load(), this.budgetStore.load()]);
+    if (budget) this.budget = { ...emptyBudget(), ...budget };
     this.reclassify();
   }
 
@@ -126,13 +158,87 @@ export class DataService {
     this.reclassify();
   }
 
+  // ---- Budget workbook (FR-ING-010…014) and budget lines ----
+
+  previewWorkbook(file: string, text: string, opts: WorkbookOptions = {}): WorkbookPreview {
+    return preview(file, text, {
+      ...opts,
+      periods: this.budget.periods,
+      tiers: this.budget.tiers,
+      defaultLife,
+    });
+  }
+
+  async commitWorkbook(file: string, text: string, opts: WorkbookOptions = {}): Promise<WorkbookImport> {
+    const p = this.previewWorkbook(file, text, opts);
+    const b = this.budget;
+    if (p.mapping.type === 'opex') {
+      b.lines = [...b.lines.filter((l) => l.source?.file !== file), ...p.lines];
+    } else if (p.mapping.type === 'capex' || p.mapping.type === 'wishlist') {
+      await this.classifier.importAssets(file, p.assets);
+    } else if (p.mapping.type === 'renewals') {
+      for (const r of p.renewals) {
+        const a = this.classifier.assets.find((x) => x.name.toLowerCase() === r.item.toLowerCase());
+        if (!a) continue;
+        if (!a.purchasedAt || r.date > a.purchasedAt) {
+          await this.classifier.updateAsset(a.id, { purchasedAt: r.date, status: 'owned', ...(r.cost !== undefined ? { cost: { minor: r.cost, ccy: 'AUD' } } : {}) });
+        }
+      }
+    } else {
+      for (const [k, v] of Object.entries(p.goal)) b.goal[k] = { value: v.value, file, row: v.row };
+    }
+    for (const c of p.categoryIds) {
+      if (!this.classifier.categories().some((x) => x.id === c)) {
+        await this.classifier.addCategory({ id: c, name: c.split('.').pop()!.replace(/-/g, ' ').replace(/^./, (x) => x.toUpperCase()) });
+      }
+    }
+    const rec: WorkbookImport = {
+      file,
+      type: p.mapping.type,
+      at: new Date().toISOString(),
+      lines: p.lines.length,
+      assets: p.assets.length + p.renewals.length,
+      issues: p.issues.length,
+    };
+    b.imports = [...b.imports.filter((i) => i.file !== file), rec];
+    await this.saveBudget();
+    this.reclassify();
+    return rec;
+  }
+
+  async removeWorkbook(file: string): Promise<void> {
+    this.budget.lines = this.budget.lines.filter((l) => l.source?.file !== file);
+    this.budget.imports = this.budget.imports.filter((i) => i.file !== file);
+    await this.classifier.importAssets(file, []);
+    await this.saveBudget();
+    this.reclassify();
+  }
+
+  async upsertLine(line: BudgetLine): Promise<void> {
+    this.budget.lines = [...this.budget.lines.filter((l) => l.id !== line.id), line];
+    await this.saveBudget();
+  }
+
+  async deleteLine(id: string): Promise<void> {
+    this.budget.lines = this.budget.lines.filter((l) => l.id !== id);
+    await this.saveBudget();
+  }
+
+  async setSettings(patch: Partial<BudgetSettings>): Promise<void> {
+    this.budget.settings = { ...this.budget.settings, ...patch };
+    await this.saveBudget();
+  }
+
+  async addAsset(asset: Asset): Promise<void> {
+    await this.classifier.addAsset(asset);
+    this.reclassify();
+  }
+
   view(): DataView {
     const base = this.ingest.view();
     const txns = this.txns();
     const last = this.classifier.last;
-    const userLabelled = txns
-      .map((t) => `${t.accountId}\u001f${t.id}`)
-      .filter((k) => this.classifier.isUserLabelled(k));
+    const userLabelled = txns.map((t) => `${t.accountId}\u001f${t.id}`).filter((k) => this.classifier.isUserLabelled(k));
     return {
       ...base,
       categories: this.classifier.categories(),
@@ -143,6 +249,7 @@ export class DataService {
       reviewQueue: this.classifier.reviewQueue(txns),
       refunds: [...(last?.refundOf ?? new Map<string, string>())],
       userLabelled,
+      budget: this.budget,
     };
   }
 }
