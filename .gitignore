@@ -167,3 +167,7 @@ test-results/
 docs/.vitepress/cache/
 docs/.vitepress/dist/
 site/
+
+# ml-core build output (built by npm run mlcore:build)
+src/forecast/ml-core.wasm
+ml-core/target/

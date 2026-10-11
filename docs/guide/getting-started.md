@@ -3,6 +3,9 @@
 ## Requirements
 
 - Node.js ≥ 22.18 (it runs the TypeScript scripts in `scripts/` directly)
+- Rust via [rustup](https://rustup.rs). The toolchain pinned in `rust-toolchain.toml`, with the
+  `wasm32-unknown-unknown` target, is installed by `rustup toolchain install`. `npm run build` and
+  `npm test` build `ml-core` first.
 - For end-to-end tests: Playwright's Chromium (`npx playwright install chromium`)
 
 ## Run it

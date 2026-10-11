@@ -1,7 +1,7 @@
 # Using the app
 
 ::: info Status
-M0–M3 are done: synthetic data, import, reconciliation, the categorised ledger, the budget and the CAPEX register work. Other screens fill in with
+M0–M4 are done: synthetic data, import, reconciliation, the categorised ledger, the budget, the CAPEX register and forecasts work. Other screens fill in with
 later milestones ([SPEC §19](./spec.md#_19-milestones)).
 :::
 
@@ -89,6 +89,16 @@ hand — with:
 - **Tier**: the lowest standard of living that includes the item. The budget total per tier counts
   only its items.
 - **Wish-list decisions**: buy by a date, defer, or drop.
+
+## Forecast
+
+Month-by-month forecasts of what you'll spend, per category and in total, 1 to 5 years ahead.
+Each category's method (Holt-Winters, the historical average, Croston for occasional spending,
+or simply "same as last year") is chosen by testing each against your own history. The table
+shows each one's score, where below 1 beats "same as last year". The bands show the uncertainty:
+the darker band holds half the likely outcomes, the lighter one 90 %. Capital spend comes from
+simulating your CAPEX register thousands of times. Switch between today's dollars and dollars of
+the day (inflated by your CPI assumption).
 
 ## Screens
 

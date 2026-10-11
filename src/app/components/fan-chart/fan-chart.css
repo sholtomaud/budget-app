@@ -1,0 +1,51 @@
+:host {
+  display: block;
+}
+:host svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+:host text {
+  fill: var(--text-muted);
+  font-size: 10px;
+  font-family: inherit;
+}
+:host .grid line {
+  stroke: var(--border);
+}
+:host .axis line {
+  stroke: var(--border-strong);
+}
+:host .outer {
+  fill: var(--band-color, var(--series-1));
+  opacity: 0.15;
+}
+:host .inner {
+  fill: var(--band-color, var(--series-1));
+  opacity: 0.3;
+}
+:host .median {
+  fill: none;
+  stroke: var(--band-color, var(--series-1));
+  stroke-width: 2;
+}
+:host .history {
+  fill: none;
+  stroke: var(--text);
+  stroke-width: 1.5;
+}
+:host .split {
+  stroke: var(--border-strong);
+  stroke-dasharray: 3 3;
+}
+:host figcaption {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: var(--space-1);
+}

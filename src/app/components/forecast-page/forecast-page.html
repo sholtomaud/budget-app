@@ -1,0 +1,75 @@
+<section class="screen wide">
+  <h1>Forecast</h1>
+  <p class="lede">
+    What you're likely to spend, month by month, with the uncertainty shown as bands. Each
+    category's method is chosen by testing it against your own history.
+  </p>
+  <form class="controls" aria-label="Forecast options">
+    <label
+      >Horizon
+      <select name="horizon">
+        <option value="12">1 year</option>
+        <option value="24" selected>2 years</option>
+        <option value="36">3 years</option>
+        <option value="60">5 years</option>
+      </select>
+    </label>
+    <label
+      >Budget tier for short histories
+      <select name="tier"></select
+    ></label>
+    <fieldset>
+      <legend>Dollars</legend>
+      <label><input type="radio" name="dollars" value="real" checked /> Today's (real)</label>
+      <label
+        ><input type="radio" name="dollars" value="nominal" /> Of the day (CPI
+        <span class="cpi"></span>)</label
+      >
+    </fieldset>
+  </form>
+  <p class="status muted" role="status" aria-live="polite"></p>
+  <p class="empty muted" hidden>
+    Nothing to forecast yet. <a href="/" data-route="/">Load synthetic data</a> or
+    <a href="/import" data-route="/import">import your own</a>.
+  </p>
+
+  <div class="tops" hidden>
+    <article class="card">
+      <h2>Operating spend per month</h2>
+      <fan-chart class="total"></fan-chart>
+      <p class="muted total-note"></p>
+    </article>
+    <article class="card">
+      <h2>Capital spend, cumulative</h2>
+      <fan-chart class="capex"></fan-chart>
+      <p class="muted capex-note"></p>
+    </article>
+  </div>
+
+  <article class="card table-card" hidden>
+    <h2>By category</h2>
+    <div class="scroll">
+      <table class="methods">
+        <thead>
+          <tr>
+            <th scope="col">Category</th>
+            <th scope="col">Method</th>
+            <th
+              scope="col"
+              class="num"
+              title="Mean absolute scaled error in the backtest; below 1 beats the naive forecast"
+            >
+              Backtest MASE
+            </th>
+            <th scope="col" class="num">Seasonal naive</th>
+            <th scope="col" class="num">Next 12 months (P50)</th>
+            <th scope="col" class="num">P10 – P90</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </article>
+
+  <div class="fans"></div>
+</section>

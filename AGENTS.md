@@ -32,6 +32,8 @@ and tests.
 | `src/ingest/`                | CDR parsing and validation, the ledger (dedupe, pending→posted, transfers, reconciliation), the import service.                                                   |
 | `src/synth/`                 | Persona validation, the seeded generator, the CLI.                                                                                                                |
 | `src/budget/`                | Periods, tiers, budget lines, workbook CSV import, actual vs budget, CAPEX timing and sinking fund.                                                               |
+| `src/forecast/`              | Monthly series, OPEX and CAPEX forecasts, evaluation; `ref/` holds the TypeScript reference kernels, `kernels.ts` switches to ml-core.                            |
+| `ml-core/`                   | Rust crate → `ml-core.wasm` (raw exports, no dependencies). Every kernel has a TS twin and a parity test.                                                         |
 | `src/classify/`              | Classification stages (rules, memory, MCC, model), the classifier service, the evaluation harness.                                                                |
 | `src/data/`                  | The data service the `ingest` worker exposes: ledger plus classification.                                                                                         |
 | `data-tables/`               | Shipped, editable tables: categories, MCC map, asset lifetimes.                                                                                                   |
@@ -70,6 +72,7 @@ npm run typecheck
 npm test            # unit and kernel tests (Vitest)
 npm run hygiene
 npm run build && npm run bundle-size
+npm run mlcore:test # cargo test, clippy -D warnings, fmt --check
 npm run e2e         # needs Playwright's Chromium: npx playwright install chromium
 npm run docs:build  # VitePress fails on dead links
 ```

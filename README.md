@@ -26,7 +26,7 @@ a folder from `fixtures/syn-*-42/`.
 
 ## Develop
 
-Requires Node ≥ 22.18.
+Requires Node ≥ 22.18 and Rust via rustup (the pinned toolchain in `rust-toolchain.toml` installs itself; `ml-core` builds to WebAssembly).
 
 ```bash
 npm install
@@ -42,18 +42,19 @@ npm run hooks:install  # data-hygiene pre-commit hook
 
 ## Decisions
 
-| ADR                                                    | Decision                                                                      |
-| ------------------------------------------------------ | ----------------------------------------------------------------------------- |
-| [0001](docs/adr/0001-ui-framework.md)                  | Native web components (Boba pattern), no UI framework                         |
-| [0002](docs/adr/0002-test-runner.md)                   | `node:test` for unit tests (superseded by 0006)                               |
-| [0003](docs/adr/0003-csv-instead-of-xlsx.md)           | Budget workbooks imported as CSV, not xlsx                                    |
-| [0004](docs/adr/0004-gssk-pin-from-dist-branch.md)     | GSSK vendored from its `dist` branch, pinned by commit and SHA-256            |
-| [0005](docs/adr/0005-conservation-check.md)            | What GSSK's conservation error measures; how FR-SIM-003 is checked            |
-| [0006](docs/adr/0006-vitest-vitepress-pages.md)        | Vitest for tests, VitePress for docs, GitHub Pages for deployment             |
-| [0007](docs/adr/0007-no-third-party-runtime.md)        | No third-party runtime code; TypeScript 7; no ESLint; no `.mjs`               |
-| [0008](docs/adr/0008-cdr-ingest-and-synthetic-data.md) | CDR v1.36.0 ingest, `x-as-at` balances, rebuild-on-undo, synthetic data rules |
-| [0009](docs/adr/0009-classification.md)                | Classification stages, merchant memory, CAPEX proposals, evaluation           |
-| [0010](docs/adr/0010-budget-and-capex.md)              | Workbook CSV import rules, actual vs budget, replacement timing, sinking fund |
+| ADR                                                    | Decision                                                                                    |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------------- |
+| [0001](docs/adr/0001-ui-framework.md)                  | Native web components (Boba pattern), no UI framework                                       |
+| [0002](docs/adr/0002-test-runner.md)                   | `node:test` for unit tests (superseded by 0006)                                             |
+| [0003](docs/adr/0003-csv-instead-of-xlsx.md)           | Budget workbooks imported as CSV, not xlsx                                                  |
+| [0004](docs/adr/0004-gssk-pin-from-dist-branch.md)     | GSSK vendored from its `dist` branch, pinned by commit and SHA-256                          |
+| [0005](docs/adr/0005-conservation-check.md)            | What GSSK's conservation error measures; how FR-SIM-003 is checked                          |
+| [0006](docs/adr/0006-vitest-vitepress-pages.md)        | Vitest for tests, VitePress for docs, GitHub Pages for deployment                           |
+| [0007](docs/adr/0007-no-third-party-runtime.md)        | No third-party runtime code; TypeScript 7; no ESLint; no `.mjs`                             |
+| [0008](docs/adr/0008-cdr-ingest-and-synthetic-data.md) | CDR v1.36.0 ingest, `x-as-at` balances, rebuild-on-undo, synthetic data rules               |
+| [0009](docs/adr/0009-classification.md)                | Classification stages, merchant memory, CAPEX proposals, evaluation                         |
+| [0010](docs/adr/0010-budget-and-capex.md)              | Workbook CSV import rules, actual vs budget, replacement timing, sinking fund               |
+| [0011](docs/adr/0011-forecasting-and-ml-core.md)       | Forecast methods and choice, bootstrap quantiles, CAPEX Monte-Carlo, ml-core ABI and parity |
 
 ## License
 
