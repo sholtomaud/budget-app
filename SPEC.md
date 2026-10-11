@@ -29,6 +29,15 @@ The motivating goal is *freedom capital*: a capital base whose passive cashflow 
 so that time can go to work chosen for its value rather than its pay (for example, open research such
 as GSSK). The app treats that as a measurable goal, not a slogan (§11).
 
+**Mission (NFR-MISSION-001, non-negotiable).** The app is a cybernetic controller whose overriding
+purpose is to move people out of financial stress and towards freedom. It measures where a
+household is, forecasts where it is heading, and steers it with honest feedback. It looks after
+its users; it never exploits them.
+
+Every feature is judged by whether it serves this mission. Commercial features (§22) are judged
+first. Anything that profits from a user's stress, impulse or vulnerability is out of scope,
+whatever it would earn.
+
 ### 1.1 Non-goals
 
 - **No server of ours holding user data, and no account of ours.** All data stays in the browser
@@ -55,6 +64,7 @@ as GSSK). The app treats that as a measurable goal, not a slogan (§11).
 
 | ID | Principle |
 |---|---|
+| NFR-MISSION-001 | **Mission first.** The app exists to move people out of financial stress (§1). No feature, partner or revenue stream may target, exploit or deepen financial stress. Where a commercial interest and the user's interest conflict, the user's wins, and the conflict is disclosed. Changing this principle is out of scope for any PR. |
 | NFR-PRIV-001 | **Local-first.** Real financial data lives only in browser storage (IndexedDB/OPFS) on the user's device. |
 | NFR-PRIV-002 | **The repository holds code and synthetic data only.** No real statement, workbook, balance, address or account number is ever committed. CI enforces this (§16.4). The repository may be public. |
 | NFR-PRIV-003 | **No silent network.** At runtime the app makes no network request except (a) loading its own static assets and (b) calls to an external API the user has configured and confirmed for that call (§13). An automated test asserts this. |
@@ -1044,6 +1054,10 @@ The app knows things about a household that are valuable to sellers, and calibra
 It turns that into value **without the data leaving the device** (NFR-MON-001, ADR 0018). Nothing
 here is built before the legal review gate (open question 13).
 
+The app is a **broker, or matchmaker**. Partners pay for relevance and timing that only the device
+knows, and the device never hands the data over. Users share in the revenue their attention and
+their (opt-in, aggregated) data create.
+
 ### 22.1 Revenue paths, in build order
 
 1. **User-paid:** a subscription for hosted conveniences (sync options, receipts app, live bank
@@ -1070,6 +1084,34 @@ here is built before the legal review gate (open question 13).
 | FR-OFR-009 | Intent marketplace: the user publishes a specific want (item, price range, time window, coarse region). It goes through a relay with no identifiers, expires and is revocable. |
 | FR-OFR-010 | Retailers' answers arrive as offers. The user's agent compares them on price, total cost and pSuccess impact, and the user chooses. |
 | FR-OFR-011 | Retailers pay per qualified answer or per sale, disclosed to the user. |
+
+### 22.2a User revenue share (FR-RWD)
+
+Users share in what their attention and their opt-in co-op data earn. The model is Brave's, where
+users receive most of the ad revenue their attention creates. Rewards must never pull against the
+mission.
+
+| ID | Requirement |
+|---|---|
+| FR-RWD-001 | A published share of offer and marketplace revenue goes back to the users it came from, and an aggregate transparency report shows the split. |
+| FR-RWD-002 | **Rewards never reward spending.** They accrue for viewing and evaluating matched offers, answering an intent, or contributing to the co-op. They never accrue for buying, and never more for spending more. The app always says when "no purchase" is the best choice for the user's goal. |
+| FR-RWD-003 | Rewards are counted on the device and redeemed privately, with blinded tokens or aggregate attestations, so redemption doesn't reveal which offers were seen. |
+| FR-RWD-004 | Payout is in money or a direct transfer to the user's savings goal. There are no speculative tokens, and no points that only buy a partner's goods. Tax treatment is stated. |
+| FR-RWD-005 | **Data co-op dividend:** members who opt in to the differentially private co-op (§22.1, path 5) receive a share of what the aggregates earn, in proportion to their contribution, under published rules. |
+
+### 22.2b Partner certification (FR-PTN)
+
+No scammers, and no one who profits from financial stress. Only certified partners can publish to
+the offers feed or answer intents.
+
+| ID | Requirement |
+|---|---|
+| FR-PTN-001 | **Verified identity:** ABN/ACN checked against the Australian Business Register, verified beneficial owners and contact, and a signed partner agreement. Each partner's feed entries are signed with their registered key. Unsigned or revoked entries are dropped on the device. |
+| FR-PTN-002 | **A partner charter**, a binding condition of listing: no targeting or exploiting financial stress; no credit, buy-now-pay-later, gambling, payday lending or speculative products; truthful pricing; disclosed fees; easy returns per the Australian Consumer Law. |
+| FR-PTN-003 | **Offer review:** automated checks on every offer (prohibited categories, scam patterns, URL reputation, whether the "was" price matches the partner's own published price history) and human review of new partners' first offers. |
+| FR-PTN-004 | **Users can report an offer** from the offer itself. Reports suspend an offer or partner pending review. Outcomes are published in the transparency report. |
+| FR-PTN-005 | **Revocation:** a partner found in breach is delisted and its key revoked. The device refreshes the revocation list with every feed fetch. |
+| FR-PTN-006 | **Accountability:** an annual independent audit of the certification process and the guardrails, published. An external standard may be adopted where one fits (for example B Corp certification for the operator, or an industry code). |
 
 ### 22.3 The user's agent (FR-AGT)
 

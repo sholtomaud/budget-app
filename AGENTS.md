@@ -6,6 +6,9 @@ and tests.
 
 ## Non-negotiables
 
+0. **The mission** (NFR-MISSION-001). The app exists to move people out of financial stress. No
+   feature, partner or revenue stream may target, exploit or deepen it. When a commercial interest
+   and the user's interest conflict, the user's wins. This overrides everything below.
 1. **No real financial data in the repository, ever** (NFR-PRIV-002). Only code and synthetic
    data. Fixtures live under `fixtures/` and carry the `x-synthetic` marker. Account IDs start
    `SYN-`. `data/` and `private/` are git-ignored scratch space. The data-hygiene gate
