@@ -2,6 +2,7 @@ import { wrap, type Remote } from '../workers/rpc.ts';
 import type { IngestApi } from '../workers/ingest.worker.ts';
 import type { SimApi } from '../workers/sim.worker.ts';
 import type { SynthApi } from '../workers/synth.worker.ts';
+import type { ForecastApi } from '../workers/forecast.worker.ts';
 
 let remote: Remote<SimApi> | null = null;
 
@@ -40,4 +41,17 @@ export function synth(): Remote<SynthApi> {
     })
   );
   return synthRemote;
+}
+
+let forecastRemote: Remote<ForecastApi> | null = null;
+
+/** The forecast worker (SPEC §10). */
+export function forecast(): Remote<ForecastApi> {
+  forecastRemote ??= wrap<ForecastApi>(
+    new Worker(new URL('../workers/forecast.worker.ts', import.meta.url), {
+      type: 'module',
+      name: 'forecast',
+    })
+  );
+  return forecastRemote;
 }

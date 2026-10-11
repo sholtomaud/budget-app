@@ -27,6 +27,8 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
       - run: npm ci
+      - name: Rust toolchain for ml-core (rust-toolchain.toml)
+        run: rustup toolchain install
       - name: Data-hygiene gate (SPEC §16.4)
         run: npm run hygiene
       - name: GSSK pin (NFR-KER-001)
@@ -63,7 +65,11 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
       - run: npm ci
-      - name: Vitest (unit, kernel, component)
+      - name: Rust toolchain for ml-core (rust-toolchain.toml)
+        run: rustup toolchain install
+      - name: ml-core (cargo test, clippy, fmt)
+        run: npm run mlcore:test
+      - name: Vitest (unit, kernel, property, eval, ml-core parity)
         run: npm test
 
   e2e:
@@ -76,6 +82,8 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
       - run: npm ci
+      - name: Rust toolchain for ml-core (rust-toolchain.toml)
+        run: rustup toolchain install
       - run: npx playwright install --with-deps chromium
       - name: Playwright (shell, kernel, offline, privacy)
         run: npm run e2e

@@ -31,7 +31,11 @@
     "docs:preview": "vitepress preview docs",
     "synth": "node src/synth/cli.ts",
     "fixtures": "node scripts/fixtures.ts",
-    "cdr:schemas": "node scripts/cdr-schemas.ts"
+    "cdr:schemas": "node scripts/cdr-schemas.ts",
+    "mlcore:build": "cargo build --release --target wasm32-unknown-unknown --manifest-path ml-core/Cargo.toml && cp ml-core/target/wasm32-unknown-unknown/release/ml_core.wasm src/forecast/ml-core.wasm",
+    "mlcore:test": "cargo test --manifest-path ml-core/Cargo.toml && cargo clippy --manifest-path ml-core/Cargo.toml --release --target wasm32-unknown-unknown -- -D warnings && cargo fmt --manifest-path ml-core/Cargo.toml --check",
+    "prebuild": "npm run mlcore:build",
+    "pretest": "npm run mlcore:build"
   },
   "devDependencies": {
     "@playwright/test": "1.56.1",

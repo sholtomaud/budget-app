@@ -1,0 +1,17 @@
+[package]
+name = "ml-core"
+version = "0.1.0"
+edition = "2021"
+description = "Numeric kernels for budget-app (SPEC §15.2): forecasting, samplers, quantiles. No dependencies."
+license = "MIT"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true

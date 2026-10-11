@@ -39,3 +39,10 @@ regenerates them and compares byte for byte, and another pins the generator's ou
 snapshot. After a deliberate generator change, run `npm run fixtures` and `npx vitest run -u`, and
 commit both. Tests check the importer against `truth.json`: pending→posted matches, transfer
 pairing precision and recall, and that every transaction has a label.
+
+## ml-core parity
+
+Every kernel in the Rust crate has a TypeScript twin in `src/forecast/`. `tests/unit/mlcore-parity.test.ts`
+loads the built `ml-core.wasm` and checks them against each other within 1e-9 relative, on random
+inputs from the seeded property runner. SplitMix64 floats must be bit-identical. `npm run mlcore:test`
+runs the crate's own tests, clippy with warnings as errors, and rustfmt.

@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft 5: M0–M3 decisions folded in (ADRs 0001–0010) |
+| Status | Draft 6: M0–M4 decisions folded in (ADRs 0001–0011) |
 | Date | 2026-10-11 |
 | Kernel | [GSSK](https://github.com/energese-project/GSSK-Giannantoni), consumed as a pinned WebAssembly artefact |
 | Runtime | Browser only. Static site, no backend |
@@ -477,7 +477,8 @@ quantiles):
 | Method | For |
 |---|---|
 | Seasonal naive / budget | baseline, always computed |
-| ETS (Holt-Winters, additive/multiplicative damped) | regular series with seasonality |
+| ETS (Holt-Winters, additive, damped trend) | regular series; the seasonal component needs ≥ 3 full seasons, else Holt damped (ADR 0011) |
+| Historical mean | flat, noisy series |
 | Croston / SBA / TSB | intermittent series (many zero months) |
 | Empirical residual bootstrap | quantiles for any of the above |
 
@@ -717,8 +718,9 @@ Tools exposed to the model: `get_scenario(id)`, `list_metrics(id)`, `propose_sce
 
 ### 15.2 `ml-core` (WASM)
 
-Rust crate compiled to `wasm32-unknown-unknown` with `wasm-bindgen`, exposing pure numeric kernels on
-typed arrays (no strings across the boundary in hot paths):
+Rust crate compiled to `wasm32-unknown-unknown` as plain `extern "C"` exports over `f64` buffers in
+linear memory, with no wasm-bindgen and no crates (ADR 0007, ADR 0011), exposing pure numeric
+kernels (no strings across the boundary). The toolchain is pinned in `rust-toolchain.toml`:
 
 - ETS fit/forecast (Holt-Winters variants), Croston/SBA/TSB, rolling-origin backtest, MASE, pinball loss;
 - block bootstrap, lognormal / Student-t samplers, Weibull conditional sampling;
@@ -772,7 +774,8 @@ and prints accuracy, confusion matrix, MASE and pinball loss. CI runs the same a
 thresholds in FR-CLS-005 and these:
 
 - CAPEX detection: precision ≥ 0.9, recall ≥ 0.9 on `high-capex-crypto`;
-- OPEX forecast: chosen method's MASE ≤ seasonal-naive MASE on ≥ 80 % of categories;
+- OPEX forecast: chosen method's out-of-sample MASE ≤ seasonal-naive MASE on ≥ 80 % of categories,
+  pooled over the committed personas at five seeds (ADR 0011);
 - Replacement-date P10–P90 interval covers the true date for 75–90 % of assets.
 
 ### 16.3 Performance budgets

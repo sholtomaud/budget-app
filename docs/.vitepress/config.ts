@@ -16,6 +16,7 @@ const adrs = [
   ['0008', 'CDR ingest and synthetic data', '0008-cdr-ingest-and-synthetic-data'],
   ['0009', 'Classification', '0009-classification'],
   ['0010', 'Budget and CAPEX register', '0010-budget-and-capex'],
+  ['0011', 'Forecasting and ml-core', '0011-forecasting-and-ml-core'],
 ] as const;
 
 export default defineConfig({

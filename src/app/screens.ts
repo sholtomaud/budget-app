@@ -28,14 +28,7 @@ export const screens: Screen[] = [
   { path: '/ledger', nav: 'Ledger', title: 'Ledger', component: 'ledger-page' },
   { path: '/budget', nav: 'Budget', title: 'Budget', component: 'budget-page' },
   { path: '/capex', nav: 'CAPEX', title: 'CAPEX register', component: 'capex-page' },
-  planned(
-    '/forecast',
-    'Forecast',
-    'Forecast',
-    '§10',
-    'M4',
-    'Fan charts per category, with method and backtest score per series, plus the CAPEX fan and totals.'
-  ),
+  { path: '/forecast', nav: 'Forecast', title: 'Forecast', component: 'forecast-page' },
   planned(
     '/freedom',
     'Freedom',

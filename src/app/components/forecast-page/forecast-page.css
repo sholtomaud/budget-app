@@ -1,0 +1,49 @@
+:host {
+  display: block;
+}
+:host .controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  align-items: end;
+  margin-bottom: var(--space-3);
+}
+:host .controls > label {
+  display: grid;
+  gap: 2px;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+:host fieldset {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-1) var(--space-3) var(--space-2);
+}
+:host legend {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+:host .tops {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(22rem, 1fr));
+  gap: var(--space-3);
+}
+:host .fans {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+  gap: var(--space-3);
+}
+:host .fans h3 {
+  font-size: 0.9375rem;
+  margin: 0;
+}
+:host .fans .meta {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin: 0 0 var(--space-1);
+}
+:host .capex {
+  --band-color: var(--series-2);
+}
