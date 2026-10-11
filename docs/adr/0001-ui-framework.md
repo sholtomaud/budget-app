@@ -2,6 +2,7 @@
 
 - Status: accepted
 - Date: 2026-10-11
+- SPEC: amended to match in Draft 2
 - Resolves: SPEC §20 open question 1; deviates from SPEC §15.1 ("Preact + signals (or Svelte)")
 
 ## Context

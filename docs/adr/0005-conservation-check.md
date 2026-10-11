@@ -2,6 +2,7 @@
 
 - Status: accepted (M0 finding; to revisit in M5)
 - Date: 2026-10-11
+- SPEC: amended to match in Draft 2
 - Refines: FR-SIM-003; proposes KR-6
 
 ## Finding

@@ -2,6 +2,7 @@
 
 - Status: accepted
 - Date: 2026-10-11
+- SPEC: amended to match in Draft 2
 - Deviates from: SPEC §15.1 ("Vitest (unit, property via fast-check)")
 
 ## Decision

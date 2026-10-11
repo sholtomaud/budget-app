@@ -2,6 +2,7 @@
 
 - Status: accepted
 - Date: 2026-10-11
+- SPEC: amended to match in Draft 2
 - Deviates from: SPEC §6.2 (FR-ING-010…014), §7.1 (`workbook.xlsx`), §14 NFR-SEC-002, §15.1 (SheetJS), §16.4
 
 ## Context
