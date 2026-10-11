@@ -1,0 +1,208 @@
+{
+  "$comment": "Derived by scripts/cdr-schemas.ts from Consumer Data Standards v1.36.0 (45f31a807cf6770456eb26aa2c68003d634ea53c), components.schemas.ResponseBankingTransactionListV2. Do not edit by hand.",
+  "title": "GET /banking/accounts/{accountId}/transactions",
+  "required": [
+    "data",
+    "links",
+    "meta"
+  ],
+  "type": "object",
+  "properties": {
+    "data": {
+      "required": [
+        "transactions"
+      ],
+      "type": "object",
+      "properties": {
+        "transactions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/BankingTransactionV2"
+          }
+        }
+      }
+    },
+    "links": {
+      "$ref": "#/$defs/LinksPaginated"
+    },
+    "meta": {
+      "$ref": "#/$defs/MetaPaginatedTransaction"
+    }
+  },
+  "$defs": {
+    "BankingAccountId": {
+      "type": "string",
+      "x-cds-type": "ASCIIString"
+    },
+    "BankingInstalmentPlanId": {
+      "type": "string",
+      "x-cds-type": "ASCIIString"
+    },
+    "BankingTransactionId": {
+      "type": "string",
+      "x-cds-type": "ASCIIString"
+    },
+    "BankingTransactionV2": {
+      "required": [
+        "accountId",
+        "amount",
+        "description",
+        "isDetailAvailable",
+        "reference",
+        "status",
+        "type"
+      ],
+      "type": "object",
+      "properties": {
+        "accountId": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/BankingAccountId"
+            }
+          ]
+        },
+        "transactionId": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/BankingTransactionId"
+            }
+          ]
+        },
+        "isDetailAvailable": {
+          "type": "boolean"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "DIRECT_DEBIT",
+            "FEE",
+            "INTEREST_CHARGED",
+            "INTEREST_PAID",
+            "OTHER",
+            "PAYMENT",
+            "TRANSFER_INCOMING",
+            "TRANSFER_OUTGOING"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "PENDING",
+            "POSTED"
+          ]
+        },
+        "description": {
+          "type": "string"
+        },
+        "postingDateTime": {
+          "type": "string",
+          "x-cds-type": "DateTimeString"
+        },
+        "valueDateTime": {
+          "type": "string",
+          "x-cds-type": "DateTimeString"
+        },
+        "executionDateTime": {
+          "type": "string",
+          "x-cds-type": "DateTimeString"
+        },
+        "amount": {
+          "type": "string",
+          "x-cds-type": "AmountString"
+        },
+        "currency": {
+          "type": "string",
+          "x-cds-type": "CurrencyString"
+        },
+        "reference": {
+          "type": "string"
+        },
+        "merchantName": {
+          "type": "string"
+        },
+        "merchantCategoryCode": {
+          "type": "string"
+        },
+        "instalmentPlanId": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/BankingInstalmentPlanId"
+            }
+          ]
+        },
+        "billerCode": {
+          "type": "string"
+        },
+        "billerName": {
+          "type": "string"
+        },
+        "crn": {
+          "type": "string"
+        },
+        "apcaNumber": {
+          "type": "string"
+        }
+      }
+    },
+    "LinksPaginated": {
+      "required": [
+        "self"
+      ],
+      "type": "object",
+      "properties": {
+        "self": {
+          "type": "string",
+          "x-cds-type": "URIString"
+        },
+        "first": {
+          "type": "string",
+          "x-cds-type": "URIString"
+        },
+        "prev": {
+          "type": "string",
+          "x-cds-type": "URIString"
+        },
+        "next": {
+          "type": "string",
+          "x-cds-type": "URIString"
+        },
+        "last": {
+          "type": "string",
+          "x-cds-type": "URIString"
+        }
+      }
+    },
+    "MetaPaginated": {
+      "required": [
+        "totalPages",
+        "totalRecords"
+      ],
+      "type": "object",
+      "properties": {
+        "totalRecords": {
+          "type": "integer",
+          "x-cds-type": "NaturalNumber"
+        },
+        "totalPages": {
+          "type": "integer",
+          "x-cds-type": "NaturalNumber"
+        }
+      }
+    },
+    "MetaPaginatedTransaction": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/MetaPaginated"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "isQueryParamUnsupported": {
+              "type": "boolean"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

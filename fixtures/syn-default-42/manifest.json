@@ -1,0 +1,242 @@
+{
+  "x-synthetic": {
+    "generator": "budget-app/synth@0.1.0",
+    "seed": "42",
+    "persona": "default"
+  },
+  "generator": "budget-app/synth@0.1.0",
+  "persona": "default",
+  "personaSha256": "af704cbae975546cc48f9a5ce987721792ebed2c949f5ee092619b519d56a751",
+  "seed": "42",
+  "start": "2024-07-01",
+  "end": "2026-06-30",
+  "months": 24,
+  "timezone": "Australia/Sydney",
+  "files": [
+    {
+      "path": "accounts.json",
+      "sha256": "7595fe01a1756d4309ec27062a687daae5f9f5b9d8fd03ff2ac356286815f8e6",
+      "bytes": 1481
+    },
+    {
+      "path": "balances/2024-07-01.json",
+      "sha256": "75c97fe0abbc359e585f2b85073cd89d64819a6a0f9fc969b876bca7fbe8549e",
+      "bytes": 824
+    },
+    {
+      "path": "balances/2024-07-31.json",
+      "sha256": "165bc16761c48ecc74f1a0868f9b2c2bd391d2ca10b4da7b108eb0f4073004dc",
+      "bytes": 825
+    },
+    {
+      "path": "balances/2024-08-31.json",
+      "sha256": "7f4ee70d81e545d766b26450f5570ce7d913542df437f4b60b984ed9014b857f",
+      "bytes": 826
+    },
+    {
+      "path": "balances/2024-09-30.json",
+      "sha256": "248c44f4cc740d52029cb9444940f43f2be3edab5fb88680b4034f4bcfbe189b",
+      "bytes": 827
+    },
+    {
+      "path": "balances/2024-10-31.json",
+      "sha256": "e5cb33c55835ecbefacc66b6c0a464ba59c045c5aa83968d6c2fc703e1f98072",
+      "bytes": 827
+    },
+    {
+      "path": "balances/2024-11-30.json",
+      "sha256": "68cd5b103a2359f0a63a5cbfda37e1f7c95cd7ea613eb4cbe7709bedc0a37bdb",
+      "bytes": 827
+    },
+    {
+      "path": "balances/2024-12-31.json",
+      "sha256": "305a84cfcf390c23aca6c25cda52d550cac92b814f0a260de6cd47c43daa3282",
+      "bytes": 827
+    },
+    {
+      "path": "balances/2025-01-31.json",
+      "sha256": "5dace571f2c7ceda6caf8df566fb06b1d6d4651451da4ef9c1aeb8a2e83154bf",
+      "bytes": 827
+    },
+    {
+      "path": "balances/2025-02-28.json",
+      "sha256": "8000b30fdfb9f21c77e2e03579f83c730f5f42620273fc947924893bb744d827",
+      "bytes": 827
+    },
+    {
+      "path": "balances/2025-03-31.json",
+      "sha256": "ea2c55c39abcda101518388f6884b75c8ded323c853c42eb415463adac85b424",
+      "bytes": 827
+    },
+    {
+      "path": "balances/2025-04-30.json",
+      "sha256": "f89253c18158a8a8937ee27b12e8cdc129e6f47f6f31ddddfdaf36ba4b4f647f",
+      "bytes": 826
+    },
+    {
+      "path": "balances/2025-05-31.json",
+      "sha256": "c2e0c0aeafb2c6397a3b0f219a0a41f123a4661f4aa5c74ca1851edaa927ca8f",
+      "bytes": 827
+    },
+    {
+      "path": "balances/2025-06-30.json",
+      "sha256": "f1bce668cc8263189d95d1636f7e32d1248ccce034a3ab81b0f81fdeb559acf6",
+      "bytes": 827
+    },
+    {
+      "path": "balances/2025-07-31.json",
+      "sha256": "8cc4cd1ae54ecc8ebe009dee253ec6a07cb929f59c6363b300d7accec1402d7e",
+      "bytes": 827
+    },
+    {
+      "path": "balances/2025-08-31.json",
+      "sha256": "1127628bddf8af683a5395d7b915b02568b04e14ce0699d3972bbb7381e13752",
+      "bytes": 827
+    },
+    {
+      "path": "balances/2025-09-30.json",
+      "sha256": "6aef85cadb61b1b784bc4d67ae8b9299dd409dab998777362f6c9b107a99ec8b",
+      "bytes": 823
+    },
+    {
+      "path": "balances/2025-10-31.json",
+      "sha256": "35edc981192a3052ace735b08bb45754a19840f61f3f75dd038a8a3e8e872e09",
+      "bytes": 826
+    },
+    {
+      "path": "balances/2025-11-30.json",
+      "sha256": "147b0fdb99947f5588ba7b07d7b9b95df7b30b9a096e7627ea16149b8c92c725",
+      "bytes": 827
+    },
+    {
+      "path": "balances/2025-12-31.json",
+      "sha256": "234d8ce8e8de733747779c529afdc5bc83b5beeefd1d59ee5f72ca645185becc",
+      "bytes": 827
+    },
+    {
+      "path": "balances/2026-01-31.json",
+      "sha256": "16d526f0633a0ba01a3d5c19cd148e0ec83a5abc3c641c31ba83ad7e47818506",
+      "bytes": 826
+    },
+    {
+      "path": "balances/2026-02-28.json",
+      "sha256": "9f0ad519eba4c4481ec4768cd73d2b22f0ed86245cd3610210553ac7ea8d8e96",
+      "bytes": 825
+    },
+    {
+      "path": "balances/2026-03-31.json",
+      "sha256": "2f7410381882c9e4e87e9d35537e0090d9ea9278f2c64a3f8b0662c94c7d9e33",
+      "bytes": 826
+    },
+    {
+      "path": "balances/2026-04-30.json",
+      "sha256": "b68b36e92f8d525626d65f406fcc2ded73440cb653975944ab84a01b21c8a859",
+      "bytes": 827
+    },
+    {
+      "path": "balances/2026-05-31.json",
+      "sha256": "e601a1502a599bbf8bdc028b777fa811d5dd0bb19594ccdcf5aee648b920f335",
+      "bytes": 827
+    },
+    {
+      "path": "balances/2026-06-30.json",
+      "sha256": "f3494bc714ca86744f8e4523c291914d075eb64f386850009c01e28531ea78f2",
+      "bytes": 827
+    },
+    {
+      "path": "transactions/SYN-CC/page-1.json",
+      "sha256": "b2ee6c76d11d8c6a1d57d620d3c23ab418d11477413ba2c73429e126f4367818",
+      "bytes": 50918
+    },
+    {
+      "path": "transactions/SYN-CC/page-10.json",
+      "sha256": "096ba6831b4ff09604b55ecd368a278d00f843f9c5515111a65fd0303c7e6ac6",
+      "bytes": 4621
+    },
+    {
+      "path": "transactions/SYN-CC/page-2.json",
+      "sha256": "03e20f5840bef84bc0de0825577c247a7f1752d9f5cdf98d76dbc8cc68cf4d99",
+      "bytes": 51267
+    },
+    {
+      "path": "transactions/SYN-CC/page-3.json",
+      "sha256": "2ae242cac237634a6c7e9a54ae27d73bc461da232d97fc577370fe3cccd286dd",
+      "bytes": 50716
+    },
+    {
+      "path": "transactions/SYN-CC/page-4.json",
+      "sha256": "da5b0a3ec4a6d05dccacefceb35e08d9125ddfbf00fe72572233a92622674868",
+      "bytes": 51158
+    },
+    {
+      "path": "transactions/SYN-CC/page-5.json",
+      "sha256": "02028ad3ce80c4ec94b23ae12392c20f2895180fefaf2a5ef73c9a58480e6fdc",
+      "bytes": 50771
+    },
+    {
+      "path": "transactions/SYN-CC/page-6.json",
+      "sha256": "0af2ac189b5d856e6acb84ab51e4a1513f55dfd89fa1bc3c4a1e6b5b166cca56",
+      "bytes": 51128
+    },
+    {
+      "path": "transactions/SYN-CC/page-7.json",
+      "sha256": "4b72b26156c3ce112d3704058ec15ed5fdb2125cd86fe04c98f3f35d84ed5d78",
+      "bytes": 50883
+    },
+    {
+      "path": "transactions/SYN-CC/page-8.json",
+      "sha256": "829d2a6bbadaf13e18cae6d0e1f92a4c5330d76740fa5c6fdc815e0552a7722e",
+      "bytes": 50396
+    },
+    {
+      "path": "transactions/SYN-CC/page-9.json",
+      "sha256": "faf0cbdf58d905133a99fc184ad03db254aab114bb25a9d2ec7a71b5f2992621",
+      "bytes": 51030
+    },
+    {
+      "path": "transactions/SYN-SAV/page-1.json",
+      "sha256": "d692a996e64d37d81a0d0e2d3109129e4f874c58db1cca32ebc671573721f2c8",
+      "bytes": 22576
+    },
+    {
+      "path": "transactions/SYN-TXN/page-1.json",
+      "sha256": "99a92e8bc3cbeb40b31b81241036a371e8f56d631b492f4022c3eacc1ee5bd70",
+      "bytes": 49564
+    },
+    {
+      "path": "transactions/SYN-TXN/page-2.json",
+      "sha256": "e76c2bc2d574ed6e66640c11af68161880af1c41e1b6be10c0aa832d9dc31f45",
+      "bytes": 49532
+    },
+    {
+      "path": "transactions/SYN-TXN/page-3.json",
+      "sha256": "f52ea72ba09bd860b35cd9f55781d6ba669dffa628f1ac7d402fc79d3f20b891",
+      "bytes": 49709
+    },
+    {
+      "path": "transactions/SYN-TXN/page-4.json",
+      "sha256": "6be51a8078eeb3418a464e95aa05cb754d032be9dc840eae230ebefdcf548dd7",
+      "bytes": 6562
+    },
+    {
+      "path": "truth.json",
+      "sha256": "6a74d49334db9712c91aa91d520e77ea396aadf0dd48526ed31f32a2e1005774",
+      "bytes": 130945
+    },
+    {
+      "path": "workbook/capex-register.csv",
+      "sha256": "aa654c2a27099c95fcf1235db542e0e1bb0ed2cd72d16916259c9e425cdf519f",
+      "bytes": 486
+    },
+    {
+      "path": "workbook/goal.csv",
+      "sha256": "f1f44e18f8001554c4399c61a04ad84c044c88f075de3175556dfbcbd6ade0d3",
+      "bytes": 236
+    },
+    {
+      "path": "workbook/opex-budget.csv",
+      "sha256": "567f1726f7288cdfdf17652fdc62c88051e23ff8b150c5388193888cc4047fae",
+      "bytes": 704
+    }
+  ]
+}

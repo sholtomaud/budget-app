@@ -1,0 +1,20 @@
+# x-synthetic: generator=budget-app/synth@0.1.0, seed=42, persona=high-capex-crypto
+Category,Item,Cost,Unit,Start Date,Renew Date,Fin. Secure,Fin. Indepnt,Fin. Luxury,Sub-category,Notes
+Comms,,,,,,,,,,
+,Lumen Broadband,110.00,m,,,1,1,1.25,comms.internet,
+,Telcoast Mobile,95.00,m,,,1,1,1.25,comms.mobile,
+Food,,,,,,,,,,
+,Cafe,33.71,w,,,0,1,2,food.cafe,
+,Dining,160.00,w,,,0.5,1,2,food.dining,
+,Groceries,230.00,w,,,1,1.2,1.5,food.groceries,
+Health,,,,,,,,,,
+,Ironworks Gym,28.00,w,,,1,1.2,1.5,health.gym,
+Housing,,,,,,,,,,
+,Skyline Apartments,980.00,w,,,1,1.25,1.6,housing.rent,
+Subscriptions,,,,,,,,,,
+,Cloudnest Storage,16.99,m,,,0,1,1.5,subscriptions.software,
+Transport,,,,,,,,,,
+,Rideshare,40.00,w,,,1,1,1.3,transport.rideshare,
+Utilities,,,,,,,,,,
+,Brightwire Energy,520.00,q,,,1,1,1.2,utilities.electricity,average bill
+TOTAL per week,,,,,,1445.31,1859.54,2507.44,,

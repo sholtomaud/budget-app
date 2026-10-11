@@ -1,0 +1,16 @@
+# x-synthetic: generator=budget-app/synth@0.1.0, seed=42, persona=default
+Category,Item,Cost,Unit,Start Date,Renew Date,Fin. Secure,Fin. Indepnt,Fin. Luxury,Sub-category,Notes
+Comms,,,,,,,,,,
+,Telcoast Mobile,65.00,m,,,1,1,1.25,comms.mobile,
+Food,,,,,,,,,,
+,Cafe,21.76,w,,,0,1,2,food.cafe,
+,Groceries,140.00,w,,,1,1.2,1.5,food.groceries,
+Health,,,,,,,,,,
+,Wellmark Health Fund,160.00,m,,,1,1.2,1.5,health.insurance,
+Housing,,,,,,,,,,
+,Harbourside Realty,620.00,w,,,1,1.25,1.6,housing.rent,
+Transport,,,,,,,,,,
+,Fuel,45.00,w,,,1,1,1.3,transport.fuel,
+Utilities,,,,,,,,,,
+,Brightwire Energy,380.00,q,,,1,1,1.2,utilities.electricity,average bill
+TOTAL per week,,,,,,886.15,1098.30,1413.23,,

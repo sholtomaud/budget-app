@@ -1,0 +1,140 @@
+{
+  "x-synthetic": { "generator": "budget-app/synth", "kind": "persona" },
+  "name": "default",
+  "description": "Mixed household: one salary, renting, a credit card for everyday spending, monthly investing, and lumpy capital purchases (SPEC §7.2).",
+  "timezone": "Australia/Sydney",
+  "start": "2024-07-01",
+  "months": 24,
+  "accounts": [
+    {
+      "id": "SYN-TXN",
+      "name": "Everyday",
+      "role": "transaction",
+      "productCategory": "TRANS_AND_SAVINGS_ACCOUNTS",
+      "opening": "4200.00",
+      "buffer": "1500.00"
+    },
+    {
+      "id": "SYN-SAV",
+      "name": "Savings",
+      "role": "savings",
+      "productCategory": "TRANS_AND_SAVINGS_ACCOUNTS",
+      "opening": "25000.00",
+      "interestPa": 0.045
+    },
+    {
+      "id": "SYN-CC",
+      "name": "Rewards Card",
+      "role": "credit",
+      "productCategory": "CRED_AND_CHRG_CARDS",
+      "limit": "8000.00"
+    }
+  ],
+  "income": [
+    {
+      "name": "Salary",
+      "payer": "Northwind Analytics",
+      "amount": "3100.00",
+      "every": "fortnight",
+      "jitter": 0.0,
+      "rises": [{ "on": "2025-07-01", "pct": 0.03 }]
+    }
+  ],
+  "recurring": [
+    {
+      "category": "housing.rent",
+      "payee": "Harbourside Realty",
+      "amount": "620.00",
+      "every": "week",
+      "via": "DIRECT_DEBIT"
+    },
+    {
+      "category": "utilities.electricity",
+      "payee": "Brightwire Energy",
+      "mean": "380.00",
+      "every": "quarter",
+      "seasonality": "winter_peak",
+      "cv": 0.15
+    },
+    { "category": "comms.mobile", "payee": "Telcoast Mobile", "amount": "65.00", "every": "month" },
+    {
+      "category": "health.insurance",
+      "payee": "Wellmark Health Fund",
+      "amount": "160.00",
+      "every": "month"
+    }
+  ],
+  "variable": [
+    {
+      "category": "food.groceries",
+      "weeklyMean": "140.00",
+      "cv": 0.25,
+      "visitsPerWeek": 2.5,
+      "merchants": ["Fresh Fields", "Corner Grocer"],
+      "mcc": "5411"
+    },
+    {
+      "category": "food.cafe",
+      "dailyProb": 0.6,
+      "amount": { "lognormal": [1.6, 0.3] },
+      "merchants": ["Little Bean Espresso", "Tram Stop Cafe"],
+      "mcc": "5814"
+    },
+    {
+      "category": "transport.fuel",
+      "weeklyMean": "45.00",
+      "cv": 0.3,
+      "visitsPerWeek": 0.7,
+      "merchants": ["Roadway Fuel"],
+      "mcc": "5541"
+    }
+  ],
+  "capex": [
+    {
+      "asset": "Laptop",
+      "category": "capex.computing",
+      "merchant": "Bytewise Computers",
+      "mcc": "5732",
+      "cost": "3200.00",
+      "lifeYears": 5,
+      "shape": 3,
+      "lastBought": "2021-03-01"
+    },
+    {
+      "asset": "Watch",
+      "category": "capex.personal",
+      "merchant": "Meridian Watchmakers",
+      "mcc": "5944",
+      "cost": "900.00",
+      "lifeYears": 10,
+      "wish": true,
+      "buyProbPerYear": 0.3
+    },
+    {
+      "asset": "Fountain pen",
+      "category": "capex.personal",
+      "merchant": "Inkwell Stationers",
+      "mcc": "5943",
+      "cost": "180.00",
+      "lifeYears": 8
+    },
+    {
+      "asset": "Holiday (international)",
+      "category": "capex.travel",
+      "merchant": "Wanderlust Travel Co",
+      "mcc": "4722",
+      "cost": { "normal": [6000, 1500] },
+      "every": "year",
+      "month": [1, 7]
+    }
+  ],
+  "investing": [{ "to": "SYN-BROKER", "amount": "500.00", "every": "month", "kind": "investment" }],
+  "noise": {
+    "pendingThenPosted": 0.15,
+    "duplicatePages": 0.02,
+    "merchantNameVariants": true,
+    "refunds": 0.01,
+    "fees": true,
+    "missingTransactionId": 0.01
+  }
+}

@@ -1,0 +1,9 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`synthetic generator > golden: generator output hashes are pinned (update deliberately) 1`] = `
+{
+  "default": "8e84410b221260177fb7073980e01681097c6cfd8036b1dae4fdf7843c9d8d49",
+  "frugal-renter": "a0314d94830efba72cf7c2b7f0b14c52e6bd9e160fcfe0ff3ac0eb0525f20c19",
+  "high-capex-crypto": "02421aa3f1529fbd600c8d93859df0cd62a066cae71a06e8a97ea5105e91cbf7",
+}
+`;
