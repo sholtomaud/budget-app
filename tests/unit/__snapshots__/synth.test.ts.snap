@@ -2,8 +2,8 @@
 
 exports[`synthetic generator > golden: generator output hashes are pinned (update deliberately) 1`] = `
 {
-  "default": "8e84410b221260177fb7073980e01681097c6cfd8036b1dae4fdf7843c9d8d49",
-  "frugal-renter": "a0314d94830efba72cf7c2b7f0b14c52e6bd9e160fcfe0ff3ac0eb0525f20c19",
-  "high-capex-crypto": "02421aa3f1529fbd600c8d93859df0cd62a066cae71a06e8a97ea5105e91cbf7",
+  "default": "e89ec4df8180e607a8a6a44075fd4ef6371071d9d5d2e62a02843af1ecf449fa",
+  "frugal-renter": "e0554f7dcf9775d781f5ab1b7f01f2a3202b56bb1ed640bc8cbf978c15c8fbb0",
+  "high-capex-crypto": "26c9dafd5d44f25718112569cd51543f3dc6ec4f83705c3f5842d0d7ac89e633",
 }
 `;

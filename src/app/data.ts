@@ -2,14 +2,15 @@
  * App-wide data state on the main thread. The ingest worker owns the ledger;
  * this store holds the latest LedgerView for screens to render.
  */
-import type { ImportRecord } from '../domain/types.ts';
+import type { Asset, ImportRecord } from '../domain/types.ts';
+import type { Rule } from '../classify/rules.ts';
 import type { InputFile } from '../ingest/service.ts';
-import type { LedgerView } from '../ingest/view.ts';
+import type { DataView } from '../data/service.ts';
 import { Store } from './core/store.ts';
 import { ingest, synth } from './workers.ts';
 
 export interface DataState {
-  view: LedgerView | null;
+  view: DataView | null;
   busy: string | null;
   error: string | null;
   lastImport: ImportRecord | null;
@@ -17,15 +18,15 @@ export interface DataState {
 
 export const data = new Store<DataState>({ view: null, busy: null, error: null, lastImport: null });
 
-let loading: Promise<LedgerView> | null = null;
+let loading: Promise<DataView> | null = null;
 
 /** The current view, loading it from the worker on first use. */
-export function ensureLoaded(): Promise<LedgerView> {
+export function ensureLoaded(): Promise<DataView> {
   loading ??= refresh();
   return loading;
 }
 
-export async function refresh(): Promise<LedgerView> {
+export async function refresh(): Promise<DataView> {
   const view = await ingest().view();
   data.setState({ view });
   return view;
@@ -82,3 +83,32 @@ export function undoImport(id: string): Promise<void> {
     await refresh();
   });
 }
+
+/** Run a data action in the worker, then refresh the view. */
+function act<T>(busy: string, fn: () => Promise<T>): Promise<T> {
+  return run(busy, async () => {
+    const r = await fn();
+    await refresh();
+    return r;
+  });
+}
+
+/** FR-CLS-001: set the category of transactions; optionally remember the merchant so similar ones follow. */
+export const correct = (keys: string[], categoryId: string, rememberMerchant: boolean) =>
+  act('Saving…', () => ingest().correct(keys, categoryId, rememberMerchant));
+export const similarTo = (key: string) => ingest().similar(key);
+export const clearLabel = (key: string) => act('Saving…', () => ingest().clearLabel(key));
+export const addRule = (rule: Omit<Rule, 'id'>) =>
+  act('Saving rule…', () => ingest().addRule(rule));
+export const deleteRule = (id: string) => act('Saving…', () => ingest().deleteRule(id));
+export const moveRule = (id: string, delta: number) =>
+  act('Saving…', () => ingest().moveRule(id, delta));
+export const addCategory = (c: { id: string; name: string }) =>
+  act('Saving…', () => ingest().addCategory(c));
+export const forgetMemory = (id: string) => act('Saving…', () => ingest().forgetMemory(id));
+export const confirmCapex = (key: string, opts: { assetId?: string; name?: string } = {}) =>
+  act('Saving…', () => ingest().confirmCapex(key, opts));
+export const rejectCapex = (key: string) => act('Saving…', () => ingest().rejectCapex(key));
+export const updateAsset = (id: string, patch: Partial<Omit<Asset, 'id'>>) =>
+  act('Saving…', () => ingest().updateAsset(id, patch));
+export const deleteAsset = (id: string) => act('Saving…', () => ingest().deleteAsset(id));

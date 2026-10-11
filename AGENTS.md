@@ -31,6 +31,9 @@ and tests.
 | `src/domain/`                | Canonical types (SPEC §5).                                                                                                                                        |
 | `src/ingest/`                | CDR parsing and validation, the ledger (dedupe, pending→posted, transfers, reconciliation), the import service.                                                   |
 | `src/synth/`                 | Persona validation, the seeded generator, the CLI.                                                                                                                |
+| `src/classify/`              | Classification stages (rules, memory, MCC, model), the classifier service, the evaluation harness.                                                                |
+| `src/data/`                  | The data service the `ingest` worker exposes: ledger plus classification.                                                                                         |
+| `data-tables/`               | Shipped, editable tables: categories, MCC map, asset lifetimes.                                                                                                   |
 | `src/store/`                 | IndexedDB wrapper with versioned migrations.                                                                                                                      |
 | `fixtures/`                  | Personas and generated synthetic exports; `npm run fixtures` regenerates them.                                                                                    |
 | `schemas/`                   | Persona schema; CDR schemas derived by `scripts/cdr-schemas.ts`.                                                                                                  |

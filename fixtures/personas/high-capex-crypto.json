@@ -239,6 +239,8 @@
     "merchantNameVariants": true,
     "refunds": 0.015,
     "fees": true,
-    "missingTransactionId": 0.01
+    "missingTransactionId": 0.01,
+    "missingMcc": 0.3,
+    "wrongMcc": 0.05
   }
 }

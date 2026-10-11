@@ -147,8 +147,8 @@ vite.config.ts.timestamp-*
 .turbo
 
 # --- budget-app (SPEC §16.4, NFR-PRIV-002): real financial data never enters the repo ---
-data/
-private/
+/data/
+/private/
 *.budgetapp
 *.ofx
 *.qfx

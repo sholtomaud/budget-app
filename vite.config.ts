@@ -86,7 +86,7 @@ export default defineConfig({
   },
   server: { fs: { allow: ['.'] } },
   test: {
-    include: ['tests/{unit,kernel,property}/**/*.test.ts'],
+    include: ['tests/{unit,kernel,property,eval}/**/*.test.ts'],
     environment: 'node',
     restoreMocks: true,
   },

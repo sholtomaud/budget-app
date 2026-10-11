@@ -10,6 +10,11 @@ const outlet = document.querySelector<HTMLElement>('#router-outlet');
 if (!outlet) throw new Error('index.html has no #router-outlet');
 
 const router = new Router(outlet, import.meta.env.BASE_URL, 'budget-app').register(screens);
+if (import.meta.env.DEV) {
+  // §16.2: the evaluation page exists in development builds only.
+  await import('./app/components/eval-page/eval-page.ts');
+  router.register([{ path: '/eval', component: 'eval-page', title: 'Evaluation' }]);
+}
 void router.render();
 
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {

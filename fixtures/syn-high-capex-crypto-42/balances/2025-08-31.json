@@ -9,20 +9,20 @@
     "balances": [
       {
         "accountId": "SYN-TXN",
-        "currentBalance": "5982.86",
-        "availableBalance": "5982.86",
+        "currentBalance": "5679.53",
+        "availableBalance": "5679.53",
         "currency": "AUD"
       },
       {
         "accountId": "SYN-SAV",
-        "currentBalance": "113996.79",
-        "availableBalance": "113996.79",
+        "currentBalance": "114183.68",
+        "availableBalance": "114183.68",
         "currency": "AUD"
       },
       {
         "accountId": "SYN-CC",
-        "currentBalance": "-313.11",
-        "availableBalance": "24686.89",
+        "currentBalance": "-237.20",
+        "availableBalance": "24762.80",
         "creditLimit": "25000.00",
         "currency": "AUD"
       }

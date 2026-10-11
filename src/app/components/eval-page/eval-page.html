@@ -1,0 +1,11 @@
+<section class="screen wide">
+  <h1>Evaluation</h1>
+  <p class="lede">
+    Development builds only (SPEC §16.2). Generates each committed persona at seed 42, imports it,
+    and scores classification against <code>truth.json</code>, before and after 50 simulated
+    corrections. CI runs the same thresholds.
+  </p>
+  <button type="button" class="run">Run evaluation</button>
+  <p class="status muted" role="status"></p>
+  <div class="results"></div>
+</section>

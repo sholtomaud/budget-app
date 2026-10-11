@@ -15,30 +15,29 @@ test('start screen loads with the privacy statement and a verified kernel', asyn
 test('every SPEC §12 screen is reachable from the nav', async ({ page }) => {
   await page.goto('/');
   const nav = page.getByRole('navigation', { name: 'Screens' });
-  for (const [label, milestone] of [
-    ['Ledger', 'M2'],
-    ['Budget', 'M3'],
-    ['CAPEX', 'M3'],
-    ['Forecast', 'M4'],
-    ['Freedom', 'M5'],
-    ['Scenarios', 'M6'],
-    ['Advisor', 'M8'],
-    ['Settings', 'M7'],
-  ]) {
-    await nav.getByRole('link', { name: label, exact: true }).click();
-    await expect(nav.getByRole('link', { name: label, exact: true })).toHaveAttribute(
-      'aria-current',
-      'page'
-    );
-    await expect(page.locator('placeholder-page .milestone')).toContainText(milestone!);
+  const labels = [
+    'Import',
+    'Ledger',
+    'Budget',
+    'CAPEX',
+    'Forecast',
+    'Freedom',
+    'Scenarios',
+    'Advisor',
+    'Settings',
+    'Kernel',
+  ];
+  for (const label of labels) {
+    const link = nav.getByRole('link', { name: label, exact: true });
+    await link.click();
+    await expect(link).toHaveAttribute('aria-current', 'page');
+    await expect(page.locator('#router-outlet h1').first()).toBeVisible();
+    // Screens still to come say which milestone delivers them.
+    const placeholder = page.locator('placeholder-page .milestone');
+    if (await placeholder.count()) await expect(placeholder).toHaveText(/^M\d/);
   }
-  await nav.getByRole('link', { name: 'Import', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Import', level: 1 })).toBeVisible();
   await page.goBack();
   await expect(page).toHaveURL(/\/settings$/);
-  await page.goBack();
-  await expect(page).toHaveURL(/\/advisor$/);
-  await expect(page.getByRole('heading', { name: 'Advisor' })).toBeVisible();
 });
 
 test('deep links render the right screen; unknown paths say not found', async ({ page }) => {
