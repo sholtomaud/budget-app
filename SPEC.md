@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft 9: M0–M6 built (ADRs 0001–0013); M7–M14 planned, with proposed directions in ADRs 0014–0018 |
+| Status | Draft 10: M0–M7 built (ADRs 0001–0013, 0019); M8–M14 planned, with proposed directions in ADRs 0014–0018 |
 | Date | 2026-10-11 |
 | Kernel | [GSSK](https://github.com/energese-project/GSSK-Giannantoni), consumed as a pinned WebAssembly artefact |
 | Runtime | Browser only. Static site, no backend |
@@ -758,10 +758,10 @@ Tools exposed to the model: `get_scenario(id)`, `list_metrics(id)`, `propose_sce
 
 | ID | Requirement |
 |---|---|
-| NFR-STO-001 | Records in IndexedDB (via a thin typed wrapper); bulk run outputs (quantile arrays) in OPFS. Schema migrations are versioned and tested. |
-| NFR-STO-002 | **Optional encryption at rest**: passphrase → key via PBKDF2-SHA-256 (≥ 600 000 iterations) or Argon2id (WASM), AES-GCM-256 per record. Locked by default after 15 minutes idle. Forgetting the passphrase loses the data; the UI says so. |
-| NFR-STO-003 | **Export** everything (records + settings + optional runs) as one file, `.budgetapp`, a ZIP of JSON, encrypted with a passphrase. **Import** restores it. Round-trip is lossless (tested). |
-| NFR-STO-004 | "Delete all data" removes IndexedDB, OPFS, caches and service-worker storage for the origin. |
+| NFR-STO-001 | Records in IndexedDB (via a thin typed wrapper). Schema migrations are versioned, append-only and tested. Simulation outputs are not persisted; they are recomputed from seeds (NFR-DET-001). OPFS is reserved for them if that changes. |
+| NFR-STO-002 | **Optional encryption at rest**: a random AES-GCM-256 data key encrypts each record, bound by additional data to that record's store and key. The data key is wrapped under a passphrase key (PBKDF2-SHA-256, 600 000 iterations), so a passphrase change re-wraps one key. The app locks after 15 minutes idle (configurable) by reloading, which discards all decrypted state. Turning encryption off needs the passphrase. Forgetting the passphrase loses the data; the UI says so. ADR 0019. |
+| NFR-STO-003 | **Export** everything as one `.budgetapp` file: a ZIP of a plain manifest and an AES-GCM payload (gzip of the encoded records) under a key derived from an export passphrase, independent of the at-rest key. **Import** replaces everything and keeps the device's encryption state. Round-trip is lossless (tested). |
+| NFR-STO-004 | "Delete all data" removes IndexedDB, OPFS, caches, the service-worker registration and the app's local preferences for the origin, then restarts. It is also offered on the lock screen for a forgotten passphrase. |
 | NFR-STO-005 | Works offline after first load (service worker, precached assets including `gssk.wasm` and `ml-core.wasm`). |
 | NFR-SEC-001 | **No third-party runtime code.** The shipped app contains only this repository's code and the pinned GSSK kernel; npm packages are build and test tooling only (ADR 0007). No third-party scripts at runtime, no analytics, no telemetry. |
 | NFR-SEC-002 | Imported files are parsed in workers with size limits (50 MB per file) and never evaluated. Imported text is rendered with DOM text APIs, never interpolated into HTML. |

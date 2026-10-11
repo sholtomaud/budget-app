@@ -18,6 +18,7 @@ Every deviation from the [specification](../spec.md) gets one.
 | [0011](./0011-forecasting-and-ml-core.md)        | Forecast methods and choice, bootstrap quantiles, CAPEX Monte-Carlo, ml-core ABI and parity    | Accepted           |
 | [0012](./0012-freedom-simulation.md)             | Closed GSSK model, monthly constant edges, controller, tax, Monte-Carlo pool, metrics          | Accepted           |
 | [0013](./0013-scenarios-and-optimiser.md)        | Optimiser levers and distance, grid and CMA-ES (ml-core) with common random numbers, Pareto    | Accepted           |
+| [0019](./0019-encryption-export-delete.md)       | Wrapped data key, sealed records, lock by reload, `.budgetapp` export, delete-all              | Accepted           |
 | [0014](./0014-workbook-mapping-assistant.md)     | Budget CSVs of any layout: one mapping spec; rules, an in-browser learned mapper, optional LLM | Proposed           |
 | [0015](./0015-bayesian-workflow.md)              | Bayesian workflow: pooled structural time series, shared spending factor, return uncertainty   | Proposed           |
 | [0016](./0016-sync-and-user-owned-storage.md)    | Local-first sync to storage the user owns (Google Drive first), end-to-end encrypted           | Proposed           |

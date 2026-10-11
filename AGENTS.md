@@ -40,7 +40,7 @@ and tests.
 | `src/classify/`              | Classification stages (rules, memory, MCC, model), the classifier service, the evaluation harness.                                                                |
 | `src/data/`                  | The data service the `ingest` worker exposes: ledger plus classification.                                                                                         |
 | `data-tables/`               | Shipped, editable tables: categories, MCC map, asset lifetimes.                                                                                                   |
-| `src/store/`                 | IndexedDB wrapper with versioned migrations.                                                                                                                      |
+| `src/store/`                 | IndexedDB wrapper with versioned migrations; the vault (encryption at rest), the codec, `.budgetapp` export.                                                      |
 | `fixtures/`                  | Personas and generated synthetic exports; `npm run fixtures` regenerates them.                                                                                    |
 | `schemas/`                   | Persona schema; CDR schemas derived by `scripts/cdr-schemas.ts`.                                                                                                  |
 | `src/sim/`                   | The freedom model: `modelgen`, the policy `controller`, tax, return samplers, Monte-Carlo and metrics. `gssk.ts` is the only code that touches WASM memory.       |

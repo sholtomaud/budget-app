@@ -170,6 +170,20 @@ smallest change that reaches your target. Its **Trade-offs** table lists the pla
 plan beats on chance of success, spending and how soon freedom starts. Keep any of them as a
 scenario.
 
+## Settings: encryption, export, delete
+
+**Encryption** keeps everything on this device encrypted with a key protected by your passphrase.
+The app asks for the passphrase when it opens. It locks itself after 15 minutes idle (you can
+change that), and **Lock now** locks it at once. If you forget the passphrase, the data can't be
+recovered by anyone, so keep an export. Changing the passphrase is instant. Turning encryption off
+asks for it again.
+
+**Export** saves everything in one `.budgetapp` file: your imports, categories and rules, budget,
+CAPEX register, freedom setup and scenarios. The file is encrypted with the passphrase you choose
+for it. **Import an export** restores a file, replacing what's on this device.
+
+**Delete all data** removes everything the app stored in this browser, including the offline copy.
+
 ## Screens
 
 | Screen    | What it is for                                                                   | Milestone |
@@ -182,7 +196,7 @@ scenario.
 | Freedom   | Goal editor, probability of success, capital fan chart                           | M5        |
 | Scenarios | Side-by-side comparison, the optimiser and its trade-offs                        | M6        |
 | Advisor   | Optional chat; every figure links to a simulation run                            | M8        |
-| Settings  | Preferences, encryption, export and delete-all                                   | M7        |
+| Settings  | Encryption at rest, lock, export and import, delete all data                     | M7        |
 | Kernel    | Shows the pinned kernel and runs an example model                                | M0        |
 
 ## Labels on numbers

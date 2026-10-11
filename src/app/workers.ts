@@ -4,54 +4,89 @@ import type { SimApi } from '../workers/sim.worker.ts';
 import type { SynthApi } from '../workers/synth.worker.ts';
 import type { ForecastApi } from '../workers/forecast.worker.ts';
 
-let remote: Remote<SimApi> | null = null;
+/** Every worker the UI has started, so locking can stop them all (NFR-STO-002). */
+const running = new Set<Worker>();
+
+/**
+ * Track a worker so it can be terminated. The `new Worker(new URL(...))`
+ * expression must stay inline at each call site: Vite only bundles workers
+ * written that way.
+ */
+export function track(w: Worker): Worker {
+  running.add(w);
+  return w;
+}
+
+let simRemote: Remote<SimApi> | null = null;
+let ingestRemote: Remote<IngestApi> | null = null;
+let synthRemote: Remote<SynthApi> | null = null;
+let forecastRemote: Remote<ForecastApi> | null = null;
+const resetHooks = new Set<() => void>();
+
+/**
+ * Stop every worker. Decrypted data held in their memory goes with them;
+ * the next call to any worker starts a fresh one.
+ */
+export function terminateWorkers(): void {
+  for (const w of running) w.terminate();
+  running.clear();
+  simRemote = ingestRemote = synthRemote = forecastRemote = null;
+  for (const h of resetHooks) h();
+}
+
+/** Run `fn` whenever the workers are terminated (for modules that cache remotes). */
+export function onWorkersReset(fn: () => void): void {
+  resetHooks.add(fn);
+}
 
 /** The sim worker, started on first use. The UI never touches WASM directly. */
 export function sim(): Remote<SimApi> {
-  remote ??= wrap<SimApi>(
-    new Worker(new URL('../workers/sim.worker.ts', import.meta.url), {
-      type: 'module',
-      name: 'sim',
-    })
+  simRemote ??= wrap<SimApi>(
+    track(
+      new Worker(new URL('../workers/sim.worker.ts', import.meta.url), {
+        type: 'module',
+        name: 'sim',
+      })
+    )
   );
-  return remote;
+  return simRemote;
 }
 
-let ingestRemote: Remote<IngestApi> | null = null;
-
-/** The ingest worker: imports, the ledger, and IndexedDB persistence. */
+/** The ingest worker: imports, the ledger, IndexedDB persistence and the vault. */
 export function ingest(): Remote<IngestApi> {
   ingestRemote ??= wrap<IngestApi>(
-    new Worker(new URL('../workers/ingest.worker.ts', import.meta.url), {
-      type: 'module',
-      name: 'ingest',
-    })
+    track(
+      new Worker(new URL('../workers/ingest.worker.ts', import.meta.url), {
+        type: 'module',
+        name: 'ingest',
+      })
+    )
   );
   return ingestRemote;
 }
 
-let synthRemote: Remote<SynthApi> | null = null;
-
 /** The synth worker: generates synthetic households (SPEC §7). */
 export function synth(): Remote<SynthApi> {
   synthRemote ??= wrap<SynthApi>(
-    new Worker(new URL('../workers/synth.worker.ts', import.meta.url), {
-      type: 'module',
-      name: 'synth',
-    })
+    track(
+      new Worker(new URL('../workers/synth.worker.ts', import.meta.url), {
+        type: 'module',
+        name: 'synth',
+      })
+    )
   );
   return synthRemote;
 }
 
-let forecastRemote: Remote<ForecastApi> | null = null;
-
 /** The forecast worker (SPEC §10). */
 export function forecast(): Remote<ForecastApi> {
   forecastRemote ??= wrap<ForecastApi>(
-    new Worker(new URL('../workers/forecast.worker.ts', import.meta.url), {
-      type: 'module',
-      name: 'forecast',
-    })
+    track(
+      new Worker(new URL('../workers/forecast.worker.ts', import.meta.url), {
+        type: 'module',
+        name: 'forecast',
+      })
+    )
   );
   return forecastRemote;
 }

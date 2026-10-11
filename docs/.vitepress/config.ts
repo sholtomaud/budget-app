@@ -19,6 +19,7 @@ const adrs = [
   ['0011', 'Forecasting and ml-core', '0011-forecasting-and-ml-core'],
   ['0012', 'Freedom simulation', '0012-freedom-simulation'],
   ['0013', 'Scenarios and the optimiser', '0013-scenarios-and-optimiser'],
+  ['0019', 'Encryption, export and delete-all', '0019-encryption-export-delete'],
   ['0014', 'Workbook mapping assistant', '0014-workbook-mapping-assistant'],
   ['0015', 'Bayesian workflow', '0015-bayesian-workflow'],
   ['0016', 'Sync to user-owned storage', '0016-sync-and-user-owned-storage'],
