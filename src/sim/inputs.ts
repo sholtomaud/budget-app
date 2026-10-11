@@ -42,6 +42,31 @@ export interface FreedomSetup {
   taxTable: string | null;
   /** Labels for the derived defaults, keyed by field. */
   provenance: Record<string, Provenance>;
+  /** Spending levers (SPEC §11.3): multipliers on the tier's and today's spending. Default 1. */
+  levers?: SpendingLevers;
+}
+
+export interface SpendingLevers {
+  /** Multiplier on the tier's spending after freedom. */
+  tierSpend: number;
+  /** Multiplier on today's spending before freedom (below 1 saves more). */
+  currentSpend: number;
+}
+
+export const NO_LEVERS: SpendingLevers = { tierSpend: 1, currentSpend: 1 };
+
+/** The spending need with the setup's levers applied. CAPEX is not scaled. */
+export function applySpendingLevers(
+  sp: SpendingInput,
+  levers: SpendingLevers = NO_LEVERS
+): SpendingInput {
+  const scale = (r: Record<string, number>, k: number) =>
+    Object.fromEntries(Object.entries(r).map(([g, v]) => [g, v * k]));
+  return {
+    ...sp,
+    current: scale(sp.current, levers.currentSpend),
+    tier: scale(sp.tier, levers.tierSpend),
+  };
 }
 
 export interface HouseholdData {

@@ -1,0 +1,10 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`golden simulation (SPEC §16.1) > fixed scenario and seed give fixed results 1`] = `
+{
+  "p10End": "573833.570548",
+  "p50End": "899838.354285",
+  "pSuccess": 0.9166666666666666,
+  "tax0": "27140.090499",
+}
+`;

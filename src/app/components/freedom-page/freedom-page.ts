@@ -2,22 +2,14 @@ import { BaseComponent, define } from '../../core/base-component.ts';
 import { data, ensureLoaded } from '../../data.ts';
 import { el, prov } from '../../format.ts';
 import { poolRunner, poolSize, runPool, type PoolResult } from '../../sim-pool.ts';
-import { forecast, sim } from '../../workers.ts';
+import { sim } from '../../workers.ts';
+import { inputsFor } from '../../freedom-inputs.ts';
+import { addScenario } from '../../scenarios.ts';
 import '../fan-chart/fan-chart.ts';
 import type { FanChart } from '../fan-chart/fan-chart.ts';
-import { weeklyRate } from '../../../budget/model.ts';
-import { perWeek } from '../../../budget/periods.ts';
 import type { DataView } from '../../../data/service.ts';
-import type { Quantiles } from '../../../forecast/opex.ts';
-import { monthlySeries } from '../../../forecast/series.ts';
 import { addMonths } from '../../../lib/dates.ts';
-import {
-  asOfFor,
-  defaultSetup,
-  scenarioFrom,
-  spendingFrom,
-  type FreedomSetup,
-} from '../../../sim/inputs.ts';
+import { defaultSetup, type FreedomSetup } from '../../../sim/inputs.ts';
 import {
   deterministicFreedom,
   p90Freedom,
@@ -61,9 +53,7 @@ export class FreedomPage extends BaseComponent {
   private unsubscribe: (() => void) | null = null;
   private setup: FreedomSetup | null = null;
   private view: DataView | null = null;
-  private asOf = '';
   private main: { result: PoolResult; scenario: Scenario; spending: SpendingInput } | null = null;
-  private ratioCache = new Map<string, Quantiles | null>();
   private runId = 0;
   private saveTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -106,6 +96,7 @@ export class FreedomPage extends BaseComponent {
       this.fill();
     };
     this.$<HTMLButtonElement>('.find-p90').onclick = () => void this.findP90();
+    this.$<HTMLButtonElement>('.save-scenario').onclick = () => void this.saveScenario();
     this.$<HTMLButtonElement>('.drivers-run').onclick = () => void this.drivers();
     this.unsubscribe = data.subscribe(() => void this.load());
     void ensureLoaded().then(() => this.load());
@@ -120,12 +111,10 @@ export class FreedomPage extends BaseComponent {
     const v = data.getState().view;
     if (!v || v === this.view) return;
     this.view = v;
-    this.ratioCache.clear();
     const has = v.txns.length > 0 || v.budget.lines.length > 0;
     this.$('.empty').hidden = has;
     this.$('.setup').hidden = !has;
     if (!has) return;
-    this.asOf = asOfFor(v.txns);
     this.setup ??= (await sim().loadSetup()) ?? defaultSetup(v);
     this.fill();
   }
@@ -150,6 +139,8 @@ export class FreedomPage extends BaseComponent {
     set('floor', String(dollars(s.goal.floor)));
     set('target', String(Math.round(s.goal.targetProbability * 100)));
     set('project', String(dollars(s.goal.projectIncome ?? 0n)));
+    set('tierSpend', String(Math.round((s.levers?.tierSpend ?? 1) * 100)));
+    set('currentSpend', String(Math.round((s.levers?.currentSpend ?? 1) * 100)));
     set('netPay', String(Math.round(dollars(s.decisions.netPayMonthly ?? 0n))));
     set('workUntil', s.decisions.workUntil?.slice(0, 7) ?? '');
     set('gross1', String(Math.round(dollars(s.people[0]?.grossSalary ?? 0n))));
@@ -176,6 +167,18 @@ export class FreedomPage extends BaseComponent {
     this.showStrategyParams();
     this.taxNote();
     this.renderHoldings();
+  }
+
+  private async saveScenario(): Promise<void> {
+    const s = this.setup;
+    if (!s) return;
+    this.readGoal();
+    const nameField = this.field<HTMLInputElement>('.run', 'scenarioName');
+    const name =
+      nameField.value.trim() || `${this.tierName(s.goal.tier)} from ${s.goal.start.slice(0, 7)}`;
+    await addScenario(name, s, 'freedom');
+    nameField.value = '';
+    this.$('.status').textContent = `Saved "${name}". Compare it on the Scenarios screen.`;
   }
 
   private showStrategyParams(): void {
@@ -216,6 +219,10 @@ export class FreedomPage extends BaseComponent {
       floor: minor(Math.max(0, num('floor'))),
       targetProbability: Math.min(0.99, Math.max(0.5, num('target') / 100 || 0.9)),
       projectIncome: minor(Math.max(0, num('project'))),
+    };
+    s.levers = {
+      tierSpend: Math.max(0.3, num('tierSpend') / 100 || 1),
+      currentSpend: Math.max(0.3, num('currentSpend') / 100 || 1),
     };
     const workUntil = str('workUntil');
     s.decisions = {
@@ -356,36 +363,10 @@ export class FreedomPage extends BaseComponent {
     if (this.main) this.$('.status').textContent = 'Inputs changed: simulate again to update.';
   }
 
-  private async ratioFor(tier: string): Promise<Quantiles | null> {
-    const v = this.view!;
-    if (this.ratioCache.has(tier)) return this.ratioCache.get(tier)!;
-    const history = monthlySeries(v.txns);
-    const budgetMonthly: Record<string, number> = {};
-    for (const l of v.budget.lines) {
-      if (l.categoryId.startsWith('capex.')) continue;
-      budgetMonthly[l.categoryId] =
-        (budgetMonthly[l.categoryId] ?? 0) +
-        (weeklyRate(l, tier, (c) => perWeek(c, v.budget.periods)) * 52) / 12;
-    }
-    let total: Quantiles | null = null;
-    if (history.length || Object.keys(budgetMonthly).length) {
-      total = (await forecast().opex(history, budgetMonthly, { horizon: 60, seed: '42' })).total;
-    }
-    this.ratioCache.set(tier, total);
-    return total;
-  }
-
   private async inputs(tier: string): Promise<{ scenario: Scenario; spending: SpendingInput }> {
-    const v = this.view!;
     const s = this.setup!;
     s.seed = this.field<HTMLInputElement>('.run', 'seed').value.trim() || '42';
-    const spending = spendingFrom(v, tier, await this.ratioFor(tier));
-    const scenario = scenarioFrom(
-      { ...s, goal: { ...s.goal, tier } },
-      this.asOf,
-      v.budget.settings.cpi
-    );
-    return { scenario, spending };
+    return inputsFor(this.view!, s, tier);
   }
 
   private async simulate(): Promise<void> {

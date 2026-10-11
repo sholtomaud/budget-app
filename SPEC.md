@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft 7: M0–M5 decisions folded in (ADRs 0001–0012) |
+| Status | Draft 8: M0–M6 decisions folded in (ADRs 0001–0013) |
 | Date | 2026-10-11 |
 | Kernel | [GSSK](https://github.com/energese-project/GSSK-Giannantoni), consumed as a pinned WebAssembly artefact |
 | Runtime | Browser only. Static site, no backend |
@@ -607,15 +607,31 @@ Outputs per scenario:
 
 ### 11.4 Optimiser (FR-OPT-001)
 
-"What would make this 90 % likely?" Searches the decision variables the user unlocks, under their
-constraints, to find:
+"What would make this 90 % likely?" The optimiser searches the levers the user unlocks, inside the
+bounds they set:
 
-- the **minimum change** (normalised distance from the current scenario) achieving pSuccess ≥ target;
-- a **Pareto set** over (pSuccess, tier spending, years to freedom) for display.
+| Lever | Unit |
+|---|---|
+| When freedom starts (paid work moves with it) | years later or sooner |
+| Spending after freedom | multiplier on the tier |
+| Spending now | multiplier on today's spending |
+| Project income | dollars a year |
 
-Method: coarse grid over ≤ 2 variables; CMA-ES (in `ml-core`) for more, with common random numbers
-(the same seeds across candidates) so comparisons are not noise. Results are Scenarios the user can
-open, compare and keep. Every result cites its run IDs.
+It finds:
+
+- the **minimum change** achieving pSuccess ≥ target: the Euclidean distance from the current
+  setup, each lever normalised to its bounds;
+- a **Pareto set** over pSuccess, spending after freedom and freedom start, for display.
+
+Method:
+
+- Up to two levers: a coarse grid, then a finer grid around the best point.
+- More than two: CMA-ES in `ml-core`, with a TypeScript twin and a parity test.
+- Every candidate uses common random numbers: the same seed and run indices.
+- The search stops at a simulation budget the user chooses.
+
+Results are scenarios the user can keep, open and compare (up to four side by side, decisions that
+differ highlighted). Every result cites its runs (inputs hash, seed, run range). ADR 0013.
 
 ---
 

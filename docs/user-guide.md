@@ -151,6 +151,25 @@ _assumed_ until a maintainer has checked it against the ATO.
 Under **Reproducibility**, each result records the kernel version, the wasm hash, the model and
 inputs hashes, and the seed, so the same numbers can be produced again.
 
+## Scenarios
+
+**Save** a plan from the Freedom screen as a scenario. Tick up to four and **Compare selected** to
+see them side by side. Decisions that differ are highlighted, and each result shows the chance of
+success, end capital and the runs it came from. **Open in Freedom** makes a scenario your current
+plan.
+
+**What would make this likely?** asks the optimiser. Unlock the levers you're willing to move:
+
+- when freedom starts;
+- how much you spend after it;
+- how much you spend until then;
+- project income.
+
+Set how far each can go. The optimiser tries plans on the same simulated futures and reports the
+smallest change that reaches your target. Its **Trade-offs** table lists the plans that no other
+plan beats on chance of success, spending and how soon freedom starts. Keep any of them as a
+scenario.
+
 ## Screens
 
 | Screen    | What it is for                                                                   | Milestone |
@@ -161,7 +180,7 @@ inputs hashes, and the seed, so the same numbers can be produced again.
 | CAPEX     | Asset register, replacement timeline, sinking fund                               | M3        |
 | Forecast  | Fan charts per category, with method and backtest score                          | M4        |
 | Freedom   | Goal editor, probability of success, capital fan chart                           | M5        |
-| Scenarios | Side-by-side comparison and the optimiser                                        | M6        |
+| Scenarios | Side-by-side comparison, the optimiser and its trade-offs                        | M6        |
 | Advisor   | Optional chat; every figure links to a simulation run                            | M8        |
 | Settings  | Preferences, encryption, export and delete-all                                   | M7        |
 | Kernel    | Shows the pinned kernel and runs an example model                                | M0        |

@@ -9,6 +9,8 @@ import { forecastOpex } from '../../src/forecast/opex.ts';
 import { loadMlCore, type MlCore } from '../../src/forecast/mlcore.ts';
 import { mase, pinball, quantileSorted } from '../../src/forecast/ref/stats.ts';
 import { Rng } from '../../src/lib/prng.ts';
+import { tsCma } from '../../src/optimise/cmaes.ts';
+import { defaultLambda } from '../../src/optimise/ref/cmaes.ts';
 import { forAll } from '../property/prop.ts';
 
 let ml: MlCore;
@@ -138,5 +140,31 @@ describe('ml-core parity (§15.2)', () => {
     } finally {
       useKernels(tsKernels);
     }
+  });
+
+  test('CMA-ES ask/tell agrees step by step (SPEC §11.4)', () => {
+    return forAll(20, 'cma-es', (rng) => {
+      const n = 1 + rng.int(5);
+      const lambda = defaultLambda(n) + rng.int(4);
+      const x0 = Float64Array.from({ length: n }, () => rng.uniform(-1, 1));
+      const target = Float64Array.from({ length: n }, () => rng.uniform(-1, 1));
+      let a = tsCma.init(x0, 0.4, lambda);
+      let b = ml.cma.init(x0, 0.4, lambda);
+      expectClose(b, a, 'init');
+      for (let g = 0; g < 8; g++) {
+        const z = Float64Array.from({ length: lambda * n }, () => rng.normal());
+        const xa = tsCma.ask(a, z);
+        const xb = ml.cma.ask(b, z);
+        expectClose(xb, xa, `ask ${g}`);
+        const f = Float64Array.from({ length: lambda }, (_, k) => {
+          let s = 0;
+          for (let i = 0; i < n; i++) s += (xa[k * n + i]! - target[i]!) ** 2 * (i + 1);
+          return s;
+        });
+        a = tsCma.tell(a, xa, f);
+        b = ml.cma.tell(b, xb, f);
+        expectClose(b, a, `tell ${g}`);
+      }
+    });
   });
 });
