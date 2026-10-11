@@ -1,0 +1,49 @@
+<section class="screen">
+  <h1>Kernel check</h1>
+  <p class="lede">
+    The simulation kernel is GSSK, vendored as WebAssembly and pinned by SHA-256. The
+    <code>sim</code> worker refuses to load a kernel whose hash does not match the pin.
+  </p>
+
+  <article class="card">
+    <h2>Pinned kernel</h2>
+    <dl class="pin">
+      <dt>Status</dt>
+      <dd class="k-status" role="status">Loading…</dd>
+      <dt>Version</dt>
+      <dd class="k-version">–</dd>
+      <dt>Source</dt>
+      <dd class="k-source">–</dd>
+      <dt>gssk.wasm SHA-256</dt>
+      <dd><code class="k-sha">–</code></dd>
+    </dl>
+  </article>
+
+  <article class="card">
+    <h2>Household example model</h2>
+    <p>
+      Runs GSSK's reference household model (money, energy, material and information carriers) in
+      the <code>sim</code> worker, and reports a balance check per carrier.
+    </p>
+    <button type="button" class="run">Run example</button>
+    <div class="result" hidden>
+      <p class="summary"></p>
+      <table class="carriers">
+        <caption>
+          Largest per-step relative change in each carrier's total storage. This model is open (it
+          has sources and sinks), so the figure is net inflow or outflow, not numerical leakage.
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">Carrier</th>
+            <th scope="col">Conserved</th>
+            <th scope="col" class="num">max |relative change|</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <line-chart></line-chart>
+    </div>
+    <p class="error" role="alert" hidden></p>
+  </article>
+</section>

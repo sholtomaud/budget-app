@@ -1,0 +1,48 @@
+:host {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+:host .brand {
+  font-weight: 700;
+  color: var(--text);
+  text-decoration: none;
+  white-space: nowrap;
+}
+:host nav {
+  flex: 1;
+  overflow-x: auto;
+}
+:host .links {
+  display: flex;
+  gap: var(--space-1);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+:host .links a {
+  display: block;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  text-decoration: none;
+  white-space: nowrap;
+}
+:host .links a:hover {
+  color: var(--text);
+  background: var(--surface-2);
+}
+:host .links a[aria-current='page'] {
+  color: var(--text);
+  background: var(--surface-2);
+  font-weight: 600;
+}
+:host .theme {
+  min-width: 4.5rem;
+}

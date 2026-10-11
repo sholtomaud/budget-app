@@ -1,0 +1,28 @@
+:host {
+  display: block;
+}
+:host .pin {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--space-1) var(--space-4);
+  margin: 0;
+}
+:host .pin dt {
+  color: var(--text-muted);
+}
+:host .pin dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+:host .k-status[data-ok='true'] {
+  color: var(--ok);
+  font-weight: 600;
+}
+:host .k-status[data-ok='false'],
+:host .error {
+  color: var(--bad);
+  font-weight: 600;
+}
+:host .carriers {
+  margin: var(--space-3) 0;
+}
