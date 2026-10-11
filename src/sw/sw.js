@@ -1,6 +1,5 @@
-/* eslint-disable no-undef -- the build replaces the placeholder identifiers below. */
-/* Service worker template (NFR-STO-005). The build fills in the precache
- * list and version; see the `offline` plugin in vite.config.ts. Plain JS
+/* Service worker template (NFR-STO-005). The build replaces __PRECACHE__ and __VERSION__ below
+ * with the precache list and version; see the `offline` plugin in vite.config.ts. Plain JS
  * because it is copied, not bundled. */
 const PRECACHE = __PRECACHE__;
 const VERSION = __VERSION__;

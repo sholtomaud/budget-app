@@ -86,10 +86,8 @@ export default defineConfig({
   },
   server: { fs: { allow: ['.'] } },
   test: {
-    include: ['tests/{unit,kernel,components}/**/*.test.ts'],
+    include: ['tests/{unit,kernel}/**/*.test.ts'],
     environment: 'node',
-    // Components import their CSS with ?raw; without this Vitest stubs it as empty.
-    css: true,
     restoreMocks: true,
   },
 });

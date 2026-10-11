@@ -4,9 +4,9 @@
  * looks like real financial data. Runs in CI over every tracked file and as a
  * pre-commit hook over staged files (`--staged`).
  *
- *   node scripts/data-hygiene.mjs            # all tracked files
- *   node scripts/data-hygiene.mjs --staged   # staged files only
- *   node scripts/data-hygiene.mjs a.json b   # named files
+ *   node scripts/data-hygiene.ts            # all tracked files
+ *   node scripts/data-hygiene.ts --staged   # staged files only
+ *   node scripts/data-hygiene.ts a.json b   # named files
  */
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
@@ -29,21 +29,21 @@ const TFN_FORMATTED = /\b(\d{3})([ -])(\d{3})\2(\d{3})\b/g;
 const TFN_LABELLED = /\bTFN\b\D{0,12}(\d[\d -]{6,11}\d)/gi;
 
 /** ATO TFN check digit: weighted sum mod 11 == 0. */
-export function isValidTfn(digits) {
+export function isValidTfn(digits: string): boolean {
   const d = digits.replace(/\D/g, '');
   if (d.length !== 9 && d.length !== 8) return false;
   const weights = d.length === 9 ? [1, 4, 3, 7, 5, 8, 6, 9, 10] : [10, 7, 8, 4, 6, 3, 5, 1];
-  const sum = [...d].reduce((acc, c, i) => acc + Number(c) * weights[i], 0);
+  const sum = [...d].reduce((acc, c, i) => acc + Number(c) * (weights[i] ?? 0), 0);
   return sum % 11 === 0;
 }
 
-function lineOf(text, index) {
+function lineOf(text: string, index: number): number {
   return text.slice(0, index).split('\n').length;
 }
 
 /** Problems with one file's path and content. Pure, for tests. */
-export function scanFile(path, text) {
-  const problems = [];
+export function scanFile(path: string, text: string | null): string[] {
+  const problems: string[] = [];
   const p = path.replace(/\\/g, '/');
   if (FORBIDDEN_EXT.test(p)) problems.push(`${p}: file type is never committed (real-data format)`);
   if (FORBIDDEN_DIR.test(p))
@@ -64,40 +64,41 @@ export function scanFile(path, text) {
   }
 
   for (const m of text.matchAll(ACCOUNT_ID)) {
-    if (!m[1].startsWith('SYN-')) {
+    const id = m[1] ?? '';
+    if (!id.startsWith('SYN-')) {
       problems.push(
-        `${p}:${lineOf(text, m.index)}: accountId "${m[1]}" is not synthetic (must start SYN-)`
+        `${p}:${lineOf(text, m.index)}: accountId "${id}" is not synthetic (must start SYN-)`
       );
     }
   }
   for (const m of text.matchAll(BSB_ACCOUNT)) {
     problems.push(`${p}:${lineOf(text, m.index)}: looks like a BSB and account number`);
   }
-  const tfnHits = new Set();
+  const tfnHits = new Set<number>();
   for (const m of text.matchAll(TFN_FORMATTED)) {
     if (isValidTfn(m[0])) tfnHits.add(m.index);
   }
   for (const m of text.matchAll(TFN_LABELLED)) {
-    if (isValidTfn(m[1])) tfnHits.add(m.index);
+    if (isValidTfn(m[1] ?? '')) tfnHits.add(m.index);
   }
   for (const i of tfnHits) problems.push(`${p}:${lineOf(text, i)}: looks like an Australian TFN`);
   return problems;
 }
 
-function hasJsonMarker(text) {
+function hasJsonMarker(text: string): boolean {
   try {
-    const v = JSON.parse(text);
+    const v: unknown = JSON.parse(text);
     return v !== null && typeof v === 'object' && !Array.isArray(v) && SYNTHETIC_MARKER in v;
   } catch {
     return false;
   }
 }
 
-function git(args) {
+function git(args: string[]): string[] {
   return execFileSync('git', args, { encoding: 'utf8' }).split('\0').filter(Boolean);
 }
 
-function main(argv) {
+function main(argv: string[]): void {
   const staged = argv.includes('--staged');
   const named = argv.filter((a) => !a.startsWith('--'));
   const files = named.length
@@ -106,7 +107,7 @@ function main(argv) {
       ? git(['diff', '--cached', '--name-only', '--diff-filter=ACMR', '-z'])
       : git(['ls-files', '-z']);
 
-  const problems = [];
+  const problems: string[] = [];
   for (const f of files) {
     if (!existsSync(f)) continue;
     const text = SKIP_BINARY.test(f) ? null : readFileSync(f, 'utf8');

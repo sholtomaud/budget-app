@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- Node.js ≥ 22.18
+- Node.js ≥ 22.18 (it runs the TypeScript scripts in `scripts/` directly)
 - For end-to-end tests: Playwright's Chromium (`npx playwright install chromium`)
 
 ## Run it
@@ -20,11 +20,11 @@ npm run docs:dev       # these docs, at http://localhost:5174
 | `npm run dev`                                      | Vite dev server for the app                                                                |
 | `npm run build`                                    | Production build of the app into `dist/`. Set `BASE_PATH=/sub/path/` to host under a path. |
 | `npm run preview`                                  | Serve the production build                                                                 |
-| `npm test`                                         | Unit, kernel and component tests (Vitest)                                                  |
+| `npm test`                                         | Unit and kernel tests (Vitest)                                                             |
 | `npm run test:watch`                               | Vitest in watch mode                                                                       |
 | `npm run e2e`                                      | Playwright end-to-end tests against the production build                                   |
-| `npm run lint`                                     | ESLint and a Prettier check                                                                |
-| `npm run typecheck`                                | `tsc --noEmit`                                                                             |
+| `npm run lint`                                     | Prettier check                                                                             |
+| `npm run typecheck`                                | `tsc --noEmit` with TypeScript 7 (`tsgo`): types, unused code, implicit returns            |
 | `npm run hygiene`                                  | Data-hygiene gate: rejects anything that looks like real financial data                    |
 | `npm run bundle-size`                              | First-load JS budget (≤ 400 kB gzipped)                                                    |
 | `npm run gssk:verify`                              | Check the vendored kernel against `GSSK_PIN.json`                                          |

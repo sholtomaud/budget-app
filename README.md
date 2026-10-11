@@ -35,7 +35,7 @@ Requires Node ≥ 22.18.
 ```bash
 npm install
 npm run dev          # http://localhost:5173
-npm test             # unit, kernel and component tests (Vitest)
+npm test             # unit and kernel tests (Vitest)
 npm run e2e          # Playwright, against the production build
 npm run build        # static site in dist/ (set BASE_PATH=/sub/path/ to host under a path)
 npm run docs:dev     # documentation site (VitePress)
@@ -52,8 +52,9 @@ npm run hooks:install  # data-hygiene pre-commit hook
 | [0004](docs/adr/0004-gssk-pin-from-dist-branch.md) | GSSK vendored from its `dist` branch, pinned by commit and SHA-256 |
 | [0005](docs/adr/0005-conservation-check.md)        | What GSSK's conservation error measures; how FR-SIM-003 is checked |
 | [0006](docs/adr/0006-vitest-vitepress-pages.md)    | Vitest for tests, VitePress for docs, GitHub Pages for deployment  |
+| [0007](docs/adr/0007-no-third-party-runtime.md)    | No third-party runtime code; TypeScript 7; no ESLint; no `.mjs`    |
 
 ## License
 
-MIT. `src/app/core/` adapts code from [Boba](https://github.com/sholtomaud/boba) (MIT). GSSK is
+MIT. No third-party code ships in the app (ADR 0007). `src/app/core/` adapts code from [Boba](https://github.com/sholtomaud/boba) (MIT). GSSK is
 MIT and bundles cJSON (MIT).

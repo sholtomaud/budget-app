@@ -88,7 +88,7 @@ rules, superannuation). Multi-currency holdings (BTC, USD, EUR) are first-class.
 │                                                                                │
 │  UI (main thread)                                                              │
 │   Ledger · Budget · CAPEX · Forecast · Freedom · Scenarios · Advisor · Settings │
-│        │ Comlink RPC                                                           │
+│        │ typed postMessage RPC (in-house)                                      │
 │  ┌─────▼──────────────────── Web Workers ───────────────────────────────────┐  │
 │  │ ingest      CDR JSON → canonical; CSV → budget/CAPEX/goals               │  │
 │  │ classify    rules → merchant memory → in-browser ML → (optional) LLM     │  │
@@ -656,7 +656,7 @@ Tools exposed to the model: `get_scenario(id)`, `list_metrics(id)`, `propose_sce
 | NFR-STO-003 | **Export** everything (records + settings + optional runs) as one file, `.budgetapp`, a ZIP of JSON, encrypted with a passphrase. **Import** restores it. Round-trip is lossless (tested). |
 | NFR-STO-004 | "Delete all data" removes IndexedDB, OPFS, caches and service-worker storage for the origin. |
 | NFR-STO-005 | Works offline after first load (service worker, precached assets including `gssk.wasm` and `ml-core.wasm`). |
-| NFR-SEC-001 | No third-party scripts at runtime. All dependencies are bundled at build time. No analytics, no telemetry. |
+| NFR-SEC-001 | **No third-party runtime code.** The shipped app contains only this repository's code and the pinned GSSK kernel; npm packages are build and test tooling only (ADR 0007). No third-party scripts at runtime, no analytics, no telemetry. |
 | NFR-SEC-002 | Imported files are parsed in workers with size limits (50 MB per file) and never evaluated. Imported text is rendered with DOM text APIs, never interpolated into HTML. |
 
 ---
@@ -667,20 +667,20 @@ Tools exposed to the model: `get_scenario(id)`, `list_metrics(id)`, `propose_sce
 
 | Concern | Choice |
 |---|---|
-| Language | TypeScript (strict, erasable syntax only, explicit `.ts` imports; runs unchanged in Node ≥ 22.18 and Vite) |
+| Language | TypeScript 7 (`tsgo`, the native compiler), strict, erasable syntax only, explicit `.ts` imports; runs unchanged in Node ≥ 22.18 and Vite (ADR 0007) |
 | Build / dev | Vite |
 | UI | Native web components in the [Boba](https://github.com/sholtomaud/boba) pattern (ADR 0001): one folder per custom element (`.html`, `.css` with `:host` scoping, `.ts`), a small `BaseComponent`, an `EventTarget` store and a History-API router. No UI framework, no CSS framework. |
-| Charts | Hand-written SVG components, or uPlot for dense series |
-| Workers / RPC | Web Workers + Comlink |
+| Charts | Hand-written SVG components (ADR 0007) |
+| Workers / RPC | Web Workers + an in-house typed `postMessage` RPC (`src/workers/rpc.ts`, ADR 0007) |
 | CSV | In-house RFC 4180 parser in the `ingest` worker. No xlsx support and no SheetJS (ADR 0003). |
-| Validation | JSON Schema (Ajv, precompiled) for CDR files, models, scenarios |
-| Storage | IndexedDB (idb), OPFS |
+| Validation | In-house validators for CDR files, models and scenarios, checked against the pinned JSON Schemas in tests (ADR 0007) |
+| Storage | IndexedDB (thin in-house typed wrapper), OPFS |
 | Kernel | `gssk.wasm` + `gssk.js` loader from GSSK `dist/`, pinned (§15.3) |
 | ML / numerics | `ml-core.wasm` (§15.2); TS reference implementations for tests |
-| Optional ML | ONNX Runtime Web (embeddings, pretrained forecasters); WebLLM (in-browser LLM on WebGPU) |
-| Tests | Vitest (unit, kernel, component tests in happy-dom; property via fast-check), Playwright (e2e, network assertions) (ADR 0006) |
+| Optional ML | Later, and only by ADR: ONNX Runtime Web (embeddings, pretrained forecasters), WebLLM (in-browser LLM on WebGPU). These would be the only third-party runtime code, loaded only after the user opts in (ADR 0007). |
+| Tests | Vitest (unit, kernel; property tests with in-house seeded generators on SplitMix64), Playwright (components, e2e, network assertions) (ADRs 0006, 0007) |
 | Documentation | VitePress site built from `docs/` (guides, ADRs, this spec) (ADR 0006) |
-| Lint / format | ESLint, Prettier; `cargo fmt` / `clippy` for `ml-core` |
+| Lint / format | `tsc` with strict and unused-code checks, Prettier; `cargo fmt` / `clippy` for `ml-core` (ADR 0007) |
 
 ### 15.2 `ml-core` (WASM)
 
@@ -750,8 +750,8 @@ transactions ≤ 3 s; classification of 10 000 ≤ 2 s; FR-SIM-005 for Monte-Car
 ### 16.4 CI and data hygiene
 
 CI (`.github/workflows/ci.yml`) runs on every pull request and push, in three parallel jobs:
-**build** (data-hygiene gate, GSSK pin check, lint, typecheck, app build, bundle size, docs build;
-later also `ml-core` build), **test** (Vitest: unit, property, golden, kernel, component; later also
+**build** (data-hygiene gate, GSSK pin check, format check, typecheck, app build, bundle size, docs build;
+later also `ml-core` build), **test** (Vitest: unit, property, golden, kernel; later also
 eval thresholds and `ml-core` tests) and **e2e** (Playwright, including privacy tests).
 
 **Data-hygiene gate (NFR-PRIV-002)**, run in CI and as a pre-commit hook:
@@ -802,7 +802,7 @@ budget-app/
 ├─ AGENTS.md  CLAUDE.md  README.md  SPEC.md  LICENSE
 ├─ docs/
 │  ├─ .vitepress/config.ts        VitePress site config
-│  ├─ adr/                       0001-ui-framework.md … 0006-vitest-vitepress-pages.md
+│  ├─ adr/                       0001-ui-framework.md … 0007-no-third-party-runtime.md
 │  ├─ guide/                     getting-started, architecture, testing, deployment
 │  ├─ spec.md                    includes ../SPEC.md
 │  └─ user-guide.md
@@ -832,8 +832,8 @@ budget-app/
 │  ├─ store/                     db.ts, crypto.ts, export.ts, migrations/
 │  ├─ sw/                        service-worker template (precache list filled at build)
 │  └─ workers/                   one entry per worker
-├─ tests/                        unit/, property/, golden/, kernel/, components/, e2e/ (privacy tests live in e2e/)
-├─ scripts/                      gssk-update.sh, gssk-verify.mjs, data-hygiene.mjs, bundle-size.mjs
+├─ tests/                        unit/, property/, golden/, kernel/, e2e/ (privacy tests live in e2e/)
+├─ scripts/                      gssk-update.sh, gssk-verify.ts, data-hygiene.ts, bundle-size.ts (run by Node directly)
 ├─ .githooks/                    pre-commit (data-hygiene gate on staged files)
 └─ .github/workflows/ci.yml
 ```

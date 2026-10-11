@@ -2,12 +2,12 @@
  * The `sim` worker (SPEC §4). M0 scope: verify and load the pinned kernel,
  * and run a model end to end. Monte-Carlo and the policy controller arrive in M5.
  */
-import * as Comlink from 'comlink';
 import wasmUrl from '../../vendor/gssk/gssk.wasm?url';
 import pinJson from '../../vendor/gssk/GSSK_PIN.json' with { type: 'json' };
 import { GsskKernel, type GsskPin, type KernelInfo } from '../sim/gssk.ts';
 import { runModel, type RunOptions, type RunTrace } from '../sim/run.ts';
 import householdModel from '../sim/examples/household_model.json?raw';
+import { expose, type Endpoint } from './rpc.ts';
 
 const pin = pinJson as GsskPin;
 let kernel: Promise<GsskKernel> | null = null;
@@ -37,4 +37,4 @@ const api = {
 
 export type SimApi = typeof api;
 
-Comlink.expose(api);
+expose(api, globalThis as unknown as Endpoint);

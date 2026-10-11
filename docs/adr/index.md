@@ -11,3 +11,4 @@ Every deviation from the [specification](../spec.md) gets one.
 | [0004](./0004-gssk-pin-from-dist-branch.md) | GSSK vendored from its `dist` branch, pinned by commit and SHA-256 | Accepted           |
 | [0005](./0005-conservation-check.md)        | What GSSK's conservation error measures; sinks accumulate          | Accepted           |
 | [0006](./0006-vitest-vitepress-pages.md)    | Vitest for tests, VitePress for docs, GitHub Pages for deployment  | Accepted           |
+| [0007](./0007-no-third-party-runtime.md)    | No third-party runtime code; TypeScript 7; no ESLint; no `.mjs`    | Accepted           |

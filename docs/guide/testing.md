@@ -1,11 +1,10 @@
 # Testing
 
-| Layer      | Tool               | Where                                                                                                                                                                    |
-| ---------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Unit       | Vitest             | `tests/unit/` — pure logic: routes, store, chart scales, data hygiene                                                                                                    |
-| Kernel     | Vitest             | `tests/kernel/` — the GSSK wrapper against the vendored wasm: pin check, init, step, reset, `setEdgeK` with cause, mutation log, replay, conservation, sink accumulation |
-| Component  | Vitest + happy-dom | `tests/components/` — custom elements and the router, in a simulated DOM                                                                                                 |
-| End to end | Playwright         | `tests/e2e/` — the production build in Chromium: shell, kernel run, CSP, offline reload, no-egress privacy                                                               |
+| Layer      | Tool       | Where                                                                                                                                                                    |
+| ---------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Unit       | Vitest     | `tests/unit/` — pure logic: routes, store, chart scales, data hygiene                                                                                                    |
+| Kernel     | Vitest     | `tests/kernel/` — the GSSK wrapper against the vendored wasm: pin check, init, step, reset, `setEdgeK` with cause, mutation log, replay, conservation, sink accumulation |
+| End to end | Playwright | `tests/e2e/` — the production build in Chromium: custom elements, router, kernel run in the worker, CSP, offline reload, no-egress privacy                               |
 
 ```bash
 npm test             # all Vitest suites
@@ -13,10 +12,11 @@ npm run test:watch   # watch mode
 npm run e2e          # Playwright (builds the app first)
 ```
 
-Component tests opt into the DOM with a `// @vitest-environment happy-dom` comment. Vitest runs
-with `css: true`, because components import their CSS with `?raw`.
+Components are tested in a real browser by Playwright, not in a simulated DOM. Unit tests cover
+the DOM-free logic, so keep logic out of components where you can.
 
-Property tests (from M1) use `fast-check`. Golden tests pin outputs for a fixed persona and seed
+Property tests (from M1) use in-house seeded generators on SplitMix64, so failures replay exactly
+(ADR 0007). Golden tests pin outputs for a fixed persona and seed
 (SPEC §16.1).
 
 ## The data-hygiene gate

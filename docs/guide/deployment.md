@@ -3,12 +3,12 @@
 The app and these docs are deployed together to **GitHub Pages** by
 `.github/workflows/ci.yml`:
 
-| Job      | Runs on                                     | Does                                                                                                                    |
-| -------- | ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `build`  | every PR and push                           | data-hygiene gate, GSSK pin check, lint, typecheck, app build, bundle-size budget, docs build; assembles the Pages site |
-| `test`   | every PR and push                           | Vitest: unit, kernel and component tests                                                                                |
-| `e2e`    | every PR and push                           | Playwright against the production build                                                                                 |
-| `deploy` | pushes to `main` only, after all three pass | publishes the site to GitHub Pages                                                                                      |
+| Job      | Runs on                                     | Does                                                                                                                                           |
+| -------- | ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `build`  | every PR and push                           | data-hygiene gate, GSSK pin check, format check, typecheck (TypeScript 7), app build, bundle-size budget, docs build; assembles the Pages site |
+| `test`   | every PR and push                           | Vitest: unit and kernel tests                                                                                                                  |
+| `e2e`    | every PR and push                           | Playwright against the production build                                                                                                        |
+| `deploy` | pushes to `main` only, after all three pass | publishes the site to GitHub Pages                                                                                                             |
 
 The published site is laid out as:
 

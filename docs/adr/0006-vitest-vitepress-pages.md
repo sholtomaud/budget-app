@@ -7,9 +7,9 @@
 
 ## Decision
 
-- **Vitest** runs unit, kernel and component tests (`npm test`). It shares `vite.config.ts` with the
-  app, so modules that use Vite features (`?raw`, `import.meta.glob`) can be tested directly.
-  Component tests run in **happy-dom**. Assertions use Vitest's `expect`. Playwright stays the e2e
+- **Vitest** runs unit and kernel tests (`npm test`). It shares `vite.config.ts` with the app.
+  Assertions use Vitest's `expect`. Components are tested in Playwright, not in a simulated DOM
+  (ADR 0007). Playwright stays the e2e
   runner.
 - **VitePress** builds the documentation site from `docs/`: guides, the ADRs, and `SPEC.md`
   included verbatim. VitePress 1.6.4 bundles vite 5, which has dev-server advisories, so

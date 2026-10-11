@@ -11,7 +11,7 @@ import { gzipSync } from 'node:zlib';
 const LIMIT = 400 * 1024;
 const dir = process.argv[2] ?? 'dist';
 
-const walk = (d) =>
+const walk = (d: string): string[] =>
   readdirSync(d).flatMap((f) => {
     const p = join(d, f);
     return statSync(p).isDirectory() ? walk(p) : [p];

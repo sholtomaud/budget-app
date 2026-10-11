@@ -1,8 +1,5 @@
 import { describe, expect, test } from 'vitest';
-// @ts-expect-error -- plain .mjs script without type declarations
-import { isValidTfn, scanFile } from '../../scripts/data-hygiene.mjs';
-
-const scan = scanFile as (path: string, text: string | null) => string[];
+import { isValidTfn, scanFile as scan } from '../../scripts/data-hygiene.ts';
 
 // Real-looking values are assembled at runtime so this file passes the gate it tests.
 const BSB = ['062', '000'].join('-');

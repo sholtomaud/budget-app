@@ -15,11 +15,17 @@
     "noFallthroughCasesInSwitch": true,
     "skipLibCheck": true,
     "lib": ["es2022", "dom", "dom.iterable", "webworker.importscripts"],
-    "types": ["node", "vite/client"]
+    "types": ["node", "vite/client"],
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "allowUnreachableCode": false,
+    "forceConsistentCasingInFileNames": true
   },
   "include": [
     "src/**/*.ts",
     "tests/**/*.ts",
+    "scripts/**/*.ts",
     "vite.config.ts",
     "playwright.config.ts",
     "docs/.vitepress/config.ts"

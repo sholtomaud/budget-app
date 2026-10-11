@@ -4,7 +4,7 @@ budget-app is a static site with no backend. Everything runs in the browser.
 
 ```
 UI (main thread, custom elements)
-   │  Comlink RPC
+   │  typed postMessage RPC (src/workers/rpc.ts)
    ▼
 Web Workers ── sim: gssk.wasm (pinned), model runner
                ingest · classify · forecast · optimise · synth   (later milestones)
