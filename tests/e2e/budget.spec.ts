@@ -2,7 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 
 async function loadDefault(page: Page) {
   await page.goto('/');
-  await page.getByRole('button', { name: 'Generate and load' }).click();
+  await page.getByRole('button', { name: 'Load sample household' }).click();
   await expect(page).toHaveURL(/\/import$/);
 }
 
@@ -68,7 +68,7 @@ test('CAPEX register: replacement windows, sinking fund, tiers, wish-list decisi
   await importSheets(page);
   await page
     .getByRole('navigation', { name: 'Screens' })
-    .getByRole('link', { name: 'CAPEX' })
+    .getByRole('link', { name: 'Big purchases' })
     .click();
   await expect(page.locator('.sinking')).toHaveText(/\$[\d,.]+ a week/);
   const laptop = page.locator('table.register tr[data-asset="Laptop"]');

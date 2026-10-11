@@ -6,7 +6,7 @@ test('freedom: Monte-Carlo on GSSK, metrics and a reproducibility record (FR-SIM
   test.setTimeout(180_000);
   await page.goto('/');
   await page.getByLabel('Household').selectOption('default');
-  await page.getByRole('button', { name: 'Generate and load' }).click();
+  await page.getByRole('button', { name: 'Load sample household' }).click();
   await expect(page).toHaveURL(/\/import$/);
 
   await page

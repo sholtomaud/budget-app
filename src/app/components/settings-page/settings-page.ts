@@ -11,6 +11,7 @@ import {
   vaultStore,
 } from '../../vault.ts';
 import { ingest } from '../../workers.ts';
+import { restartGuide } from '../../guide.ts';
 import template from './settings-page.html?raw';
 import style from './settings-page.css?raw';
 
@@ -97,7 +98,7 @@ export class SettingsPage extends BaseComponent {
       msg(card, 'Exporting…');
       void busy(exp, async () => {
         const bytes = await ingest().exportAll(p);
-        const name = `budget-app-${new Date().toISOString().slice(0, 10)}.budgetapp`;
+        const name = `crux-${new Date().toISOString().slice(0, 10)}.budgetapp`;
         const url = URL.createObjectURL(
           new Blob([bytes as Uint8Array<ArrayBuffer>], { type: 'application/zip' })
         );
@@ -142,6 +143,10 @@ export class SettingsPage extends BaseComponent {
         .then(() => (location.href = import.meta.env.BASE_URL))
         .catch((err) => msg(card, errText(err), 'bad'));
     };
+
+    for (const a of this.querySelectorAll<HTMLAnchorElement>('a[data-route]'))
+      a.href = import.meta.env.BASE_URL + (a.dataset.route ?? '/').replace(/^\//, '');
+    this.$<HTMLButtonElement>('.show-guide').onclick = () => restartGuide();
 
     const render = () => {
       const s = vaultStore.getState().state;

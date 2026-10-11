@@ -17,12 +17,9 @@ test('works offline after first load, including the kernel (NFR-STO-005)', async
 
   await context.setOffline(true);
   await page.reload();
-  await expect(page.getByRole('heading', { name: 'Freedom capital, measured' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Crux', level: 1 })).toBeVisible();
 
-  await page
-    .getByRole('navigation', { name: 'Screens' })
-    .getByRole('link', { name: 'Kernel' })
-    .click();
+  await page.locator('.kernel-status').getByRole('link', { name: 'details' }).click();
   await expect(page.locator('.k-status')).toHaveText('SHA-256 matches the pin');
   await page.getByRole('button', { name: 'Run example' }).click();
   await expect(page.locator('.result')).toHaveAttribute('data-ready', 'true');

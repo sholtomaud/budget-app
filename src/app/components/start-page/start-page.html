@@ -1,17 +1,32 @@
-<section class="screen">
-  <h1>Freedom capital, measured</h1>
-  <p class="lede">
-    See what you actually spend, forecast what you will spend, including lumpy capital purchases,
-    and simulate whether your capital can fund a chosen standard of living, and with what
-    probability.
-  </p>
+<section class="screen landing">
+  <header class="hero">
+    <h1>Crux</h1>
+    <p class="tagline">
+      See where your money really stands, and how close you are to the life you want.
+    </p>
+    <p class="lede">
+      Crux turns your bank transactions and budget into a clear picture: what you spend, what's
+      coming, and when you could stop working for money. It runs entirely in your browser. Your data
+      never leaves this device.
+    </p>
+  </header>
+
+  <article class="card continue" hidden>
+    <h2>Welcome back</h2>
+    <p class="loaded"></p>
+    <p class="next-step"></p>
+    <p class="actions">
+      <a class="button next-link" href="/">Continue</a>
+      <button type="button" class="secondary small restart">Start the guide again</button>
+    </p>
+  </article>
 
   <div class="choices">
     <article class="card synth">
-      <h2>Try synthetic data</h2>
+      <h2>Try it with a sample household</h2>
       <p>
-        Explore every screen with a generated household before loading anything real. Every number
-        is labelled <span class="prov" data-prov="illustrative">illustrative</span>.
+        The quickest way to see what Crux does. A made-up household with two years of bank data,
+        labelled <span class="prov" data-prov="illustrative">illustrative</span> everywhere.
       </p>
       <form class="synth-form">
         <label>
@@ -19,50 +34,91 @@
           <select name="persona" required></select>
         </label>
         <p class="persona-desc muted"></p>
-        <label>
-          Seed
-          <input
-            name="seed"
-            value="42"
-            inputmode="numeric"
-            pattern="(0x[0-9a-fA-F]+|[0-9]+)"
-            required
-            size="12"
-          />
-        </label>
-        <button type="submit">Generate and load</button>
+        <details class="advanced">
+          <summary>Advanced</summary>
+          <label>
+            Seed (the same seed always gives the same data)
+            <input
+              name="seed"
+              value="42"
+              inputmode="numeric"
+              pattern="(0x[0-9a-fA-F]+|[0-9]+)"
+              required
+              size="12"
+            />
+          </label>
+        </details>
+        <button type="submit">Load sample household</button>
       </form>
       <p class="synth-status muted" role="status" aria-live="polite"></p>
     </article>
-    <article class="card">
-      <h2>Import my data</h2>
+    <article class="card own">
+      <h2>Use my own data</h2>
       <p>
-        Load Open Banking (CDR) exports and a CSV of your budget. Files are parsed on this device.
+        Download your transactions from your bank's website as an Open Banking (CDR) file, and a CSV
+        of your budget spreadsheet if you have one. Crux reads them on this device.
       </p>
-      <a class="button" href="/import" data-route="/import">Go to Import</a>
+      <a class="button" href="/import" data-route="/import">Add my data</a>
     </article>
   </div>
 
-  <article class="card privacy" aria-labelledby="privacy-h">
-    <h2 id="privacy-h">Privacy</h2>
-    <ul>
-      <li>Your data stays in this browser. There is no server, no account and no cloud sync.</li>
+  <section class="features" aria-labelledby="what-h">
+    <h2 id="what-h">What Crux does</h2>
+    <div class="grid">
+      <article>
+        <h3>See what you spend</h3>
+        <p>Every transaction sorted into categories you can check and correct.</p>
+      </article>
+      <article>
+        <h3>Plan for big costs</h3>
+        <p>Laptops wear out and cars need replacing. Crux estimates when, and what to set aside.</p>
+      </article>
+      <article>
+        <h3>Look ahead</h3>
+        <p>Forecasts of your spending with honest ranges, not a single guess.</p>
+      </article>
+      <article>
+        <h3>Find your freedom number</h3>
+        <p>
+          How much you need to live without working for money, and how likely your plan is to get
+          you there.
+        </p>
+      </article>
+    </div>
+  </section>
+
+  <section class="how" aria-labelledby="how-h">
+    <h2 id="how-h">How it works</h2>
+    <ol>
+      <li><strong>Add your data</strong>, or try a sample household.</li>
+      <li><strong>Check the categories</strong> Crux has given your spending.</li>
+      <li><strong>Set your budget and your goal</strong>: the life you want, and when.</li>
       <li>
-        The app makes no network request except to load its own files, unless you configure an
-        external service and confirm each call.
+        <strong>Compare plans</strong> and see which ones are most likely to work. A guide at the
+        top of each screen walks you through.
       </li>
-      <li>No analytics and no third-party scripts.</li>
+    </ol>
+  </section>
+
+  <article class="card privacy" aria-labelledby="privacy-h">
+    <h2 id="privacy-h">Your data stays with you</h2>
+    <ul>
+      <li>Everything stays in this browser. No account, no server, nothing uploaded.</li>
+      <li>You can encrypt it with a passphrase, export it, or delete it all in Settings.</li>
+      <li>No ads, no analytics and no tracking.</li>
       <li>
-        This is not financial advice. The app simulates the consequences of your own assumptions,
-        and shows every assumption it uses.
+        If you turn on an AI assistant, you see exactly what would be sent and approve every
+        request.
+      </li>
+      <li>
+        Crux isn't financial advice. It shows the consequences of your own assumptions, and every
+        number says where it came from.
       </li>
     </ul>
   </article>
 
-  <p class="loaded muted" hidden></p>
-
   <p class="kernel-status" role="status">
-    Simulation kernel: <span class="kstate">checking…</span>
+    Simulation engine: <span class="kstate">checking…</span>
     <a href="/kernel" data-route="/kernel">details</a>
   </p>
 </section>

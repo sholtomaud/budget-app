@@ -2,10 +2,19 @@ import { BaseComponent, define } from '../../core/base-component.ts';
 import { navigate } from '../../core/router.ts';
 import { data, ensureLoaded, loadSynthetic } from '../../data.ts';
 import { count } from '../../format.ts';
+import { guideStore, nextStep, restartGuide } from '../../guide.ts';
+import { publicPath } from '../../core/routes.ts';
 import { sim, synth } from '../../workers.ts';
 import type { PersonaSummary } from '../../../workers/synth.worker.ts';
 import template from './start-page.html?raw';
 import style from './start-page.css?raw';
+
+/** Friendly names for the synthetic households (the persona file names stay as ids). */
+const PERSONA_LABEL: Record<string, string> = {
+  default: 'Renting, one salary',
+  'frugal-renter': 'Frugal renter',
+  'high-capex-crypto': 'High earner, big purchases, crypto',
+};
 
 export class StartPage extends BaseComponent {
   private unsubscribe: (() => void) | null = null;
@@ -31,7 +40,17 @@ export class StartPage extends BaseComponent {
         state.dataset.ok = 'false';
       });
     void this.setupSynth();
-    this.unsubscribe = data.subscribe(() => this.renderLoaded());
+    this.$<HTMLButtonElement>('.restart').onclick = () => restartGuide();
+    this.$<HTMLAnchorElement>('.next-link').onclick = (e) => {
+      e.preventDefault();
+      navigate(this.$<HTMLAnchorElement>('.next-link').dataset.path ?? '/ledger');
+    };
+    const offGuide = guideStore.subscribe(() => this.renderLoaded());
+    const offData = data.subscribe(() => this.renderLoaded());
+    this.unsubscribe = () => {
+      offGuide();
+      offData();
+    };
     void ensureLoaded().then(() => this.renderLoaded());
   }
 
@@ -41,10 +60,19 @@ export class StartPage extends BaseComponent {
 
   private renderLoaded(): void {
     const v = data.getState().view;
-    const p = this.$('.loaded');
-    p.hidden = !v || v.txns.length === 0;
-    if (v)
-      p.textContent = `Loaded: ${count(v.txns.length)} transactions in ${count(v.accounts.length)} accounts from ${count(v.imports.length)} import${v.imports.length === 1 ? '' : 's'}.`;
+    const has = !!v && (v.txns.length > 0 || v.budget.lines.length > 0);
+    this.$('.continue').hidden = !has;
+    if (!v || !has) return;
+    this.$('.loaded').textContent =
+      `You have ${count(v.txns.length)} transactions in ${count(v.accounts.length)} account${v.accounts.length === 1 ? '' : 's'}.`;
+    const next = nextStep(true, guideStore.getState().visited) ?? {
+      title: 'See your transactions',
+      path: '/ledger',
+    };
+    this.$('.next-step').textContent = `Next: ${next.title}.`;
+    const link = this.$<HTMLAnchorElement>('.next-link');
+    link.href = publicPath(next.path, import.meta.env.BASE_URL);
+    link.dataset.path = next.path;
   }
 
   private async setupSynth(): Promise<void> {
@@ -60,11 +88,22 @@ export class StartPage extends BaseComponent {
       return;
     }
     select.replaceChildren(
-      ...personas.map((p) => new Option(p.name, p.name, p.name === 'default', p.name === 'default'))
+      ...personas.map(
+        (p) =>
+          new Option(
+            PERSONA_LABEL[p.name] ?? p.name,
+            p.name,
+            p.name === 'default',
+            p.name === 'default'
+          )
+      )
     );
     const describe = () => {
       const p = personas.find((x) => x.name === select.value);
-      desc.textContent = p ? `${p.description} ${p.months} months from ${p.start}.` : '';
+      // Persona files cite the spec; that's for developers, not the landing page.
+      desc.textContent = p
+        ? `${p.description.replace(/\s*\(SPEC[^)]*\)/g, '')} ${Math.round(p.months / 12)} years of bank data.`
+        : '';
     };
     select.onchange = describe;
     describe();

@@ -1,9 +1,9 @@
 ---
 layout: home
 hero:
-  name: budget-app
-  text: Freedom capital, measured
-  tagline: A local-first household budget and Monte-Carlo freedom simulator that runs entirely in your browser, on the GSSK stock-and-flow kernel.
+  name: Crux
+  text: See where your money really stands
+  tagline: Your spending, your big costs ahead, and how close you are to the life you want, worked out privately in your browser.
   actions:
     - theme: brand
       text: Getting started

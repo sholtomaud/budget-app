@@ -1,7 +1,9 @@
-# budget-app
+# Crux
 
-A local-first household budget and **freedom-capital** simulator that runs entirely in the
-browser. It shows what you actually spend, forecasts what you will spend (including lumpy
+**See where your money really stands, and how close you are to the life you want.**
+
+Crux (repository `budget-app`) is a local-first household budget and **freedom-capital** simulator
+that runs entirely in the browser. It shows what you actually spend, forecasts what you will spend (including lumpy
 capital purchases), and simulates whether your capital can fund a chosen standard of living, and
 with what probability. Simulation runs on the [GSSK](https://github.com/energese-project/GSSK-Giannantoni)
 stock-and-flow kernel, compiled to WebAssembly and pinned by hash.
