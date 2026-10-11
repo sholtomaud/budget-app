@@ -56,7 +56,12 @@ export class DataService {
   private readonly budgetStore: BudgetStore;
   budget: BudgetState = emptyBudget();
 
-  constructor(imports: ImportStore, classifyState: StateStore, budgetStore: BudgetStore = new MemoryBudgetStore(), timezone?: string) {
+  constructor(
+    imports: ImportStore,
+    classifyState: StateStore,
+    budgetStore: BudgetStore = new MemoryBudgetStore(),
+    timezone?: string
+  ) {
     this.ingest = new IngestService(imports, timezone);
     this.classifier = new Classifier(classifyState);
     this.budgetStore = budgetStore;
@@ -75,7 +80,11 @@ export class DataService {
   }
 
   async load(): Promise<void> {
-    const [, , budget] = await Promise.all([this.ingest.load(), this.classifier.load(), this.budgetStore.load()]);
+    const [, , budget] = await Promise.all([
+      this.ingest.load(),
+      this.classifier.load(),
+      this.budgetStore.load(),
+    ]);
     if (budget) this.budget = { ...emptyBudget(), ...budget };
     this.reclassify();
   }
@@ -169,7 +178,11 @@ export class DataService {
     });
   }
 
-  async commitWorkbook(file: string, text: string, opts: WorkbookOptions = {}): Promise<WorkbookImport> {
+  async commitWorkbook(
+    file: string,
+    text: string,
+    opts: WorkbookOptions = {}
+  ): Promise<WorkbookImport> {
     const p = this.previewWorkbook(file, text, opts);
     const b = this.budget;
     if (p.mapping.type === 'opex') {
@@ -181,7 +194,11 @@ export class DataService {
         const a = this.classifier.assets.find((x) => x.name.toLowerCase() === r.item.toLowerCase());
         if (!a) continue;
         if (!a.purchasedAt || r.date > a.purchasedAt) {
-          await this.classifier.updateAsset(a.id, { purchasedAt: r.date, status: 'owned', ...(r.cost !== undefined ? { cost: { minor: r.cost, ccy: 'AUD' } } : {}) });
+          await this.classifier.updateAsset(a.id, {
+            purchasedAt: r.date,
+            status: 'owned',
+            ...(r.cost !== undefined ? { cost: { minor: r.cost, ccy: 'AUD' } } : {}),
+          });
         }
       }
     } else {
@@ -189,7 +206,14 @@ export class DataService {
     }
     for (const c of p.categoryIds) {
       if (!this.classifier.categories().some((x) => x.id === c)) {
-        await this.classifier.addCategory({ id: c, name: c.split('.').pop()!.replace(/-/g, ' ').replace(/^./, (x) => x.toUpperCase()) });
+        await this.classifier.addCategory({
+          id: c,
+          name: c
+            .split('.')
+            .pop()!
+            .replace(/-/g, ' ')
+            .replace(/^./, (x) => x.toUpperCase()),
+        });
       }
     }
     const rec: WorkbookImport = {
@@ -238,7 +262,9 @@ export class DataService {
     const base = this.ingest.view();
     const txns = this.txns();
     const last = this.classifier.last;
-    const userLabelled = txns.map((t) => `${t.accountId}\u001f${t.id}`).filter((k) => this.classifier.isUserLabelled(k));
+    const userLabelled = txns
+      .map((t) => `${t.accountId}\u001f${t.id}`)
+      .filter((k) => this.classifier.isUserLabelled(k));
     return {
       ...base,
       categories: this.classifier.categories(),
