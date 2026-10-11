@@ -10,6 +10,7 @@ import type { InputFile } from '../ingest/service.ts';
 import type { DataView } from '../data/service.ts';
 import { Store } from './core/store.ts';
 import { ingest, synth } from './workers.ts';
+import { whenReady } from './vault.ts';
 
 export interface DataState {
   view: DataView | null;
@@ -29,6 +30,7 @@ export function ensureLoaded(): Promise<DataView> {
 }
 
 export async function refresh(): Promise<DataView> {
+  await whenReady();
   const view = await ingest().view();
   data.setState({ view });
   return view;

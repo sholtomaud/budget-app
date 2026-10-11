@@ -3,6 +3,8 @@ import { Router } from './app/core/router.ts';
 import { screens } from './app/screens.ts';
 import './app/components/app-nav/app-nav.ts';
 import { applyStoredTheme } from './app/theme.ts';
+import './app/components/lock-screen/lock-screen.ts';
+import { initVault } from './app/vault.ts';
 
 applyStoredTheme();
 
@@ -15,6 +17,9 @@ if (import.meta.env.DEV) {
   await import('./app/components/eval-page/eval-page.ts');
   router.register([{ path: '/eval', component: 'eval-page', title: 'Evaluation' }]);
 }
+document.body.append(document.createElement('lock-screen'));
+// NFR-STO-002: screens wait for the vault (data.ts) before reading anything.
+void initVault();
 void router.render();
 
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {

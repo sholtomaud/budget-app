@@ -1,0 +1,43 @@
+:host {
+  display: block;
+}
+:host .card {
+  margin-bottom: var(--space-3);
+}
+:host .fields,
+:host .actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: end;
+}
+:host .fields label,
+:host .actions label {
+  display: grid;
+  gap: 2px;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+:host .check {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  margin-top: var(--space-2);
+}
+:host h3 {
+  font-size: 0.9375rem;
+  margin: var(--space-3) 0 var(--space-2);
+}
+:host .msg:empty {
+  display: none;
+}
+:host .msg.bad {
+  color: var(--bad);
+}
+:host .msg.ok {
+  color: var(--ok);
+}
+:host .danger-button {
+  background: var(--bad);
+  border-color: var(--bad);
+}

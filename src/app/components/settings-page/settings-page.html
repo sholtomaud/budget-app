@@ -1,0 +1,134 @@
+<section class="screen">
+  <h1>Settings</h1>
+  <p class="lede">
+    Your data lives only in this browser. Here you can encrypt it, take it with you, or delete it.
+  </p>
+
+  <article class="card encryption">
+    <h2>Encryption</h2>
+    <p class="status"></p>
+
+    <form class="enable" aria-label="Turn on encryption" hidden>
+      <p class="muted">
+        Everything you've imported and entered is encrypted on this device with a key protected by
+        your passphrase (AES-256-GCM, PBKDF2 with 600,000 iterations). The app asks for the
+        passphrase when it starts and locks itself when idle.
+        <strong>If you forget the passphrase, the data can't be recovered</strong>. Keep an export
+        somewhere safe.
+      </p>
+      <div class="fields">
+        <label
+          >Passphrase
+          <input name="p1" type="password" autocomplete="new-password" minlength="8" required
+        /></label>
+        <label
+          >Again <input name="p2" type="password" autocomplete="new-password" required
+        /></label>
+      </div>
+      <p class="actions">
+        <button type="submit">Turn on encryption</button>
+      </p>
+    </form>
+
+    <div class="manage" hidden>
+      <p class="actions">
+        <button type="button" class="lock-now">Lock now</button>
+        <label
+          >Lock when idle for
+          <select name="autolock">
+            <option value="5">5 minutes</option>
+            <option value="15">15 minutes</option>
+            <option value="30">30 minutes</option>
+            <option value="60">1 hour</option>
+          </select>
+        </label>
+      </p>
+      <form class="change" aria-label="Change passphrase">
+        <h3>Change passphrase</h3>
+        <div class="fields">
+          <label
+            >Current <input name="old" type="password" autocomplete="current-password" required
+          /></label>
+          <label
+            >New
+            <input name="p1" type="password" autocomplete="new-password" minlength="8" required
+          /></label>
+          <label
+            >Again <input name="p2" type="password" autocomplete="new-password" required
+          /></label>
+        </div>
+        <p class="actions"><button type="submit" class="secondary">Change passphrase</button></p>
+      </form>
+      <form class="disable" aria-label="Turn off encryption">
+        <h3>Turn off encryption</h3>
+        <div class="fields">
+          <label
+            >Passphrase <input name="old" type="password" autocomplete="current-password" required
+          /></label>
+        </div>
+        <p class="actions">
+          <button type="submit" class="secondary">Turn off encryption</button>
+        </p>
+      </form>
+    </div>
+    <p class="msg" role="status" aria-live="polite"></p>
+  </article>
+
+  <article class="card export">
+    <h2>Export</h2>
+    <p class="muted">
+      Everything in one <code>.budgetapp</code> file: imports, categories and rules, budget, CAPEX
+      register, freedom setup and scenarios. It's encrypted with the passphrase you choose here,
+      separately from encryption on this device.
+    </p>
+    <form class="export-form" aria-label="Export">
+      <div class="fields">
+        <label
+          >File passphrase
+          <input name="p1" type="password" autocomplete="new-password" minlength="8" required
+        /></label>
+        <label
+          >Again <input name="p2" type="password" autocomplete="new-password" required
+        /></label>
+      </div>
+      <p class="actions"><button type="submit">Export</button></p>
+    </form>
+    <p class="msg" role="status" aria-live="polite"></p>
+  </article>
+
+  <article class="card import">
+    <h2>Import an export</h2>
+    <p class="muted">Replaces all the data on this device with the file's contents.</p>
+    <form class="import-form" aria-label="Import an export">
+      <div class="fields">
+        <label
+          >File <input name="file" type="file" accept=".budgetapp,application/zip" required
+        /></label>
+        <label
+          >File passphrase <input name="p" type="password" autocomplete="current-password" required
+        /></label>
+      </div>
+      <label class="check"
+        ><input name="replace" type="checkbox" required /> Replace everything on this device</label
+      >
+      <p class="actions"><button type="submit">Import</button></p>
+    </form>
+    <p class="msg" role="status" aria-live="polite"></p>
+  </article>
+
+  <article class="card danger">
+    <h2>Delete all data</h2>
+    <p class="muted">
+      Removes everything this app stored in this browser: data, settings, caches and the offline
+      copy. It can't be undone. Export first if you might want it back.
+    </p>
+    <form class="delete-form" aria-label="Delete all data">
+      <label
+        >Type <strong>DELETE</strong> to confirm
+        <input name="confirm" type="text" autocomplete="off" required
+      /></label>
+      <p class="actions"><button type="submit" class="danger-button">Delete all data</button></p>
+    </form>
+    <p class="msg" role="status" aria-live="polite"></p>
+  </article>
+</section>

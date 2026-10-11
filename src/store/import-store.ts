@@ -1,7 +1,13 @@
 import type { ImportStore, StoredImport } from '../ingest/service.ts';
+import { isSealed } from './crypto.ts';
 import { done, openDb, request } from './idb.ts';
+import { importAad, vault } from './vault.ts';
 
-/** Imports persisted in IndexedDB, one record per import (NFR-PRIV-001). */
+/**
+ * Imports persisted in IndexedDB, one record per import (NFR-PRIV-001). When
+ * encryption is on, a record is stored as `{ record: { id }, ...sealed }`: the
+ * store's key path stays readable, everything else is ciphertext.
+ */
 export class IdbImportStore implements ImportStore {
   private db: Promise<IDBDatabase> | null = null;
   private readonly name: string | undefined;
@@ -17,15 +23,17 @@ export class IdbImportStore implements ImportStore {
 
   async all(): Promise<StoredImport[]> {
     const db = await this.open();
-    return request(
-      db.transaction('imports').objectStore('imports').getAll() as IDBRequest<StoredImport[]>
+    const rows = await request(
+      db.transaction('imports').objectStore('imports').getAll() as IDBRequest<unknown[]>
     );
+    return Promise.all(rows.map((r) => fromRow(r)));
   }
 
   async put(i: StoredImport): Promise<void> {
+    const row = await toRow(i);
     const db = await this.open();
     const tx = db.transaction('imports', 'readwrite');
-    tx.objectStore('imports').put(i);
+    tx.objectStore('imports').put(row);
     await done(tx);
   }
 
@@ -42,4 +50,16 @@ export class IdbImportStore implements ImportStore {
     tx.objectStore('imports').clear();
     await done(tx);
   }
+}
+
+export async function toRow(i: StoredImport): Promise<unknown> {
+  const id = i.record.id;
+  const stored = await vault.toStored(i, importAad(id));
+  return isSealed(stored) ? { record: { id }, ...stored } : stored;
+}
+
+export async function fromRow(row: unknown): Promise<StoredImport> {
+  if (!isSealed(row)) return row as StoredImport;
+  const id = (row as unknown as { record: { id: string } }).record.id;
+  return vault.fromStored<StoredImport>(row, importAad(id));
 }

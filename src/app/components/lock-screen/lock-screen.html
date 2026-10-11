@@ -1,0 +1,27 @@
+<div class="backdrop" hidden>
+  <form class="dialog card" aria-labelledby="lock-title">
+    <h1 id="lock-title">Your data is locked</h1>
+    <p class="muted">
+      It's encrypted on this device. Enter your passphrase to unlock it. Nothing leaves the device.
+    </p>
+    <label
+      >Passphrase <input name="passphrase" type="password" autocomplete="current-password" required
+    /></label>
+    <p class="actions">
+      <button type="submit" class="unlock">Unlock</button>
+      <span class="error" role="alert"></span>
+    </p>
+    <details class="forgot">
+      <summary>Forgot your passphrase?</summary>
+      <p>
+        Without it the data can't be decrypted, by anyone. You can delete everything on this device
+        and start again, or restore a <code>.budgetapp</code> export afterwards.
+      </p>
+      <label
+        >Type <strong>DELETE</strong> to confirm
+        <input name="confirm" type="text" autocomplete="off"
+      /></label>
+      <button type="button" class="secondary wipe">Delete all data</button>
+    </details>
+  </form>
+</div>

@@ -39,13 +39,6 @@ export const screens: Screen[] = [
     'M8',
     'Optional chat, off by default. Every figure it shows links to a simulation run.'
   ),
-  planned(
-    '/settings',
-    'Settings',
-    'Settings',
-    '§12, §14',
-    'M7',
-    'Timezone, currency, CPI, period table, categories, rules, tax tables, return models, encryption, export and delete-all.'
-  ),
+  { path: '/settings', nav: 'Settings', title: 'Settings', component: 'settings-page' },
   { path: '/kernel', nav: 'Kernel', title: 'Kernel check', component: 'kernel-page' },
 ];

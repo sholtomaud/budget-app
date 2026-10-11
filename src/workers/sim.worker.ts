@@ -11,6 +11,7 @@ import { runChunk, type ChunkRequest, type ChunkResult } from '../sim/montecarlo
 import type { FreedomSetup } from '../sim/inputs.ts';
 import type { SavedScenario } from '../optimise/scenarios.ts';
 import { IdbValue } from '../store/kv.ts';
+import { vault } from '../store/vault.ts';
 import householdModel from '../sim/examples/household_model.json?raw';
 import { expose, type Endpoint } from './rpc.ts';
 
@@ -29,6 +30,11 @@ function getKernel(): Promise<GsskKernel> {
 }
 
 const api = {
+  /** The data key from the ingest worker's unlock (NFR-STO-002); null after encryption is off. */
+  setKey(key: CryptoKey | null): void {
+    vault.setKey(key);
+    vault.refresh();
+  },
   async kernelInfo(): Promise<KernelInfo> {
     return (await getKernel()).info;
   },

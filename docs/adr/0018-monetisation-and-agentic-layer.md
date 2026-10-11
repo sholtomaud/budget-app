@@ -85,6 +85,28 @@ user's agent is the user's. Paths, in the order we would build them:
      back with contributing users ("data dividend").
    - Not built until 1–4 prove out and legal review approves it.
 
+## Amendment (2026-10-11): broker model, revenue share, certification, mission
+
+Accepted direction from the project owner:
+
+- **The app is a broker or matchmaker.** Value comes from matching on the device. Partners pay for
+  relevance and timing, and never receive the data.
+- **Users share the revenue** (§22.2a, FR-RWD), as Brave does with ad revenue:
+  - **Rewards never reward spending.** They accrue for evaluating offers, answering intents or
+    contributing to the co-op, never for buying. Otherwise the revenue share would pull users
+    against the mission.
+  - Payout is in money or straight into a savings goal. No speculative tokens.
+  - Co-op members also receive a dividend from the co-op's aggregates.
+- **Partner certification** (§22.2b, FR-PTN):
+  - verified identity, and a binding charter;
+  - signed feed entries, with revocation;
+  - automated and human offer review;
+  - user reports;
+  - a published transparency report and an annual independent audit.
+- **The mission is the first principle** (NFR-MISSION-001, AGENTS.md non-negotiable 0). The app is
+  a cybernetic controller whose purpose is to move people out of financial stress. The guardrails
+  below are the mission applied to commerce, and no revenue argument overrides them.
+
 ## Guardrails (NFR-MON-001…007)
 
 1. **No sale or sharing of personal, transaction or CDR data.** No profile leaves the device.

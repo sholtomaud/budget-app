@@ -8,9 +8,10 @@ import type { RunRequest, Runner } from '../sim/metrics.ts';
 import { chunks, combine, type SimResult } from '../sim/montecarlo.ts';
 import { wrap, type Remote } from '../workers/rpc.ts';
 import type { SimApi } from '../workers/sim.worker.ts';
-import { sim } from './workers.ts';
+import { onWorkersReset, sim, track } from './workers.ts';
 
 let pool: Remote<SimApi>[] | null = null;
+onWorkersReset(() => (pool = null));
 
 export function poolSize(): number {
   const n = (globalThis.navigator?.hardwareConcurrency ?? 2) - 1;
@@ -24,10 +25,12 @@ function workers(): Remote<SimApi>[] {
     for (let i = 1; i < poolSize(); i++) {
       pool.push(
         wrap<SimApi>(
-          new Worker(new URL('../workers/sim.worker.ts', import.meta.url), {
-            type: 'module',
-            name: `sim-${i}`,
-          })
+          track(
+            new Worker(new URL('../workers/sim.worker.ts', import.meta.url), {
+              type: 'module',
+              name: `sim-${i}`,
+            })
+          )
         )
       );
     }

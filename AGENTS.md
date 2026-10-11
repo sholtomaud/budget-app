@@ -6,6 +6,9 @@ and tests.
 
 ## Non-negotiables
 
+0. **The mission** (NFR-MISSION-001). The app exists to move people out of financial stress. No
+   feature, partner or revenue stream may target, exploit or deepen it. When a commercial interest
+   and the user's interest conflict, the user's wins. This overrides everything below.
 1. **No real financial data in the repository, ever** (NFR-PRIV-002). Only code and synthetic
    data. Fixtures live under `fixtures/` and carry the `x-synthetic` marker. Account IDs start
    `SYN-`. `data/` and `private/` are git-ignored scratch space. The data-hygiene gate
@@ -37,7 +40,7 @@ and tests.
 | `src/classify/`              | Classification stages (rules, memory, MCC, model), the classifier service, the evaluation harness.                                                                |
 | `src/data/`                  | The data service the `ingest` worker exposes: ledger plus classification.                                                                                         |
 | `data-tables/`               | Shipped, editable tables: categories, MCC map, asset lifetimes.                                                                                                   |
-| `src/store/`                 | IndexedDB wrapper with versioned migrations.                                                                                                                      |
+| `src/store/`                 | IndexedDB wrapper with versioned migrations; the vault (encryption at rest), the codec, `.budgetapp` export.                                                      |
 | `fixtures/`                  | Personas and generated synthetic exports; `npm run fixtures` regenerates them.                                                                                    |
 | `schemas/`                   | Persona schema; CDR schemas derived by `scripts/cdr-schemas.ts`.                                                                                                  |
 | `src/sim/`                   | The freedom model: `modelgen`, the policy `controller`, tax, return samplers, Monte-Carlo and metrics. `gssk.ts` is the only code that touches WASM memory.       |
