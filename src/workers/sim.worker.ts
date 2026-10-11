@@ -1,11 +1,15 @@
 /**
- * The `sim` worker (SPEC §4). M0 scope: verify and load the pinned kernel,
- * and run a model end to end. Monte-Carlo and the policy controller arrive in M5.
+ * The `sim` worker (SPEC §4, §11). Verifies and loads the pinned kernel, runs
+ * chunks of Monte-Carlo runs for the pool (src/app/sim-pool.ts), and keeps
+ * the Freedom screen's setup in IndexedDB.
  */
 import wasmUrl from '../../vendor/gssk/gssk.wasm?url';
 import pinJson from '../../vendor/gssk/GSSK_PIN.json' with { type: 'json' };
 import { GsskKernel, type GsskPin, type KernelInfo } from '../sim/gssk.ts';
 import { runModel, type RunOptions, type RunTrace } from '../sim/run.ts';
+import { runChunk, type ChunkRequest, type ChunkResult } from '../sim/montecarlo.ts';
+import type { FreedomSetup } from '../sim/inputs.ts';
+import { IdbValue } from '../store/kv.ts';
 import householdModel from '../sim/examples/household_model.json?raw';
 import { expose, type Endpoint } from './rpc.ts';
 
@@ -33,7 +37,19 @@ const api = {
   async runHouseholdExample(opts?: RunOptions): Promise<RunTrace> {
     return runModel(await getKernel(), householdModel, opts);
   },
+  /** Runs [from, to) of a scenario (FR-SIM-002). */
+  async runChunk(req: ChunkRequest): Promise<ChunkResult> {
+    return runChunk(await getKernel(), req);
+  },
+  loadSetup(): Promise<FreedomSetup | null> {
+    return setupStore.get();
+  },
+  saveSetup(setup: FreedomSetup): Promise<void> {
+    return setupStore.set(setup);
+  },
 };
+
+const setupStore = new IdbValue<FreedomSetup>('freedom');
 
 export type SimApi = typeof api;
 

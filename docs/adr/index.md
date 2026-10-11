@@ -16,3 +16,4 @@ Every deviation from the [specification](../spec.md) gets one.
 | [0009](./0009-classification.md)                | Classification stages, merchant memory, CAPEX proposals, evaluation                         | Accepted           |
 | [0010](./0010-budget-and-capex.md)              | Workbook CSV import rules, actual vs budget, replacement timing, sinking fund               | Accepted           |
 | [0011](./0011-forecasting-and-ml-core.md)       | Forecast methods and choice, bootstrap quantiles, CAPEX Monte-Carlo, ml-core ABI and parity | Accepted           |
+| [0012](./0012-freedom-simulation.md)            | Closed GSSK model, monthly constant edges, controller, tax, Monte-Carlo pool, metrics       | Accepted           |

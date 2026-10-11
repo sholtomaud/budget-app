@@ -1,0 +1,90 @@
+:host {
+  display: block;
+}
+:host .setup {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+}
+:host .holdings select {
+  max-width: 16rem;
+}
+:host .fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: end;
+}
+:host .fields label,
+:host .run label {
+  display: grid;
+  gap: 2px;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+:host .fields input[type='number'] {
+  width: 9rem;
+}
+:host h3 {
+  font-size: 0.9375rem;
+  margin: var(--space-3) 0 var(--space-2);
+}
+:host .run {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: end;
+}
+:host .holdings input[type='number'] {
+  width: 8rem;
+  text-align: right;
+}
+:host .holdings input[type='text'] {
+  width: 10rem;
+}
+:host .actions {
+  display: flex;
+  gap: var(--space-2);
+  margin: var(--space-2) 0 0;
+}
+:host .results {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+:host .cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: var(--space-3);
+}
+:host .stat .v {
+  font-size: 1.75rem;
+  font-weight: 600;
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+:host .stat p {
+  margin: var(--space-1) 0;
+}
+:host .tiers td,
+:host .tiers th {
+  padding: 2px var(--space-2);
+}
+:host .ok {
+  color: var(--ok);
+}
+:host .bad {
+  color: var(--bad);
+}
+:host .record dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--space-1) var(--space-3);
+  font-size: 0.8125rem;
+}
+:host .record dd {
+  margin: 0;
+  font-family: var(--mono);
+  word-break: break-all;
+}

@@ -36,6 +36,17 @@
   stroke: var(--text);
   stroke-width: 1.5;
 }
+:host .path {
+  fill: none;
+  stroke: var(--text-muted);
+  stroke-width: 0.6;
+  opacity: 0.45;
+}
+:host .floor {
+  stroke: var(--bad);
+  stroke-width: 1.5;
+  stroke-dasharray: 6 3;
+}
 :host .split {
   stroke: var(--border-strong);
   stroke-dasharray: 3 3;

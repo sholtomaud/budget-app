@@ -10,6 +10,16 @@ export interface FanData {
   /** Values are minor units; the axis shows dollars. */
   provenance: string;
   label: string;
+  /** A horizontal line the values should stay above (the goal's floor), minor units. */
+  floor?: number;
+  /** Individual paths drawn faintly over the bands (example runs), minor units. */
+  paths?: number[][];
+  /** Axis labels: months (default) or years from the first month. */
+  axis?: 'months' | 'years';
+  /** Replaces the default caption text. */
+  caption?: string;
+  /** "a month" (default) or "" for stock values like capital. */
+  unit?: string;
 }
 
 const SVG = 'http://www.w3.org/2000/svg';
@@ -50,7 +60,7 @@ export class FanChart extends BaseComponent {
     if (!svg || !cap || !d) return;
     svg.replaceChildren();
     const hist = d.history.values;
-    const all = [...hist, ...d.quantiles.p95, ...d.quantiles.p5].map((v) => v / 100);
+    const all = [...hist, ...d.quantiles.p95, ...d.quantiles.p5, d.floor ?? 0].map((v) => v / 100);
     const yMax = Math.max(1, ...all);
     const yt = ticks(0, yMax, 4);
     const top = Math.max(yMax, yt.at(-1) ?? yMax);
@@ -67,7 +77,7 @@ export class FanChart extends BaseComponent {
     const p50 = d.quantiles.p50;
     svg.setAttribute(
       'aria-label',
-      `${d.label}: ${d.months.length}-month forecast, median ${compact.format((p50[0] ?? 0) / 100)} to ${compact.format((p50.at(-1) ?? 0) / 100)} a month (${d.provenance})`
+      `${d.label}: ${d.months.length}-month forecast, median ${compact.format((p50[0] ?? 0) / 100)} to ${compact.format((p50.at(-1) ?? 0) / 100)}${d.unit === undefined ? ' a month' : d.unit} (${d.provenance})`
     );
     const grid = mk('g', { class: 'grid' });
     for (const v of yt) {
@@ -78,10 +88,16 @@ export class FanChart extends BaseComponent {
     }
     const labels = [...d.history.months, ...d.months];
     const every = Math.max(1, Math.ceil(n / 6));
-    labels.forEach((m, i) => {
-      if (i % every === 0)
-        grid.append(mk('text', { x: sx(i), y: H - 6, 'text-anchor': 'middle' }, m));
-    });
+    if (d.axis === 'years') {
+      const step = Math.max(1, Math.ceil(n / 12 / 8));
+      for (let y = 0; y * 12 < n; y += step)
+        grid.append(mk('text', { x: sx(y * 12), y: H - 6, 'text-anchor': 'middle' }, `${y}y`));
+    } else {
+      labels.forEach((m, i) => {
+        if (i % every === 0)
+          grid.append(mk('text', { x: sx(i), y: H - 6, 'text-anchor': 'middle' }, m));
+      });
+    }
     svg.append(grid);
     const off = hist.length;
     // Bands start from the last history point so the fan joins the line.
@@ -101,8 +117,19 @@ export class FanChart extends BaseComponent {
       if (joinFrom !== undefined && lastY !== undefined) pts.unshift(`${sx(lastX)},${sy(lastY)}`);
       if (pts.length) svg.append(mk('polyline', { class: cls, points: pts.join(' ') }));
     };
+    for (const p of d.paths ?? []) line(p, off, 'path');
     line(hist, 0, 'history');
     line(p50, off, 'median', lastX);
+    if (d.floor !== undefined)
+      svg.append(
+        mk('line', {
+          class: 'floor',
+          x1: M.left,
+          x2: W - M.right,
+          y1: sy(d.floor),
+          y2: sy(d.floor),
+        })
+      );
     if (off > 0)
       svg.append(
         mk('line', { class: 'split', x1: sx(lastX), x2: sx(lastX), y1: M.top, y2: H - M.bottom })
@@ -111,7 +138,7 @@ export class FanChart extends BaseComponent {
     prov.className = 'prov';
     prov.dataset.prov = d.provenance;
     prov.textContent = d.provenance;
-    cap.replaceChildren('History, then median with 50 % and 90 % bands. ', prov);
+    cap.replaceChildren(d.caption ?? 'History, then median with 50 % and 90 % bands. ', prov);
   }
 }
 

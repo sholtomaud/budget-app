@@ -161,6 +161,7 @@ export class GsskInstance {
   readonly nodeIds: readonly string[];
   readonly edgeIds: readonly string[];
   readonly carrierIds: readonly string[];
+  private readonly causes = new Map<string, number>();
 
   constructor(kernel: GsskKernel, ptr: number) {
     this.kernel = kernel;
@@ -247,6 +248,42 @@ export class GsskInstance {
     m._GSSK_SetEdgeK(this.p, idx, k);
   }
 
+  /**
+   * Fast path for the controller's monthly loop (SPEC §11.2). Intern a cause
+   * string once; the pointer lives until free().
+   */
+  internCause(cause: string): number {
+    let p = this.causes.get(cause);
+    if (p === undefined) {
+      const m = this.kernel.module;
+      const n = m.lengthBytesUTF8(cause) + 1;
+      p = m._malloc(n);
+      if (p === 0) throw new GsskError('malloc', 2);
+      m.stringToUTF8(cause, p, n);
+      this.causes.set(cause, p);
+    }
+    return p;
+  }
+
+  /** Set an edge rate by index with an interned cause (see internCause). */
+  setEdgeKFast(edgeIdx: number, k: number, causePtr: number): void {
+    const m = this.kernel.module;
+    m._GSSK_SetMutationCause(this.p, causePtr);
+    m._GSSK_SetEdgeK(this.p, edgeIdx, k);
+  }
+
+  /** Copy the state vector into `out` without allocating. */
+  stateInto(out: Float64Array): Float64Array {
+    const m = this.kernel.module;
+    const base = m._GSSK_GetState(this.p) >>> 3;
+    out.set(m.HEAPF64.subarray(base, base + out.length));
+    return out;
+  }
+
+  clearMutationLog(): void {
+    this.kernel.module._GSSK_ClearMutationLog(this.p);
+  }
+
   carrierConservationError(carrierId: string): number {
     return this.kernel.module._GSSK_GetCarrierConservationError(
       this.p,
@@ -270,6 +307,8 @@ export class GsskInstance {
   }
 
   free(): void {
+    for (const p of this.causes.values()) this.kernel.module._free(p);
+    this.causes.clear();
     if (this.ptr !== 0) {
       this.kernel.module._GSSK_Free(this.ptr);
       this.ptr = 0;

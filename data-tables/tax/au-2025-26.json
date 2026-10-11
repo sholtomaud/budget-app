@@ -1,0 +1,19 @@
+{
+  "$comment": "Australian resident individual income tax for the 2025-26 financial year. Not yet verified against the source by a maintainer: the app labels tax 'assumed' until verifiedBy and verifiedOn are set (SPEC §11.2).",
+  "jurisdiction": "AU",
+  "financialYear": "2025-26",
+  "starts": "2025-07-01",
+  "source": "https://www.ato.gov.au/tax-rates-and-codes/tax-rates-australian-residents",
+  "verifiedBy": null,
+  "verifiedOn": null,
+  "brackets": [
+    { "from": 0, "rate": 0 },
+    { "from": 18200, "rate": 0.16 },
+    { "from": 45000, "rate": 0.3 },
+    { "from": 135000, "rate": 0.37 },
+    { "from": 190000, "rate": 0.45 }
+  ],
+  "medicareLevy": { "rate": 0.02, "threshold": 27222, "shadeInRate": 0.1 },
+  "cgtDiscount": { "rate": 0.5, "minHoldingMonths": 12 },
+  "superannuation": { "preservationAge": 60, "earningsTax": 0.15, "contributionsTax": 0.15 }
+}

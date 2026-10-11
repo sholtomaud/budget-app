@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft 6: M0–M4 decisions folded in (ADRs 0001–0011) |
+| Status | Draft 7: M0–M5 decisions folded in (ADRs 0001–0012) |
 | Date | 2026-10-11 |
 | Kernel | [GSSK](https://github.com/energese-project/GSSK-Giannantoni), consumed as a pinned WebAssembly artefact |
 | Runtime | Browser only. Static site, no backend |
@@ -522,26 +522,28 @@ scenario start, `dt = 1`, fixed-step RK4 (or Euler; all flows are piecewise cons
 Carrier: `money` (`AUD`, `conserved: true`). Non-AUD holdings are valued in AUD inside the model;
 FX enters through their return paths.
 
+The model is **closed** (ADR 0012): every node is a `storage`, so nothing enters or leaves the
+`money` carrier and the kernel's own conservation applies.
+
 | Element | GSSK construct |
 |---|---|
-| Wages, project income, other income | `source` → `bank` edges, `constant`, rate driven by an edge forcing `table` (step interpolation) so pay rises, gaps and stopping work are dated events |
-| Bank (transaction + offset + savings, aggregated) | `storage` |
-| One sink per OPEX category group | `sink` + edge from `bank`, rate `table` from the OPEX forecast for this run |
-| CAPEX | `sink` + edge from `bank`, `table` of this run's sampled CAPEX spend |
-| Each holding (cash, ETF, BTC, super, property equity) | `storage` |
-| Contributions | edge `bank` → holding, rate set by the controller |
-| Returns, gains | `market` source → holding, `interaction` with `control_node` = holding (F = k·Q_market·Q_holding, Q_market = 1), k set monthly by the controller to max(r, 0) |
-| Returns, losses | holding → `market_loss` sink, `linear`, k set monthly to max(−r, 0) |
-| Withdrawals / drawdown | edge holding → `bank`, rate set by the controller |
-| Tax | `tax` sink + edge from `bank`, rate set by the controller |
+| External pools: `income` (wages, project income), `market` (investment gains) | `storage`, opened at 1e10 so they never reach zero (GSSK clamps a storage at zero, which would create money) |
+| Bank (transaction + offset, aggregated) | `storage` |
+| Each holding (cash, shares, BTC, super, property equity) | `storage` |
+| Sinks: `opex`, `capex`, `tax`, `market_loss` | `storage`, opened at 0; Q reads as the cumulative amount |
+| Pay, project income | `income` → `bank` |
+| OPEX (all groups together; KR-7), CAPEX, tax | `bank` → sink |
+| Returns | per holding, `market` → holding (gain) and holding → `market_loss` (loss) |
+| Contributions, withdrawals | per holding, `bank` → holding and holding → `bank` |
 
-Gains and losses are separate edges so that no flow rate is ever negative. (Whether the kernel accepts
-a negative `k` is not relied on; see KR-3.)
+Every edge is `constant`. The controller sets each k monthly to the amount in dollars, so with
+`dt = 1` a month's flow is exactly k. Gains and losses are separate edges, so no rate is ever
+negative (KR-3). Returns are discrete monthly amounts (gain k = holding × max(r, 0)), which
+compounds exactly like a spreadsheet (FR-SIM-006).
 
-A `sink`'s Q accumulates the cumulative offtake into it (∫ flow dt), so a sink's `value` is its
-opening accumulator. `modelgen` emits `"value": 0` for every sink at scenario start. GSSK 5.3.0
-rejects a sink without `value`. Sink Q then reads directly as cumulative OPEX, CAPEX, tax and
-market losses for the run (ADR 0005).
+OPEX is one sink, not one per category group. GSSK 5.3.0 scans the graph for motifs after every
+step, at a cost that grows with the bank's edges (KR-7), and per-group spending is not a
+simulation output.
 
 ### 11.2 Policy controller and Monte-Carlo runner (FR-SIM-002)
 
@@ -573,13 +575,13 @@ min real capital, ruin month, total tax) and streams per-month values into quant
 (P5…P95) per tracked node. It does not keep all paths. The first 20 runs are kept whole for display
 as example paths.
 
-Tax tables live in `data/tax/au-<year>.json` with a source URL and a `verifiedBy`/`verifiedOn` field.
+Tax tables live in `data-tables/tax/au-<year>.json` with a source URL and a `verifiedBy`/`verifiedOn` field.
 The app warns when the scenario runs past the last verified year (later years reuse the last table,
 labelled `assumed`).
 
 | ID | Requirement |
 |---|---|
-| FR-SIM-003 | **Money balance**, checked at every step of every run: the change in total `money` held in storages and sinks (sinks accumulate their offtake) minus the inflow from sources over the step (source outflows × dt) is within 1e-9 of zero, in absolute value relative to total storage. Otherwise the run is marked invalid and shown as such. `GSSK_GetCarrierConservationError` alone cannot check this: for a model with sources or sinks it reports the relative net boundary flow, not leakage (ADR 0005). Source outflows are read with `GSSK_GetFlows`. If that turns out not to match the integrator's stages, sources and sinks are modelled as zero-initialised storages, which closes the model so the kernel's own conservation error applies. KR-6 asks for a kernel-side accessor. |
+| FR-SIM-003 | **Money balance**, checked at every step of every run. The change in money held by the household and the sinks equals what the pool edges paid in, within 1e-9 relative to household money (bank plus holdings, at least $1). Each pool must also have paid out exactly that amount. Otherwise the run is marked invalid, shown as such, and excluded from pSuccess. The model is closed (§11.1), so this is a check on the integrator, not on boundary flows (ADR 0005, ADR 0012). |
 | FR-SIM-004 | Every run stores its GSSK version, wasm SHA-256, model hash, inputs hash and seed. Any run can be replayed exactly from those (`GSSK_Replay` with the exported mutation log, or re-execution). |
 | FR-SIM-005 | 1000 runs × 40 years (480 steps) of the default model complete in ≤ 10 s on a 2022 mid-range laptop, using `navigator.hardwareConcurrency − 1` workers. |
 | FR-SIM-006 | A `fixed` return model with one run reproduces a single-path spreadsheet projection (same inputs) to within AUD 1 per year. This is the bridge test from the user's existing workbook. |
@@ -828,6 +830,7 @@ deliberate pin update.
 | KR-4 | A git tag per release, so the pin can name a tag rather than a commit. | Pin by commit SHA. |
 | KR-5 | Optional distribution families for `jitter` (normal/lognormal/Student-t), seeded per run. | Controller-set `k` from app-sampled paths. |
 | KR-6 | A per-carrier boundary-flux accessor (inflow from sources per step, consistent with the integrator's stages), so conservation can be checked for open models. `GSSK_GetCarrierConservationError` reports the relative change in storage, which for an open model is net flow, not leakage. Also: `gssk.h` comments sinks as `dQ/dt = 0`, but sink Q accumulates its inflow. Document or correct this. | App-side balance check (FR-SIM-003, ADR 0005). |
+| KR-7 | A way to switch off the per-step motif scan (Phase 9 pattern discovery), e.g. a `config` flag, or a scan only on request. In 5.3.0 it formats every motif with `printf` after each `GSSK_Step` and dominates the step time of a 17-edge model. | One OPEX sink instead of one per group; a worker pool (ADR 0012). |
 
 ---
 
