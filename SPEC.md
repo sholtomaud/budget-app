@@ -5,7 +5,7 @@
 
 | | |
 |---|---|
-| Status | Draft 10: M0–M7 built (ADRs 0001–0013, 0019); M8–M14 planned, with proposed directions in ADRs 0014–0018 |
+| Status | Draft 11: M0–M8 built (ADRs 0001–0013, 0019–0021); M9–M14 planned, with proposed directions in ADRs 0014–0018 |
 | Date | 2026-10-11 |
 | Kernel | [GSSK](https://github.com/energese-project/GSSK-Giannantoni), consumed as a pinned WebAssembly artefact |
 | Runtime | Browser only. Static site, no backend |
@@ -523,7 +523,7 @@ quantiles):
 | Empirical residual bootstrap | quantiles for any of the above |
 
 Inflation: forecasts are produced in real terms and inflated by a CPI assumption (`assumed`, editable,
-default from the user's settings). An optional API MAY fetch published CPI (§13).
+default from the user's settings). An optional API MAY fetch published CPI (§13); in M8 CPI is a manual assumption.
 
 The method set is extensible: an ONNX time-series model (for example a small pretrained forecaster)
 MAY be added later as one more candidate. It MUST win the backtest on the user's own data to be used.
@@ -548,7 +548,7 @@ Each `Holding.returnModelId` refers to one of:
 | `regime` | two-state Markov switching (bull/bear) | MAY, later. |
 
 Return paths for different holdings are drawn jointly (same bootstrap months) to keep correlation.
-Price history files are user-imported CSV, or fetched with consent (§13). None is committed except
+Price history files are user-imported CSV (Settings, M8), or MAY later be fetched with consent (§13). None is committed except
 synthetic series.
 
 ### 10.4 Bayesian workflow (M9, FR-BAY)
@@ -708,7 +708,7 @@ uncertain.
 | **Forecast** | Per-category fan charts; method and backtest score per series; CAPEX fan; totals. |
 | **Freedom** | Goal editor; pSuccess gauge per tier; capital fan chart in real terms with floor line; example paths; years to freedom; project runway; shortfall drivers. |
 | **Scenarios** | Side-by-side comparison (up to 4); optimiser; diff of decisions. |
-| **Advisor** | Optional chat (§13). Every answer links to run IDs and screens. |
+| **Advisor** | Optional chat (§13). Answers cite run IDs; figures no tool returned are flagged "unverified". Proposed plans are saved as scenarios. |
 | **Engine check** (route `/kernel`; linked from Settings and Start, not in the menu) | Pinned GSSK version, commit and SHA-256 verification status. Runs GSSK's household example model in the `sim` worker as a smoke test (M0). |
 | **Settings** | Timezone, currency, CPI, period table, categories, rules, tax tables, return models, API providers and keys, encryption, export/import, delete all data. |
 
@@ -722,11 +722,11 @@ All of this is **off by default**. The app is complete without it.
 
 | ID | Requirement |
 |---|---|
-| FR-API-001 | Providers are configured in Settings (endpoint, model, key). Keys are stored locally (encrypted if encryption is on) and sent only to their own endpoint. |
-| FR-API-002 | Before each call, show the exact payload to be sent; the user confirms. "Remember for this session" MAY be offered per provider and payload type. |
-| FR-API-003 | **Redaction by default.** Payloads never contain account IDs, masked numbers, BSB/account numbers, names of people, addresses or exact balances. Amounts are bucketed unless the user unticks redaction for that call. |
-| FR-API-004 | Every call is logged locally (time, provider, payload hash, bytes sent). |
-| FR-API-005 | A Content Security Policy restricts `connect-src` to the app origin plus configured provider origins. |
+| FR-API-001 | Providers are configured in Settings (endpoint, model, key). **Keys are never stored on the device**: they are held in memory for the session, never written to storage or exports, forgotten on reload or lock, and sent only to their own endpoint (ADR 0021). |
+| FR-API-002 | Before each call, show the exact payload to be sent; the user confirms. "Don't ask again until the app reloads" MAY be offered per provider and purpose. |
+| FR-API-003 | **Redaction by default.** Payloads never contain account IDs, masked numbers, BSB/account numbers, names of people, addresses or exact balances. Amounts are bucketed or rounded. |
+| FR-API-004 | Every call is logged locally (time, provider, purpose, origin, payload hash, bytes sent, status) and shown in Settings. |
+| FR-API-005 | A Content Security Policy restricts `connect-src` to the app origin plus a static list of provider origins, the same list the egress gate enforces (ADR 0021). |
 
 ### 13.2 Uses
 
@@ -734,24 +734,26 @@ All of this is **off by default**. The app is complete without it.
 |---|---|---|
 | Map an unusual budget CSV (FR-ING-017) | LLM API with structured outputs | header rows + a few sampled rows, amounts bucketed; returns a mapping spec, never figures |
 | Classify leftover transactions (§8 stage 6) | LLM API, or in-browser LLM | normalised merchant + description + amount bucket + candidate categories |
-| Market history (BTC, indices, FX) | price API | ticker symbols and date range only |
-| CPI | statistics API | series ID only |
-| **Advisor** | LLM API, or in-browser LLM (WebLLM/WebGPU) | the user's question, the scenario's decision variables, aggregate metrics, assumption list — never transactions unless the user attaches them |
+| Market history (BTC, indices, FX) | none in M8: the user imports a price-history CSV (ADR 0021); a price API MAY be added later | ticker symbols and date range only |
+| CPI | none in M8: a manual assumption; a statistics API MAY be added later | series ID only |
+| **Advisor** | LLM API; an in-browser LLM (WebLLM/WebGPU) MAY be added later | the user's question, the scenario's decision variables, aggregate metrics, assumption list — never transactions unless the user attaches them |
 
 ### 13.3 Advisor contract (NFR-HON-002)
 
 The advisor is a tool-using agent with a fixed tool set; it cannot compute figures itself.
 
-Tools exposed to the model: `get_scenario(id)`, `list_metrics(id)`, `propose_scenario(changes)`,
-`run_scenario(id)` (returns run ID + metrics), `explain_assumption(key)`, `get_category_summary(...)`.
+Tools exposed to the model (M8, ADR 0021): `get_plan`, `get_spending_summary`, `list_scenarios`,
+`run_plan(scenarioId)` (returns run ID + metrics), `propose_plan(changes)`, `explain_assumption(key)`.
 
-- `propose_scenario` input is validated against the Scenario JSON Schema; invalid proposals are
-  rejected back to the model with the validation error.
+- `propose_plan` input is validated against its JSON Schema (bounded lever changes); invalid
+  proposals are rejected back to the model with the validation error. Proposals are saved as
+  scenarios for the user to review.
 - Figures in the advisor's reply MUST come from tool results; the UI renders each figure with a link
   to its run. A reply containing a monetary figure not present in a tool result in the same
   conversation is flagged "unverified figure" in the UI.
 - The advisor elicits goals in conversation ("what would you do with free time?", "what standard of
-  living is non-negotiable?") and writes them as `Goal`/`Tier` drafts the user accepts or edits.
+  living is non-negotiable?"). Writing them as `Goal`/`Tier` drafts the user accepts or edits is
+  later work.
 - System prompt states: not financial advice; assumptions are the user's; recommend professional
   advice for tax/legal structure decisions.
 
@@ -986,7 +988,7 @@ data.
 | **M5 Freedom simulation** | modelgen, controller, tax tables, withdrawal strategies, return models, Monte-Carlo, metrics, Freedom screen | FR-SIM-001…006; FR-GOAL metrics; FR-SIM-006 bridge test |
 | **M6 Scenarios + optimiser** | Scenario compare, optimiser, Pareto view, shortfall drivers | FR-OPT-001; monotonicity property tests |
 | **M7 Storage, encryption, export** | Encryption at rest, export/import, delete-all, migrations | NFR-STO-001…005 |
-| **M8 Optional APIs + advisor** | Provider settings, consent + redaction, price/CPI fetch, LLM classification, LLM mapping assistant (structured outputs), advisor with tools | FR-API-001…005; FR-ING-015, 017, 018; §13.3; privacy tests |
+| **M8 Optional APIs + advisor** | Provider settings, consent + redaction, price-history import (fetch deferred, ADR 0021), LLM classification, LLM mapping assistant (structured outputs), advisor with tools | FR-API-001…005; FR-ING-017 (proposes the wizard's mapping; the full mapping spec of FR-ING-015 and per-column provenance of FR-ING-018 move to M10); §13.3; privacy tests |
 | **M9 Bayesian workflow** | Bayesian structural time series with pooling and a shared spending factor, return-parameter uncertainty, ml-core samplers with parity, model checks (ADR 0015) | FR-BAY-001…008; calibration gates in CI |
 | **M10 Real data** | User loads own exports locally; bank-specific CSV adapters as needed; learned in-browser CSV mapper | Reconciliation clean on real exports (verified locally, nothing committed); FR-ING-016 accuracy gate |
 | **M11 Live connections (production)** | Optional connector (§6.4): CDR consent via an accredited partner, or bank personal-API plugins; sync into the existing import pipeline; consent management in Settings | FR-LIVE-001…006; a sync from a CDR sandbox passes the same validation, dedupe and reconciliation tests as file import; the privacy e2e shows egress only to the configured connector origin |

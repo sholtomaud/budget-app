@@ -103,7 +103,12 @@ export function sampleReturnPaths(
 ): Record<string, Float64Array> {
   const histories = opts.histories ?? syntheticHistories();
   const out: Record<string, Float64Array> = {};
-  // Joint bootstrap: one sequence of history months for every bootstrap model.
+  // Joint bootstrap: one sequence of history months for every bootstrap model,
+  // drawn within the shortest history in use so every series has each month.
+  let span = HISTORY_MONTHS;
+  for (const m of models)
+    if (m.kind === 'block-bootstrap' && histories[m.seriesId])
+      span = Math.min(span, histories[m.seriesId]!.length);
   let bootIdx: Int32Array | null = null;
   const bootIndex = (block: number) => {
     if (bootIdx) return bootIdx;
@@ -111,8 +116,8 @@ export function sampleReturnPaths(
     bootIdx = new Int32Array(months);
     let i = 0;
     while (i < months) {
-      const start = rng.int(HISTORY_MONTHS);
-      for (let j = 0; j < block && i < months; j++, i++) bootIdx[i] = (start + j) % HISTORY_MONTHS;
+      const start = rng.int(span);
+      for (let j = 0; j < block && i < months; j++, i++) bootIdx[i] = (start + j) % span;
     }
     return bootIdx;
   };

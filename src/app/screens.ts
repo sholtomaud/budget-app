@@ -1,27 +1,10 @@
 import type { RouteDef } from './core/routes.ts';
 
-/** Screens from SPEC §12, in nav order. Placeholders name the milestone that fills them. */
+/** Screens from SPEC §12, in nav order. */
 export interface Screen extends RouteDef {
   nav: string;
   /** Reachable by URL and from other screens, but not listed in the nav. */
   hidden?: boolean;
-}
-
-function planned(
-  path: string,
-  nav: string,
-  title: string,
-  section: string,
-  milestone: string,
-  summary: string
-): Screen {
-  return {
-    path,
-    nav,
-    title,
-    component: 'placeholder-page',
-    props: { heading: title, section, milestone, summary },
-  };
 }
 
 export const screens: Screen[] = [
@@ -33,14 +16,7 @@ export const screens: Screen[] = [
   { path: '/forecast', nav: 'Forecast', title: 'Forecast', component: 'forecast-page' },
   { path: '/freedom', nav: 'Freedom', title: 'Freedom', component: 'freedom-page' },
   { path: '/scenarios', nav: 'Scenarios', title: 'Scenarios', component: 'scenarios-page' },
-  planned(
-    '/advisor',
-    'Advisor',
-    'Advisor',
-    '§13',
-    'M8',
-    'Optional chat, off by default. Every figure it shows links to a simulation run.'
-  ),
+  { path: '/advisor', nav: 'Advisor', title: 'Advisor', component: 'advisor-page' },
   { path: '/settings', nav: 'Settings', title: 'Settings', component: 'settings-page' },
   {
     path: '/kernel',

@@ -96,6 +96,12 @@ const api = {
   async clear() {
     await (await svc()).clear();
   },
+  async llmCandidates(limit?: number) {
+    return (await svc()).llmCandidates(limit);
+  },
+  async applyLlmLabels(labels: { key: string; categoryId: string }[], model: string) {
+    await (await svc()).applyLlmLabels(labels, model);
+  },
   async correct(keys: string[], categoryId: string, rememberMerchant: boolean) {
     await (await svc()).correct(keys, categoryId, rememberMerchant);
   },

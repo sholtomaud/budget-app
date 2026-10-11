@@ -6,7 +6,7 @@
  *   3. memory       remembered corrections, confidence 0.95
  *   4. MCC map      merchant category code, confidence 0.8
  *   5. model        naive Bayes on the user's corrections
- *   6. (LLM, M8)
+ *   6. LLM          optional suggestions, confidence 0.7 (§13.2, M8)
  *   7. unclassified → review queue
  *
  * A user's own label is never overwritten (FR-CLS-004). Debits are proposed
@@ -24,6 +24,14 @@ import { features, MODEL_VERSION, predict, train, type NbModel } from './model.t
 import { firstRule, type Rule } from './rules.ts';
 
 export const REVIEW_THRESHOLD = 0.6;
+/** An LLM's suggestion clears the review queue but ranks below every local stage. */
+export const LLM_CONFIDENCE = 0.7;
+
+export interface LlmLabel {
+  categoryId: string;
+  /** The model that suggested it. */
+  model: string;
+}
 export const REFUND_WINDOW_DAYS = 60;
 export const CAPEX_OUTLIER_FACTOR = 4n;
 export const CAPEX_MIN = 20000n; // AUD 200
@@ -40,6 +48,8 @@ export interface ClassifyInput {
   memory: ReadonlyMap<string, MemoryEntry>;
   userLabels: ReadonlyMap<string, UserLabel>;
   mccOverrides?: Record<string, MccEntry>;
+  /** Suggestions from an LLM for transactions the local stages could not place (stage 6). */
+  llmLabels?: ReadonlyMap<string, LlmLabel>;
 }
 
 export interface ClassifyResult {
@@ -182,6 +192,19 @@ export function classifyAll(txns: readonly Txn[], input: ClassifyInput): Classif
         }
       }
     }
+    const llm = input.llmLabels?.get(key);
+    if (
+      llm &&
+      c?.by !== 'user' &&
+      (!c || c.confidence < REVIEW_THRESHOLD || c.categoryId === UNCATEGORISED)
+    )
+      c = {
+        kind: kindOf(llm.categoryId),
+        categoryId: llm.categoryId,
+        confidence: LLM_CONFIDENCE,
+        by: 'llm',
+        modelVersion: llm.model,
+      };
     if (!c)
       c = {
         kind: t.amount >= 0n ? 'income' : 'opex',

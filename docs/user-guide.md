@@ -202,6 +202,35 @@ for it. **Import an export** restores a file, replacing what's on this device.
 
 **Delete all data** removes everything the app stored in this browser, including the offline copy.
 
+## Settings: AI provider and the advisor (optional)
+
+Everything above works with no AI at all. If you want help from an AI model, choose a provider
+under **AI provider (optional)**: Anthropic (Claude), or any OpenAI-compatible service, including
+one running on your own computer (Ollama, LM Studio, llama.cpp at `localhost`). Paste an API key.
+**The key is kept only while the app is open.** It is never saved on this device or put in an
+export, and reloading or locking forgets it. **Forget key** removes it at once.
+
+Before anything is sent, the app shows you exactly what will go, and to where. **Don't send** sends
+nothing. Account numbers, card numbers, emails and phone numbers are removed first, and amounts are
+shown only as ranges ("$50–100") or rounded ("~$650,000"). **Calls made (log)** lists every call:
+when, to whom, for what, how many bytes.
+
+With a provider on:
+
+- **Ledger → Review → Suggest categories with AI** suggests categories for the transactions still
+  waiting for review. Suggestions are marked as the model's, and your own choices always win.
+- **Budget → import wizard → Ask AI to map columns** suggests which column is which for a budget
+  CSV in an unusual layout. Check it in the preview before importing.
+- **Advisor** answers questions about your plan ("How likely is my plan to work?"). It can't do
+  sums itself: it asks the app to run your plan and quotes the results, with the run they came
+  from. Any figure it states that the app did not compute is marked **Unverified figure**. Plans it
+  proposes are saved under **Scenarios** marked "Advisor", for you to look at. It is not financial
+  advice.
+
+**Investment return history.** Upload a CSV of monthly prices (columns `Date` and `Adj Close`,
+`Close` or `Price`; at least 25 months) for any investment. It then appears as a return model for
+your holdings on the Freedom screen. The file stays on this device.
+
 ## Screens
 
 | Screen    | What it is for                                                                   | Milestone |
@@ -213,8 +242,8 @@ for it. **Import an export** restores a file, replacing what's on this device.
 | Forecast  | Fan charts per category, with method and backtest score                          | M4        |
 | Freedom   | Goal editor, probability of success, capital fan chart                           | M5        |
 | Scenarios | Side-by-side comparison, the optimiser and its trade-offs                        | M6        |
-| Advisor   | Optional chat; every figure links to a simulation run                            | M8        |
-| Settings  | Encryption at rest, lock, export and import, delete all data                     | M7        |
+| Advisor   | Optional chat; figures come from simulation runs, others are flagged             | M8        |
+| Settings  | Encryption, export, delete all; AI provider, call log, return history            | M7, M8    |
 | Kernel    | Shows the pinned kernel and runs an example model                                | M0        |
 
 ## Labels on numbers

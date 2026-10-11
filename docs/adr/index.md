@@ -25,3 +25,4 @@ Every deviation from the [specification](../spec.md) gets one.
 | [0017](./0017-receipts-companion-app.md)         | iOS receipts companion app (separate repo); line items reconciled to bank transactions         | Proposed           |
 | [0018](./0018-monetisation-and-agentic-layer.md) | Monetisation without selling data: on-device offers, intent marketplace, mandated agents       | Proposed           |
 | [0020](./0020-name-landing-and-guide.md)         | The name Crux, a plain-language landing page, a getting-started guide, plain menu names        | Accepted           |
+| [0021](./0021-apis-and-advisor.md)               | Optional AI providers: session-only keys, one egress gate with consent and a log, the advisor  | Accepted           |

@@ -308,3 +308,29 @@ describe('monotonicity with common random numbers (SPEC §16.1)', () => {
     }
   });
 });
+
+describe('imported return history (FR-FC-020)', () => {
+  test('a holding can bootstrap from an imported history', () => {
+    const rets = Array.from({ length: 60 }, (_, i) => (i % 2 ? 0.02 : -0.01));
+    const s = short({
+      returnModels: [
+        ...sampleScenario().returnModels,
+        {
+          id: 'hist:mine',
+          kind: 'block-bootstrap',
+          seriesId: 'user:mine',
+          block: 12,
+          incomeYield: 0,
+          label: 'mine',
+        },
+      ],
+      histories: { 'user:mine': rets },
+      holdings: sampleScenario().holdings.map((h) =>
+        h.id === 'etf' ? { ...h, returnModelId: 'hist:mine' } : h
+      ),
+    });
+    const r = simulate(kernel, s, sampleSpending(), { runs: 4 });
+    expect(r.invalidRuns).toBe(0);
+    expect(r.summaries.length).toBe(4);
+  });
+});

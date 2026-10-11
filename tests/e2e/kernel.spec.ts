@@ -13,11 +13,16 @@ test('household example model runs in the sim worker (M0 acceptance)', async ({ 
   await expect(page.locator('line-chart .prov')).toHaveText('illustrative');
 });
 
-test('the built page carries a CSP that limits connections to its own origin', async ({ page }) => {
+test('the built page carries a CSP that limits connections to its origin and the allowed providers', async ({
+  page,
+}) => {
   await page.goto('/');
   const csp = await page
     .locator('meta[http-equiv="Content-Security-Policy"]')
     .getAttribute('content');
-  expect(csp).toContain("connect-src 'self'");
+  // Its own origin, plus only the AI providers the egress gate allows (FR-API-005).
+  expect(csp).toContain(
+    "connect-src 'self' https://api.anthropic.com https://api.openai.com http://localhost:* http://127.0.0.1:*;"
+  );
   expect(csp).toContain("default-src 'self'");
 });

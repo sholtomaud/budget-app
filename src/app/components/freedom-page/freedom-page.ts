@@ -3,7 +3,8 @@ import { data, ensureLoaded } from '../../data.ts';
 import { el, prov } from '../../format.ts';
 import { poolRunner, poolSize, runPool, type PoolResult } from '../../sim-pool.ts';
 import { sim } from '../../workers.ts';
-import { inputsFor } from '../../freedom-inputs.ts';
+import { inputsFor, loadHistories } from '../../freedom-inputs.ts';
+import { historyModel } from '../../../sim/history.ts';
 import { addScenario } from '../../scenarios.ts';
 import '../fan-chart/fan-chart.ts';
 import type { FanChart } from '../fan-chart/fan-chart.ts';
@@ -21,6 +22,7 @@ import {
   DEFAULT_MODEL_FOR,
   type AssetClass,
   type Holding,
+  type ReturnModel,
   type Scenario,
   type SpendingInput,
   type WithdrawalStrategy,
@@ -52,6 +54,8 @@ const years = (y: number | null) => (y === null ? 'not reached' : `${y.toFixed(1
 export class FreedomPage extends BaseComponent {
   private unsubscribe: (() => void) | null = null;
   private setup: FreedomSetup | null = null;
+  /** Bootstrap models over the user's imported price histories. */
+  private historyModels: ReturnModel[] = [];
   private view: DataView | null = null;
   private main: { result: PoolResult; scenario: Scenario; spending: SpendingInput } | null = null;
   private runId = 0;
@@ -116,6 +120,7 @@ export class FreedomPage extends BaseComponent {
     this.$('.setup').hidden = !has;
     if (!has) return;
     this.setup ??= (await sim().loadSetup()) ?? defaultSetup(v);
+    this.historyModels = (await loadHistories()).map(historyModel);
     this.fill();
   }
 
@@ -311,7 +316,9 @@ export class FreedomPage extends BaseComponent {
         };
         const model = el('select', { 'aria-label': `Return model for ${h.name}` });
         model.append(
-          ...s.returnModels.map((m) => new Option(m.label, m.id, false, m.id === h.returnModelId))
+          ...[...s.returnModels, ...this.historyModels].map(
+            (m) => new Option(m.label, m.id, false, m.id === h.returnModelId)
+          )
         );
         model.onchange = () => update({ returnModelId: model.value });
         const locked = el('input', {

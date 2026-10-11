@@ -198,6 +198,8 @@ export interface Scenario {
   cpi: number;
   /** Tax table id (`au-2025-26`), or null to simulate before tax (the spreadsheet bridge). */
   taxTable: string | null;
+  /** Imported monthly real log-return histories for bootstrap models, by series id. */
+  histories?: Record<string, number[]>;
 }
 
 /**

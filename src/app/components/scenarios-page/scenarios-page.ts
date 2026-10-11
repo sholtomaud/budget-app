@@ -331,7 +331,15 @@ export class ScenariosPage extends BaseComponent {
           {},
           el('td', {}, pick),
           el('td', {}, name),
-          el('td', {}, s.source === 'optimiser' ? 'Optimiser' : 'Freedom screen'),
+          el(
+            'td',
+            {},
+            s.source === 'optimiser'
+              ? 'Optimiser'
+              : s.source === 'advisor'
+                ? 'Advisor'
+                : 'Freedom screen'
+          ),
           el('td', {}, day(s.createdAt.slice(0, 10))),
           el('td', {}, open, ' ', del)
         );

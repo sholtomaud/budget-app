@@ -1,4 +1,5 @@
 import { BaseComponent, define } from '../../core/base-component.ts';
+import { suggestMapping } from '../../llm-actions.ts';
 import {
   commitWorkbook,
   data,
@@ -310,6 +311,7 @@ export class BudgetPage extends BaseComponent {
     this.$('.wizard').append(panel);
     let mapping: Mapping | undefined;
     let categoryMap: Record<string, string> = {};
+    let suggestedBy: string | null = null;
     const rows = parseCsv(text);
 
     const draw = async () => {
@@ -419,7 +421,35 @@ export class BudgetPage extends BaseComponent {
         );
       const cancel = el('button', { type: 'button', class: 'secondary' }, 'Cancel');
       cancel.onclick = () => panel.remove();
+      const ai = el(
+        'button',
+        { type: 'button', class: 'secondary small' },
+        'Ask AI to map columns'
+      );
+      const aiStatus = el(
+        'span',
+        { class: 'muted', role: 'status' },
+        suggestedBy ? `Mapping suggested by ${suggestedBy}: check it before importing.` : ''
+      );
+      ai.onclick = async () => {
+        ai.disabled = true;
+        aiStatus.textContent = 'Asking…';
+        try {
+          const r = await suggestMapping(
+            rows,
+            v.budget.tiers.map((t) => t.id),
+            name
+          );
+          mapping = r.mapping;
+          suggestedBy = r.by;
+          void draw();
+        } catch (err) {
+          aiStatus.textContent = err instanceof Error ? err.message : String(err);
+          ai.disabled = false;
+        }
+      };
       const parts: (Node | null)[] = [
+        el('p', { class: 'ai-map' }, ai, ' ', aiStatus),
         el('label', {}, 'Sheet type ', typeSel),
         el('div', { class: 'grid' }, ...fieldSelects),
         tierInfo,

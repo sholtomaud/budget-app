@@ -54,6 +54,21 @@ const api = {
   saveSetup(setup: FreedomSetup): Promise<void> {
     return setupStore.set(setup);
   },
+  /** Small settings records (provider configuration; never API keys). */
+  async loadKv(name: 'providers' | 'histories'): Promise<unknown> {
+    return new IdbValue<unknown>(name).get();
+  },
+  async saveKv(name: 'providers' | 'histories', value: unknown): Promise<void> {
+    await new IdbValue<unknown>(name).set(value);
+  },
+  /** The local log of every external call (FR-API-004); the last 500 are kept. */
+  async loadEgressLog(): Promise<unknown[]> {
+    return (await egressStore.get()) ?? [];
+  },
+  async appendEgressLog(entry: unknown): Promise<void> {
+    const log = (await egressStore.get()) ?? [];
+    await egressStore.set([...log, entry].slice(-500));
+  },
   async loadScenarios(): Promise<SavedScenario[]> {
     return (await scenarioStore.get()) ?? [];
   },
@@ -64,6 +79,7 @@ const api = {
 
 const setupStore = new IdbValue<FreedomSetup>('freedom');
 const scenarioStore = new IdbValue<SavedScenario[]>('scenarios');
+const egressStore = new IdbValue<unknown[]>('egress-log');
 
 export type SimApi = typeof api;
 

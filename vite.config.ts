@@ -1,19 +1,22 @@
 import { createHash } from 'node:crypto';
+import { ALLOWED_ORIGINS } from './src/api/providers.ts';
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import { defineConfig, type Plugin } from 'vitest/config';
 
 /**
- * NFR-PRIV-003 / FR-API-005: the built page may only talk to its own origin.
- * Provider origins are added here when M8 lands. Dev builds skip the policy
- * because Vite's dev client needs a websocket.
+ * NFR-PRIV-003 / FR-API-005: the built page may only talk to its own origin
+ * and to the provider origins the egress gate allows (src/api/providers.ts).
+ * A meta CSP cannot be widened at runtime, so the list is fixed at build
+ * time. Dev builds skip the policy because Vite's dev client needs a
+ * websocket.
  */
 const CSP = [
   "default-src 'self'",
   "script-src 'self' 'wasm-unsafe-eval'",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data:",
-  "connect-src 'self'",
+  `connect-src 'self' ${ALLOWED_ORIGINS.join(' ')}`,
   "worker-src 'self'",
   "object-src 'none'",
   "base-uri 'self'",

@@ -74,6 +74,79 @@
     <p class="msg" role="status" aria-live="polite"></p>
   </article>
 
+  <article class="card providers">
+    <h2>AI provider (optional)</h2>
+    <p class="muted">
+      Off by default; the app is complete without it. When on, it can suggest categories for
+      transactions you haven't labelled, map an unusual budget spreadsheet, and power the Advisor.
+      Every call shows you exactly what will be sent first. Names, account numbers and exact amounts
+      are removed.
+    </p>
+    <form class="provider-form" aria-label="AI provider">
+      <div class="fields">
+        <label
+          >Provider
+          <select name="active">
+            <option value="">Off</option>
+          </select>
+        </label>
+        <label class="p-detail">Endpoint <input name="endpoint" type="url" size="28" /></label>
+        <label class="p-detail">Model <input name="model" type="text" size="18" /></label>
+      </div>
+      <div class="fields p-detail">
+        <label
+          >API key, for this session only
+          <input name="key" type="password" autocomplete="off" size="28" placeholder="Not stored"
+        /></label>
+        <button type="button" class="secondary small forget-key">Forget key</button>
+      </div>
+      <p class="muted p-detail">
+        Your key stays in memory until the app reloads or locks. It's never written to this device
+        or included in exports, and it's sent only to this provider. Use a dedicated key with a low
+        spending limit, which you can revoke at any time in the provider's console.
+      </p>
+      <p class="actions"><button type="submit">Save</button></p>
+    </form>
+    <p class="msg" role="status" aria-live="polite"></p>
+    <details class="log">
+      <summary>Calls made (log)</summary>
+      <table class="egress">
+        <thead>
+          <tr>
+            <th scope="col">When</th>
+            <th scope="col">Provider</th>
+            <th scope="col">Purpose</th>
+            <th scope="col" class="num">Bytes sent</th>
+            <th scope="col">Status</th>
+            <th scope="col">Payload SHA-256</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </details>
+  </article>
+
+  <article class="card histories">
+    <h2>Investment return history</h2>
+    <p class="muted">
+      Simulate an investment with its own price history instead of the built-in assumptions.
+      Download a CSV of monthly or daily prices (for example from Yahoo Finance: Date and Close
+      columns), in Australian dollars, and add it here. It's read on this device; nothing is
+      fetched. Then pick it as a holding's returns on the Freedom screen.
+    </p>
+    <form class="history-form" aria-label="Add a price history">
+      <div class="fields">
+        <label
+          >Name <input name="label" type="text" size="16" placeholder="e.g. ASX 200" required
+        /></label>
+        <label>Prices CSV <input name="file" type="file" accept=".csv,text/csv" required /></label>
+      </div>
+      <p class="actions"><button type="submit">Add history</button></p>
+    </form>
+    <p class="msg" role="status" aria-live="polite"></p>
+    <ul class="history-list"></ul>
+  </article>
+
   <article class="card export">
     <h2>Export</h2>
     <p class="muted">
