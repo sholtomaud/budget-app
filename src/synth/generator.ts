@@ -123,6 +123,17 @@ interface Rec {
   truth: TruthLabel;
 }
 
+/** Codes banks commonly confuse, for the wrongMcc noise. */
+const MCC_CONFUSION: Record<string, string> = {
+  '5814': '5812',
+  '5812': '5814',
+  '5411': '5499',
+  '5541': '5542',
+  '5732': '5734',
+  '4722': '4511',
+};
+const PLAUSIBLE_MCCS = ['5311', '5399', '5999', '7299'];
+
 const SUBURBS = [
   'NEWTOWN',
   'GLEBE',
@@ -336,7 +347,11 @@ export async function generate(persona: Persona, seedStr: string): Promise<Synth
       card: { pendingDescription: t.pendingDescription, refundable: true },
     };
     if (t.merchantName) leg.merchantName = t.merchantName;
-    if (mcc) leg.mcc = mcc;
+    if (mcc && !r.chance(noise.missingMcc ?? 0)) {
+      leg.mcc = r.chance(noise.wrongMcc ?? 0)
+        ? (MCC_CONFUSION[mcc] ?? r.pick(PLAUSIBLE_MCCS))
+        : mcc;
+    }
     return leg;
   };
 

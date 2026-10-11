@@ -1,0 +1,122 @@
+:host {
+  display: block;
+}
+:host .tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin-bottom: var(--space-3);
+}
+:host .tabs button {
+  background: transparent;
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+:host .tabs button[aria-selected='true'] {
+  background: var(--accent);
+  color: var(--accent-text);
+  border-color: var(--accent);
+}
+:host .filters,
+:host .bulk {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: end;
+  margin-bottom: var(--space-3);
+}
+:host .filters label,
+:host .bulk label {
+  display: grid;
+  gap: 2px;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+:host .bulk {
+  background: var(--surface-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius);
+}
+:host .bulk label.check {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+:host td.amount.out {
+  color: var(--text);
+}
+:host td.amount.in {
+  color: var(--ok);
+}
+:host td.desc {
+  max-width: 28rem;
+}
+:host td.desc .raw {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+:host tr.superseded,
+:host tr.transfer {
+  color: var(--text-muted);
+}
+:host tr.review td.cat select {
+  border-color: var(--bad);
+}
+:host td.cat select {
+  max-width: 14rem;
+}
+:host .kind {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+:host .kind[data-kind='capex'] {
+  color: var(--prov-forecast);
+}
+:host .src {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+:host dialog {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  max-width: 34rem;
+}
+:host dialog::backdrop {
+  background: rgb(0 0 0 / 0.35);
+}
+:host dialog label {
+  display: grid;
+  gap: 2px;
+  margin-bottom: var(--space-2);
+}
+:host .actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+:host .manage summary {
+  cursor: pointer;
+}
+:host .manage summary h2 {
+  display: inline;
+}
+:host .manage h3 {
+  font-size: 1rem;
+  margin: var(--space-3) 0 var(--space-1);
+}
+:host .rules li,
+:host .memory li {
+  margin-bottom: var(--space-1);
+}
+:host .capex-actions {
+  display: flex;
+  gap: var(--space-1);
+  flex-wrap: wrap;
+}

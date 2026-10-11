@@ -1,0 +1,61 @@
+{
+  "$comment": "Merchant category code → default category (SPEC §8 stage 4). capexFrom: debits of at least this many dollars map to capexCategory instead. Editable in Settings.",
+  "mcc": {
+    "4111": { "category": "transport.public" },
+    "4121": { "category": "transport.rideshare" },
+    "4511": { "category": "leisure.travel", "capexCategory": "capex.travel", "capexFrom": 500 },
+    "4722": { "category": "leisure.travel", "capexCategory": "capex.travel", "capexFrom": 500 },
+    "4814": { "category": "comms.mobile" },
+    "4899": { "category": "comms.internet" },
+    "4900": { "category": "utilities.electricity" },
+    "5311": { "category": "shopping.general" },
+    "5411": { "category": "food.groceries" },
+    "5499": { "category": "food.groceries" },
+    "5541": { "category": "transport.fuel" },
+    "5542": { "category": "transport.fuel" },
+    "5651": { "category": "shopping.clothing" },
+    "5712": {
+      "category": "shopping.homewares",
+      "capexCategory": "capex.furniture",
+      "capexFrom": 200
+    },
+    "5722": {
+      "category": "shopping.homewares",
+      "capexCategory": "capex.appliances",
+      "capexFrom": 200
+    },
+    "5732": {
+      "category": "shopping.electronics",
+      "capexCategory": "capex.computing",
+      "capexFrom": 200
+    },
+    "5734": { "category": "subscriptions.software" },
+    "5812": { "category": "food.dining" },
+    "5813": { "category": "food.dining" },
+    "5814": { "category": "food.cafe" },
+    "5912": { "category": "health.pharmacy" },
+    "5940": {
+      "category": "transport.bicycle",
+      "capexCategory": "capex.transport",
+      "capexFrom": 200
+    },
+    "5942": { "category": "leisure.books" },
+    "5943": {
+      "category": "shopping.stationery",
+      "capexCategory": "capex.personal",
+      "capexFrom": 200
+    },
+    "5944": { "category": "shopping.general", "capexCategory": "capex.personal", "capexFrom": 200 },
+    "5946": {
+      "category": "shopping.general",
+      "capexCategory": "capex.photography",
+      "capexFrom": 200
+    },
+    "6300": { "category": "health.insurance" },
+    "7011": { "category": "leisure.travel", "capexCategory": "capex.travel", "capexFrom": 500 },
+    "7832": { "category": "leisure.entertainment" },
+    "7997": { "category": "health.gym" },
+    "8011": { "category": "health.medical" },
+    "8021": { "category": "health.medical" }
+  }
+}

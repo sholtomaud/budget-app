@@ -8,29 +8,16 @@
     "transactions": [
       {
         "accountId": "SYN-TXN",
-        "transactionId": "SYN-TXN-000012",
+        "transactionId": "SYN-TXN-000011",
         "isDetailAvailable": false,
         "type": "TRANSFER_OUTGOING",
         "status": "POSTED",
         "description": "CREDIT CARD PAYMENT SYN-CC",
         "postingDateTime": "2024-07-25T21:00:00+10:00",
         "executionDateTime": "2024-07-25T21:00:00+10:00",
-        "amount": "-6711.50",
+        "amount": "-955.70",
         "currency": "AUD",
         "reference": "CARD"
-      },
-      {
-        "accountId": "SYN-TXN",
-        "transactionId": "SYN-TXN-000011",
-        "isDetailAvailable": false,
-        "type": "TRANSFER_INCOMING",
-        "status": "POSTED",
-        "description": "TRANSFER FROM SYN-SAV TOPUP",
-        "postingDateTime": "2024-07-25T21:00:00+10:00",
-        "executionDateTime": "2024-07-25T20:59:00+10:00",
-        "amount": "1600.00",
-        "currency": "AUD",
-        "reference": "TOPUP"
       },
       {
         "accountId": "SYN-TXN",
@@ -54,7 +41,7 @@
         "type": "TRANSFER_INCOMING",
         "status": "POSTED",
         "description": "SALARY NORTHWIND ANALYTICS",
-        "postingDateTime": "2024-07-18T03:04:00+10:00",
+        "postingDateTime": "2024-07-18T03:05:00+10:00",
         "executionDateTime": "2024-07-18T03:00:00+10:00",
         "amount": "3100.00",
         "currency": "AUD",
@@ -67,7 +54,7 @@
         "type": "DIRECT_DEBIT",
         "status": "POSTED",
         "description": "DIRECT DEBIT HARBOURSIDE REALTY",
-        "postingDateTime": "2024-07-15T05:42:00+10:00",
+        "postingDateTime": "2024-07-15T05:38:00+10:00",
         "executionDateTime": "2024-07-15T05:30:00+10:00",
         "amount": "-620.00",
         "currency": "AUD",
@@ -82,7 +69,7 @@
         "type": "DIRECT_DEBIT",
         "status": "POSTED",
         "description": "DIRECT DEBIT WELLMARK HEALTH FUND",
-        "postingDateTime": "2024-07-14T05:49:00+10:00",
+        "postingDateTime": "2024-07-14T06:01:00+10:00",
         "executionDateTime": "2024-07-14T05:41:00+10:00",
         "amount": "-160.00",
         "currency": "AUD",
@@ -97,7 +84,7 @@
         "type": "TRANSFER_OUTGOING",
         "status": "POSTED",
         "description": "TRANSFER TO SYN-BROKER",
-        "postingDateTime": "2024-07-12T07:14:00+10:00",
+        "postingDateTime": "2024-07-12T07:04:00+10:00",
         "executionDateTime": "2024-07-12T06:45:00+10:00",
         "amount": "-500.00",
         "currency": "AUD",
@@ -110,7 +97,7 @@
         "type": "DIRECT_DEBIT",
         "status": "POSTED",
         "description": "DIRECT DEBIT HARBOURSIDE REALTY",
-        "postingDateTime": "2024-07-08T05:58:00+10:00",
+        "postingDateTime": "2024-07-08T05:41:00+10:00",
         "executionDateTime": "2024-07-08T05:30:00+10:00",
         "amount": "-620.00",
         "currency": "AUD",
@@ -125,7 +112,7 @@
         "type": "DIRECT_DEBIT",
         "status": "POSTED",
         "description": "DIRECT DEBIT TELCOAST MOBILE",
-        "postingDateTime": "2024-07-07T05:56:00+10:00",
+        "postingDateTime": "2024-07-07T06:12:00+10:00",
         "executionDateTime": "2024-07-07T05:42:00+10:00",
         "amount": "-65.00",
         "currency": "AUD",
@@ -185,7 +172,7 @@
     "last": "https://synthetic.invalid/banking/accounts/SYN-TXN/transactions?page=4"
   },
   "meta": {
-    "totalRecords": 312,
+    "totalRecords": 311,
     "totalPages": 4
   }
 }

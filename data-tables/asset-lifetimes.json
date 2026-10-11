@@ -1,0 +1,13 @@
+{
+  "$comment": "Default expected life (years) and Weibull shape per capex category (FR-CLS-002, FR-CAP-005). Values are assumptions, labelled 'assumed' wherever used.",
+  "lifetimes": {
+    "capex.computing": { "meanYears": 4, "shape": 3 },
+    "capex.photography": { "meanYears": 6, "shape": 2.5 },
+    "capex.personal": { "meanYears": 10, "shape": 2 },
+    "capex.transport": { "meanYears": 8, "shape": 2.5 },
+    "capex.furniture": { "meanYears": 10, "shape": 2.5 },
+    "capex.travel": { "meanYears": 1, "shape": 5 },
+    "capex.appliances": { "meanYears": 10, "shape": 3 },
+    "default": { "meanYears": 5, "shape": 2.5 }
+  }
+}

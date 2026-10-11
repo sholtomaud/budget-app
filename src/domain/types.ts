@@ -106,3 +106,23 @@ export interface ImportRecord {
   files: ImportFileResult[];
   counts: ImportCounts;
 }
+
+/** A capital item in the CAPEX register (SPEC §5, §9.3). */
+export interface Asset {
+  id: string;
+  name: string;
+  categoryId: string;
+  purchasedAt?: string;
+  cost: { minor: bigint; ccy: string };
+  forecastCost?: { minor: bigint; ccy: string };
+  life: { meanYears: number; shape?: number };
+  /** True when the life came from the category default, not the user (FR-CAP-005). */
+  lifeAssumed: boolean;
+  replace: boolean;
+  replacementCostGrowth?: number;
+  status: 'wish' | 'planned' | 'owned' | 'retired';
+  tier?: string;
+  linkedTxnIds: string[];
+  url?: string;
+  provenance: Provenance;
+}

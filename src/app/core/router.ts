@@ -11,7 +11,11 @@ import {
   type RouteDef,
 } from './routes.ts';
 
-const loaders = import.meta.glob<unknown>('../components/*-page/*-page.ts');
+// The dev-only evaluation page is registered from main.ts and never bundled for production.
+const loaders = import.meta.glob<unknown>([
+  '../components/*-page/*-page.ts',
+  '!../components/eval-page/*',
+]);
 
 /** Fired on window after each navigation; detail is the matched route path. */
 export const ROUTE_EVENT = 'app:route';

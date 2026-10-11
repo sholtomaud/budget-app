@@ -274,3 +274,11 @@ textarea:focus-visible {
 tbody th {
   font-weight: 600;
 }
+
+.screen.wide {
+  max-width: 84rem;
+}
+
+[hidden] {
+  display: none !important;
+}

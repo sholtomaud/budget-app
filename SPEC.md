@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft 3: M0 and M1 decisions folded in (ADRs 0001–0008) |
+| Status | Draft 4: M0–M2 decisions folded in (ADRs 0001–0009) |
 | Date | 2026-10-11 |
 | Kernel | [GSSK](https://github.com/energese-project/GSSK-Giannantoni), consumed as a pinned WebAssembly artefact |
 | Runtime | Browser only. Static site, no backend |
@@ -35,7 +35,8 @@ as GSSK). The app treats that as a measurable goal, not a slogan (§11).
   exports it or explicitly invokes an external API (§13).
 - **No direct bank connection in v1.** Becoming an accredited CDR data recipient is out of scope.
   The app ingests files in the CDR (Open Banking) format that the user obtains elsewhere, plus
-  synthetic data (§6, §7).
+  synthetic data (§6, §7). Live connections are planned as an optional production milestone
+  (§6.4, M10).
 - **No financial advice.** The app simulates consequences of the user's own assumptions. Every output
   states its assumptions (NFR-HON-001). Tax rules are user-verifiable data files, not authority.
 - **No trading, no payments, no write access to any account.**
@@ -91,7 +92,7 @@ rules, superannuation). Multi-currency holdings (BTC, USD, EUR) are first-class.
 │        │ typed postMessage RPC (in-house)                                      │
 │  ┌─────▼──────────────────── Web Workers ───────────────────────────────────┐  │
 │  │ ingest      CDR JSON → canonical; CSV → budget/CAPEX/goals               │  │
-│  │ classify    rules → merchant memory → in-browser ML → (optional) LLM     │  │
+│  │ classify    rules → memory → MCC → ML → (optional) LLM (in ingest)       │  │
 │  │ forecast    ml-core.wasm: ETS, Croston, bootstrap, Weibull, quantiles    │  │
 │  │ modelgen    canonical state → GSSK model JSON (pure function)            │  │
 │  │ sim         gssk.wasm: Init/Step/Reset/SetEdgeK + policy controller      │  │
@@ -296,6 +297,29 @@ Bank transaction CSV adapters (column-mapping presets per bank), OFX/QFX, QIF. E
 
 ---
 
+### 6.4 Live bank connections (M10, production; not v1)
+
+Fetching transactions directly from banks would remove the manual export step. Constraints:
+
+- **Accreditation.** Under the CDR, only an accredited data recipient can call the banking APIs,
+  or a business operating under a sponsorship or CDR-representative arrangement with one. A
+  consumer cannot call them directly.
+- **Secrets.** OAuth client credentials, refresh tokens and mutual-TLS keys cannot live in a static
+  browser app (§1.1, NFR-PRIV-001).
+
+Design, so the rest of the app is unchanged:
+
+| ID | Requirement |
+|---|---|
+| FR-LIVE-001 | A **connector** is a separately deployed, optional component. It is operated by the user, or by an accredited partner under a sponsor or representative arrangement. It completes the CDR consent flow and fetches the user's data. The static app never holds bank credentials or CDR tokens. |
+| FR-LIVE-002 | The connector returns the **same CDR response JSON** that file import accepts (§6.1). The browser imports it through the existing pipeline (FR-ING-001…008), with its validation, dedupe and reconciliation. |
+| FR-LIVE-003 | Fetched data is stored only in the browser (NFR-PRIV-001). The connector keeps nothing beyond what consent management requires, and says what that is. |
+| FR-LIVE-004 | Each sync is an egress call under §13 (FR-API-001…005): the connector origin is configured in Settings and added to the CSP `connect-src`, and each sync is confirmed and logged. |
+| FR-LIVE-005 | Consent is visible and revocable from Settings: accounts shared, scopes, expiry, last sync. Revoking deletes the connector's stored tokens. |
+| FR-LIVE-006 | Bank-specific personal APIs (a personal access token for one bank) MAY be supported as connector plugins, subject to the bank's terms and to CORS. A token entered by the user is held like an API key (FR-API-001). |
+
+---
+
 ## 7. Synthetic data (FR-SYN)
 
 The app MUST be fully usable, and fully tested, on synthetic data before any real data exists.
@@ -379,13 +403,18 @@ Pipeline, first confident answer wins. Each stage records `by` and `confidence`.
 1. **Structural** — CDR `type` alone: `INTEREST_PAID` → interest, `FEE` → fee, transfer pairs (FR-ING-007).
 2. **User rules** — ordered, editable: match on `merchantName`, `description` regex, `billerCode`,
    `mcc`, amount range, account. Rule hits are `confidence = 1`.
-3. **Merchant memory** — every user correction stores `normalisedMerchant → category` (normalisation
-   strips store numbers, suburbs, card suffixes, case). Applies with `confidence = 0.95`.
-4. **MCC map** — `merchantCategoryCode` → default category table (shipped, editable).
+3. **Merchant memory** — every user correction applied to similar transactions stores
+   `normalisedMerchant → category`, per direction (money in or out). Normalisation strips store
+   numbers, card prefixes, company suffixes, leading payment-method words, and case. Recall takes
+   the longest remembered prefix of the payee's tokens, so suburb suffixes don't matter. Applies
+   with `confidence = 0.95` (ADR 0009).
+4. **MCC map** — `merchantCategoryCode` → default category table (shipped, editable). An entry can
+   route purchases above a set amount to a capital category. Confidence 0.8.
 5. **In-browser model** — a small text classifier over normalised description + merchant + amount
-   bucket + weekday + MCC. v1: multinomial naive Bayes / logistic regression on hashed character
-   n-grams, trained in a worker on the user's own corrected transactions; persisted as weights in
-   IndexedDB. Optional later: a small sentence-embedding model via ONNX Runtime Web for k-NN.
+   bucket + weekday + MCC. v1: multinomial naive Bayes on hashed word and character-trigram
+   features, trained in the ingest worker on the user's own corrected transactions once there
+   are at least two categories and five labels. Retrained from the stored labels on load rather
+   than persisted as weights (ADR 0009). Optional later: a small sentence-embedding model for k-NN.
 6. **LLM (optional, §13)** — only for transactions still below the confidence threshold, only with
    consent, only redacted fields.
 7. **Unclassified** — shown in a review queue.
@@ -864,6 +893,7 @@ data.
 | **M7 Storage, encryption, export** | Encryption at rest, export/import, delete-all, migrations | NFR-STO-001…005 |
 | **M8 Optional APIs + advisor** | Provider settings, consent + redaction, price/CPI fetch, LLM classification, advisor with tools | FR-API-001…005; §13.3; privacy tests |
 | **M9 Real data** | User loads own exports locally; bank-specific CSV adapters as needed | Reconciliation clean on real exports (verified locally, nothing committed) |
+| **M10 Live connections (production)** | Optional connector (§6.4): CDR consent via an accredited partner, or bank personal-API plugins; sync into the existing import pipeline; consent management in Settings | FR-LIVE-001…006; a sync from a CDR sandbox passes the same validation, dedupe and reconciliation tests as file import; the privacy e2e shows egress only to the configured connector origin |
 
 ---
 
@@ -881,6 +911,9 @@ data.
 6. **Time as a carrier**: track hours (paid work vs chosen work) as a second GSSK carrier so the
    freedom goal is expressed in time as well as money?
 7. **In-browser LLM**: which model size is acceptable on the target devices (WebGPU availability)?
+8. **Live connections (M10)**: which route — a sponsor or CDR-representative arrangement with an
+   accredited intermediary, a self-hosted connector for users who hold their own accreditation
+   arrangement, or bank-specific personal APIs? Who operates the connector, and at what cost?
 
 ---
 

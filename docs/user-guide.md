@@ -1,7 +1,7 @@
 # Using the app
 
 ::: info Status
-M0 and M1 are done: synthetic data, import and reconciliation work. Other screens fill in with
+M0–M2 are done: synthetic data, import, reconciliation, and the categorised ledger work. Other screens fill in with
 later milestones ([SPEC §19](./spec.md#_19-milestones)).
 :::
 
@@ -40,6 +40,26 @@ accepts Consumer Data Right (Open Banking) responses as JSON, or a ZIP of them:
 - Balance files carry no time in the standard. Add a top-level `"x-as-at": "2025-06-30T23:59:59+10:00"`
   for exact checks; otherwise the file's date is used and labelled **assumed**.
 - **Undo** in the import history removes everything that import added.
+
+## Ledger
+
+Every transaction is categorised automatically, in this order: what the bank data says (interest,
+fees, transfers between your accounts, refunds), then your **rules**, then merchants you've
+**corrected before**, then the merchant's category code, then a small model trained on your
+corrections. The **Source** column says which one decided, and how confident it was.
+
+- **Review queue**: transactions that are unclassified or low-confidence, with the merchants that
+  cover the most transactions first.
+- **Change a category** with the menu on any row. You're offered to **apply it to similar
+  transactions** from the same merchant (and future ones), to change just this one, or to make a
+  **rule**. Your own choices are never overwritten.
+- **Bulk re-categorise**: tick rows (or "select all shown"), choose a category, Apply.
+- **CAPEX proposals**: large or capital purchases (computers, cameras, holidays…) are proposed
+  as assets. **Confirm asset** adds it to the register with a default expected life (marked
+  _assumed_ until you set it); **Not capital** keeps it as ordinary spending.
+- **Transfers** between your accounts and **refunds** (netted against their purchase) have their own
+  views.
+- Rules and remembered merchants are listed at the bottom, where you can reorder or remove them.
 
 ## Screens
 

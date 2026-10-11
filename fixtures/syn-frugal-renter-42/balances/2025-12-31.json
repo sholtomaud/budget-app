@@ -9,14 +9,14 @@
     "balances": [
       {
         "accountId": "SYN-TXN",
-        "currentBalance": "899.79",
-        "availableBalance": "899.79",
+        "currentBalance": "851.34",
+        "availableBalance": "851.34",
         "currency": "AUD"
       },
       {
         "accountId": "SYN-SAV",
-        "currentBalance": "67203.93",
-        "availableBalance": "67203.93",
+        "currentBalance": "68668.66",
+        "availableBalance": "68668.66",
         "currency": "AUD"
       }
     ]

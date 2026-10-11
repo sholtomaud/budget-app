@@ -1,0 +1,127 @@
+<section class="screen wide">
+  <h1>Ledger</h1>
+  <p class="summary lede"></p>
+  <p class="empty">
+    No transactions yet. <a href="/import" data-route="/import">Import data</a> or
+    <a href="/" data-route="/">try a synthetic household</a>.
+  </p>
+
+  <div class="body" hidden>
+    <div class="tabs" role="tablist" aria-label="Views">
+      <button type="button" role="tab" data-tab="all">All</button>
+      <button type="button" role="tab" data-tab="review">Review queue</button>
+      <button type="button" role="tab" data-tab="capex">CAPEX proposals</button>
+      <button type="button" role="tab" data-tab="transfers">Transfers</button>
+      <button type="button" role="tab" data-tab="refunds">Refunds</button>
+    </div>
+
+    <form class="filters" role="search">
+      <label
+        >Search <input type="search" name="q" placeholder="Merchant, description, amount"
+      /></label>
+      <label
+        >Account
+        <select name="account"></select
+      ></label>
+      <label
+        >Category
+        <select name="category"></select
+      ></label>
+      <label
+        >Kind
+        <select name="kind"></select
+      ></label>
+    </form>
+
+    <div class="bulk" hidden>
+      <span class="bulk-count"></span>
+      <label
+        >Set category
+        <select class="bulk-category"></select
+      ></label>
+      <label class="check"
+        ><input type="checkbox" class="bulk-remember" checked /> remember these merchants</label
+      >
+      <button type="button" class="bulk-apply">Apply</button>
+      <button type="button" class="secondary bulk-clear">Clear selection</button>
+    </div>
+
+    <div class="scroll">
+      <table class="txns">
+        <thead>
+          <tr>
+            <th scope="col">
+              <input type="checkbox" class="select-all" aria-label="Select all shown" />
+            </th>
+            <th scope="col">Date</th>
+            <th scope="col">Account</th>
+            <th scope="col">Description</th>
+            <th scope="col" class="num">Amount</th>
+            <th scope="col">Category</th>
+            <th scope="col">Kind</th>
+            <th scope="col">Source</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <p class="more-row">
+      <button type="button" class="secondary more">Show more</button>
+      <span class="shown muted"></span>
+    </p>
+
+    <dialog class="correct-dialog">
+      <form method="dialog">
+        <h2>Change category</h2>
+        <p class="correct-text"></p>
+        <p class="correct-similar muted"></p>
+        <div class="actions">
+          <button value="similar" class="apply-similar">Apply to similar</button>
+          <button value="one" class="secondary">Just this one</button>
+          <button value="rule" class="secondary">Make a rule…</button>
+          <button value="cancel" class="secondary">Cancel</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="rule-dialog">
+      <form method="dialog" class="rule-form">
+        <h2>New rule</h2>
+        <p class="muted">
+          Rules run before everything else, in order, and always win (except over your own labels).
+        </p>
+        <label>Name <input name="name" required /></label>
+        <label>Merchant contains <input name="merchant" /></label>
+        <label>Description matches (regular expression) <input name="description" /></label>
+        <label
+          >Direction
+          <select name="direction">
+            <option value="">Either</option>
+            <option value="debit">Money out</option>
+            <option value="credit">Money in</option>
+          </select>
+        </label>
+        <label
+          >Category
+          <select name="categoryId" class="rule-category"></select
+        ></label>
+        <div class="actions">
+          <button value="save">Save rule</button>
+          <button value="cancel" class="secondary" formnovalidate>Cancel</button>
+        </div>
+      </form>
+    </dialog>
+
+    <details class="card manage">
+      <summary><h2>Rules and remembered merchants</h2></summary>
+      <h3>Rules</h3>
+      <p class="no-rules muted">No rules yet. Make one from any transaction's category menu.</p>
+      <ol class="rules"></ol>
+      <h3>Remembered merchants</h3>
+      <p class="no-memory muted">
+        Nothing remembered yet. Corrections you apply to similar transactions appear here.
+      </p>
+      <ul class="memory"></ul>
+    </details>
+  </div>
+</section>

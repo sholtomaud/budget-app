@@ -25,14 +25,7 @@ function planned(
 export const screens: Screen[] = [
   { path: '/', nav: 'Start', title: 'Start', component: 'start-page' },
   { path: '/import', nav: 'Import', title: 'Import', component: 'import-page' },
-  planned(
-    '/ledger',
-    'Ledger',
-    'Ledger',
-    '§8',
-    'M2',
-    'Transactions with filter, search, bulk re-categorise, a review queue, CAPEX proposals and transfer pairs.'
-  ),
+  { path: '/ledger', nav: 'Ledger', title: 'Ledger', component: 'ledger-page' },
   planned(
     '/budget',
     'Budget',

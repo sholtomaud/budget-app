@@ -83,6 +83,10 @@ export interface Persona {
     refunds?: number;
     fees?: boolean;
     missingTransactionId?: number;
+    /** Share of card purchases exported without a merchantCategoryCode. */
+    missingMcc?: number;
+    /** Share of card purchases with a plausible but wrong code. */
+    wrongMcc?: number;
   };
   pageSize?: number;
 }
