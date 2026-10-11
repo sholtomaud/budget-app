@@ -1,18 +1,36 @@
-# Using the app
+# Using Crux
 
 ::: info Status
-M0–M4 are done: synthetic data, import, reconciliation, the categorised ledger, the budget, the CAPEX register and forecasts work. Other screens fill in with
-later milestones ([SPEC §19](./spec.md#_19-milestones)).
+M0–M7 are done: everything from import to the freedom simulation, scenarios, encryption and export.
+The optional AI assistant arrives with M8 ([SPEC §19](./spec.md#_19-milestones)).
 :::
+
+## Getting started
+
+The Start screen says what Crux does in a few lines. A **guide** under the menu then walks you
+through the screens in order, one plain sentence each:
+
+1. Add your data, or try a sample household.
+2. Check your transactions.
+3. Compare with your budget.
+4. Plan for big purchases.
+5. See what's coming.
+6. Find your freedom number.
+7. Compare plans.
+
+A step ticks off once you've opened its screen. **Next** takes you to the following one, and
+**Hide guide** tucks it away. Settings → Help, or **Start the guide again** on the Start screen,
+brings it back.
 
 ## Start
 
-**Try synthetic data** generates a fictional household in your browser and loads it, so you can
-explore before loading anything real. Pick a household:
+**Try it with a sample household** generates a made-up household in your browser and loads it, so
+you can explore before loading anything real. Pick one:
 
-- **frugal-renter**: one modest salary, a debit card, steady saving.
-- **default**: one salary, renting, a credit card, monthly investing, a few lumpy purchases.
-- **high-capex-crypto**: high income, heavy capital spending, weekly BTC purchases.
+- **Frugal renter**: one modest salary, a debit card, steady saving.
+- **Renting, one salary**: a credit card, monthly investing, a few big purchases.
+- **High earner, big purchases, crypto**: high income, heavy capital spending, weekly Bitcoin
+  purchases.
 
 The seed makes it reproducible: the same household and seed always give the same data. Everything
 it produces is labelled **illustrative**.

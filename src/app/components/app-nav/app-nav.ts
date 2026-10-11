@@ -19,7 +19,7 @@ export class AppNav extends BaseComponent {
     const list = this.$('.links');
     list.replaceChildren(
       ...screens
-        .filter((s) => s.path !== '/')
+        .filter((s) => s.path !== '/' && !s.hidden)
         .map((s) => {
           const li = document.createElement('li');
           const a = document.createElement('a');

@@ -17,7 +17,15 @@
 }
 :host nav {
   flex: 1;
+  min-width: 0;
   overflow-x: auto;
+  scrollbar-width: thin;
+}
+@media (max-width: 48rem) {
+  /* A fade hints that the nav scrolls sideways. */
+  :host nav {
+    mask-image: linear-gradient(to right, #000 85%, transparent);
+  }
 }
 :host .links {
   display: flex;

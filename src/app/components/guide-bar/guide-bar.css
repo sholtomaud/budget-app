@@ -1,0 +1,54 @@
+:host .bar {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--space-2) var(--space-4);
+  align-items: center;
+  padding: var(--space-2) var(--space-4);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+:host .bar[hidden] {
+  display: none;
+}
+:host p {
+  margin: 0;
+}
+:host .progress {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+:host .step {
+  font-size: 0.9375rem;
+}
+:host .actions {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+:host .dots {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: var(--space-1);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+:host .dots li {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border);
+}
+:host .dots li.done {
+  background: var(--ok);
+}
+:host .dots li.current {
+  background: var(--accent);
+}
+@media (max-width: 40rem) {
+  :host .bar {
+    grid-template-columns: 1fr;
+  }
+}

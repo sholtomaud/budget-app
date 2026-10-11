@@ -3,11 +3,11 @@ import { expect, test, type Page } from '@playwright/test';
 async function loadSynthetic(page: Page, persona = 'default') {
   await page.goto('/');
   await page.getByLabel('Household').selectOption(persona);
-  await page.getByRole('button', { name: 'Generate and load' }).click();
+  await page.getByRole('button', { name: 'Load sample household' }).click();
   await expect(page).toHaveURL(/\/import$/);
   await page
     .getByRole('navigation', { name: 'Screens' })
-    .getByRole('link', { name: 'Ledger' })
+    .getByRole('link', { name: 'Transactions' })
     .click();
   await expect(page.locator('table.txns tbody tr').first()).toBeVisible();
 }

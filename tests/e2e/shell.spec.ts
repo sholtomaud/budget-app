@@ -6,8 +6,8 @@ test('start screen loads with the privacy statement and a verified kernel', asyn
   page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
 
   await page.goto('/');
-  await expect(page.getByRole('heading', { name: 'Freedom capital, measured' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Privacy' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Crux', level: 1 })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Your data stays with you' })).toBeVisible();
   await expect(page.locator('.kstate')).toHaveText(/GSSK 5\.3\.0, SHA-256 verified/);
   expect(errors).toEqual([]);
 });
@@ -17,15 +17,14 @@ test('every SPEC §12 screen is reachable from the nav', async ({ page }) => {
   const nav = page.getByRole('navigation', { name: 'Screens' });
   const labels = [
     'Import',
-    'Ledger',
+    'Transactions',
     'Budget',
-    'CAPEX',
+    'Big purchases',
     'Forecast',
     'Freedom',
     'Scenarios',
     'Advisor',
     'Settings',
-    'Kernel',
   ];
   for (const label of labels) {
     const link = nav.getByRole('link', { name: label, exact: true });
@@ -36,13 +35,16 @@ test('every SPEC §12 screen is reachable from the nav', async ({ page }) => {
     const placeholder = page.locator('placeholder-page .milestone');
     if (await placeholder.count()) await expect(placeholder).toHaveText(/^M\d/);
   }
+  // The engine check is a technical screen: linked from Settings, not in the nav.
+  await page.getByRole('link', { name: 'Simulation engine check' }).click();
+  await expect(page.getByRole('heading', { name: 'Engine check' })).toBeVisible();
   await page.goBack();
   await expect(page).toHaveURL(/\/settings$/);
 });
 
 test('deep links render the right screen; unknown paths say not found', async ({ page }) => {
   await page.goto('/ledger');
-  await expect(page.getByRole('heading', { name: 'Ledger' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible();
   await page.goto('/no-such-screen');
   await expect(page.getByRole('heading', { name: 'Not found' })).toBeVisible();
 });

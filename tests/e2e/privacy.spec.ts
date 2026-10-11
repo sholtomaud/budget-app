@@ -14,6 +14,8 @@ test('no request goes outside the app origin', async ({ page, baseURL }) => {
   await expect(page.locator('.kstate')).toHaveText(/verified/);
   const nav = page.getByRole('navigation', { name: 'Screens' });
   for (const link of await nav.getByRole('link').all()) await link.click();
+  // The engine check is linked from Settings, not the nav.
+  await page.getByRole('link', { name: 'Simulation engine check' }).click();
   await page.getByRole('button', { name: 'Run example' }).click();
   await expect(page.locator('.result')).toHaveAttribute('data-ready', 'true');
 

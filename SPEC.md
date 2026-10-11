@@ -1,4 +1,7 @@
-# budget-app — Specification
+# Crux — Specification
+
+*Crux* is the product name (ADR 0020). The repository, package and internal identifiers keep
+`budget-app`.
 
 | | |
 |---|---|
@@ -697,16 +700,16 @@ uncertain.
 
 | Screen | Contents |
 |---|---|
-| **Start** | "Try synthetic data" (persona picker) or "Import my data". Privacy statement. |
+| **Start** | Landing page: what Crux does in plain words, how it works in four steps, "Try it with a sample household" or "Use my own data", the privacy promise. When data exists, "Welcome back" with the next step. A getting-started guide under the menu walks through the screens in order (ADR 0020). |
 | **Import** | Drop zone for CDR JSON/ZIP and budget CSV files. Per-file results (FR-ING-006). Mapping wizard for CSV sheets. Undo import. |
-| **Ledger** | Transactions table: filter, search, bulk re-categorise, review queue, CAPEX proposals, transfer pairs. |
+| **Transactions** (route `/ledger`) | Transactions table: filter, search, bulk re-categorise, review queue, CAPEX proposals, transfer pairs. |
 | **Budget** | Lines by category with tier columns; actual vs budget; run-rate; period switch (wk/mth/yr). |
-| **CAPEX** | Asset register; replacement timeline (P10–P90 bars); sinking fund; wish-list decisions. |
+| **Big purchases** (route `/capex`; the CAPEX register) | Asset register; replacement timeline (P10–P90 bars); sinking fund; wish-list decisions. |
 | **Forecast** | Per-category fan charts; method and backtest score per series; CAPEX fan; totals. |
 | **Freedom** | Goal editor; pSuccess gauge per tier; capital fan chart in real terms with floor line; example paths; years to freedom; project runway; shortfall drivers. |
 | **Scenarios** | Side-by-side comparison (up to 4); optimiser; diff of decisions. |
 | **Advisor** | Optional chat (§13). Every answer links to run IDs and screens. |
-| **Kernel** | Pinned GSSK version, commit and SHA-256 verification status. Runs GSSK's household example model in the `sim` worker as a smoke test (M0). |
+| **Engine check** (route `/kernel`; linked from Settings and Start, not in the menu) | Pinned GSSK version, commit and SHA-256 verification status. Runs GSSK's household example model in the `sim` worker as a smoke test (M0). |
 | **Settings** | Timezone, currency, CPI, period table, categories, rules, tax tables, return models, API providers and keys, encryption, export/import, delete all data. |
 
 ---

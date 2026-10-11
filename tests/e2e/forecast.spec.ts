@@ -5,7 +5,7 @@ test('forecast fans per category and for capital spend, on the ml-core kernels (
 }) => {
   await page.goto('/');
   await page.getByLabel('Household').selectOption('high-capex-crypto');
-  await page.getByRole('button', { name: 'Generate and load' }).click();
+  await page.getByRole('button', { name: 'Load sample household' }).click();
   await expect(page).toHaveURL(/\/import$/);
 
   // Put the confirmed CAPEX proposals into the register so capital spend has something to forecast.

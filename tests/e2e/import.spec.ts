@@ -13,9 +13,10 @@ test('try synthetic data: generate, import, reconcile, and persist across reload
 }) => {
   await page.goto('/');
   await page.getByLabel('Household').selectOption('default');
-  await expect(page.locator('.persona-desc')).toContainText('24 months from 2024-07-01');
+  await expect(page.locator('.persona-desc')).toContainText('2 years of bank data');
+  await page.getByText('Advanced').click();
   await page.getByLabel('Seed').fill('42');
-  await page.getByRole('button', { name: 'Generate and load' }).click();
+  await page.getByRole('button', { name: 'Load sample household' }).click();
 
   await expect(page).toHaveURL(/\/import$/);
   await expect(page.locator('.last-summary')).toContainText('Synthetic: default (seed 42)');

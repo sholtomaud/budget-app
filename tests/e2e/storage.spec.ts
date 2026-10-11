@@ -34,7 +34,7 @@ test('storage: encrypt at rest, lock, export, delete all, import (NFR-STO-002…
   test.setTimeout(180_000);
   await page.goto('/');
   await page.getByLabel('Household').selectOption('default');
-  await page.getByRole('button', { name: 'Generate and load' }).click();
+  await page.getByRole('button', { name: 'Load sample household' }).click();
   await expect(page).toHaveURL(/\/import$/);
   expect(await rawDb(page)).toContain('SYN-TXN');
 
@@ -63,7 +63,7 @@ test('storage: encrypt at rest, lock, export, delete all, import (NFR-STO-002…
   await expect(lock.getByRole('heading', { name: 'Your data is locked' })).toBeHidden({
     timeout: 30_000,
   });
-  await nav(page, 'Ledger');
+  await nav(page, 'Transactions');
   await expect(page.locator('table tbody tr').first()).toBeVisible({ timeout: 30_000 });
   const rowsBefore = await page.locator('.count, .summary').first().textContent();
 
@@ -96,7 +96,7 @@ test('storage: encrypt at rest, lock, export, delete all, import (NFR-STO-002…
   await imp.getByRole('button', { name: 'Import' }).click();
   await expect(page.locator('.import .msg')).toContainText('Restored', { timeout: 30_000 });
   await page.waitForLoadState('load');
-  await nav(page, 'Ledger');
+  await nav(page, 'Transactions');
   await expect(page.locator('table tbody tr').first()).toBeVisible({ timeout: 30_000 });
   if (rowsBefore) await expect(page.locator('.count, .summary').first()).toHaveText(rowsBefore);
   expect(await rawDb(page)).toContain('SYN-TXN');
