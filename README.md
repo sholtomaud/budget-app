@@ -19,7 +19,8 @@ and the documentation site (`npm run docs:dev`, published at `/<repo>/docs/` on 
 | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **M0 Skeleton**           | Done: app shell, pinned GSSK kernel in a worker, offline, CI, GitHub Pages                                                                                                    |
 | **M1 Synthetic + ingest** | Done: seeded synthetic households (three personas), CDR v1.36.0 import with validation, dedupe, pending→posted, transfer pairing, reconciliation, undo, IndexedDB persistence |
-| M2–M8                     | Planned, one PR each (SPEC §19)                                                                                                                                               |
+| **M2–M6**                 | Done: ledger and classification, budget and CAPEX register, forecasting with ml-core, freedom simulation on GSSK, scenarios and the optimiser                                 |
+| M7–M14                    | Planned, one PR each (SPEC §19): storage and encryption, APIs and advisor, Bayesian workflow, real data, live connections, sync, receipts, offers and agents                  |
 
 Try it: **Start → Try synthetic data → Generate and load**, then see the **Import** screen. Or import
 a folder from `fixtures/syn-*-42/`.
