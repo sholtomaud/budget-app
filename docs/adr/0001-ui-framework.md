@@ -31,5 +31,4 @@ chose a third option: native web components in the style of
 - No runtime UI dependency. The only runtime dependency is Comlink (worker RPC, §15.1).
 - Unit tests cover the DOM-free parts (`routes.ts`, `store.ts`, `chart-scale.ts`). Components are
   covered by Playwright.
-- Boba targets Node ≥ 25. We need Node ≥ 22.18, which strips TypeScript types natively, so
-  `node --test` runs `.ts` files directly (see ADR 0002).
+- Boba targets Node ≥ 25. We need Node ≥ 22.18. Tests run on Vitest (ADR 0006).

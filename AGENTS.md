@@ -24,17 +24,17 @@ and tests.
 
 ## Layout
 
-| Path                         | What                                                                                                                                                              |
-| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `src/app/`                   | UI shell. `core/` holds the Boba-style `BaseComponent`, `Store` and `Router`. `components/<tag>/` holds one folder per custom element (`.html` + `.css` + `.ts`). |
-| `src/sim/`                   | `gssk.ts` is the only code that touches WASM memory. `run.ts` steps a model.                                                                                      |
-| `src/workers/`               | One entry per worker, exposed with Comlink. The UI never touches WASM directly.                                                                                   |
-| `src/sw/sw.js`               | Service-worker template. The build fills in the precache list (`vite.config.ts`).                                                                                 |
-| `vendor/gssk/`               | Pinned kernel and `GSSK_PIN.json`.                                                                                                                                |
-| `tests/unit`, `tests/kernel` | `node:test` on TypeScript source (ADR 0002).                                                                                                                      |
-| `tests/e2e`                  | Playwright against the production build, including the privacy and offline tests.                                                                                 |
-| `scripts/`                   | Data hygiene, bundle size, GSSK verify and update.                                                                                                                |
-| `docs/adr/`                  | Architecture decisions.                                                                                                                                           |
+| Path                                             | What                                                                                                                                                              |
+| ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/app/`                                       | UI shell. `core/` holds the Boba-style `BaseComponent`, `Store` and `Router`. `components/<tag>/` holds one folder per custom element (`.html` + `.css` + `.ts`). |
+| `src/sim/`                                       | `gssk.ts` is the only code that touches WASM memory. `run.ts` steps a model.                                                                                      |
+| `src/workers/`                                   | One entry per worker, exposed with Comlink. The UI never touches WASM directly.                                                                                   |
+| `src/sw/sw.js`                                   | Service-worker template. The build fills in the precache list (`vite.config.ts`).                                                                                 |
+| `vendor/gssk/`                                   | Pinned kernel and `GSSK_PIN.json`.                                                                                                                                |
+| `tests/unit`, `tests/kernel`, `tests/components` | Vitest; component tests run in happy-dom (ADR 0006).                                                                                                              |
+| `tests/e2e`                                      | Playwright against the production build, including the privacy and offline tests.                                                                                 |
+| `scripts/`                                       | Data hygiene, bundle size, GSSK verify and update.                                                                                                                |
+| `docs/`                                          | VitePress site: guides, `adr/` (architecture decisions), the spec.                                                                                                |
 
 ## Conventions
 
@@ -45,7 +45,7 @@ and tests.
   strings.
 - Money is integer minor units (`bigint`) with a currency code. Never binary floats for stored
   money (FR-ING-003).
-- Keep logic that needs no DOM in plain modules so `node:test` can cover it.
+- Keep logic that needs no DOM in plain modules, so it can be unit-tested without a DOM.
 - Prettier formats everything; ESLint must be clean.
 
 ## Before every push
@@ -54,10 +54,11 @@ and tests.
 npm ci
 npm run lint
 npm run typecheck
-npm test            # unit + kernel
+npm test            # unit, kernel and component tests (Vitest)
 npm run hygiene
 npm run build && npm run bundle-size
 npm run e2e         # needs Playwright's Chromium: npx playwright install chromium
+npm run docs:build  # VitePress fails on dead links
 ```
 
 All must pass. CI runs the same on every PR.

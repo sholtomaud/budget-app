@@ -4,7 +4,16 @@ import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
   {
-    ignores: ['dist/', 'node_modules/', 'vendor/', 'playwright-report/', 'test-results/'],
+    ignores: [
+      'dist/',
+      'node_modules/',
+      'vendor/',
+      'playwright-report/',
+      'test-results/',
+      'docs/.vitepress/cache/',
+      'docs/.vitepress/dist/',
+      'site/',
+    ],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,

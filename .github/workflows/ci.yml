@@ -4,22 +4,27 @@ on:
   pull_request:
   push:
     branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+env:
+  NODE_VERSION: 22
 
 jobs:
-  check:
+  build:
+    name: build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: ${{ env.NODE_VERSION }}
           cache: npm
       - run: npm ci
       - name: Data-hygiene gate (SPEC §16.4)
@@ -28,23 +33,51 @@ jobs:
         run: npm run gssk:verify
       - run: npm run lint
       - run: npm run typecheck
-      - name: Unit + kernel tests
-        run: npm test
-      - run: npm run build
+      - name: Build app for GitHub Pages
+        run: npm run build
+        env:
+          BASE_PATH: /${{ github.event.repository.name }}/
       - name: Bundle size (SPEC §16.3)
         run: npm run bundle-size
+      - name: Build docs (VitePress)
+        run: npm run docs:build
+        env:
+          DOCS_BASE: /${{ github.event.repository.name }}/docs/
+          APP_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+      - name: Assemble site (app at /, docs at /docs/)
+        run: |
+          rm -rf site
+          cp -r dist site
+          cp -r docs/.vitepress/dist site/docs
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
 
-  e2e:
+  test:
+    name: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - name: Vitest (unit, kernel, component)
+        run: npm test
+
+  e2e:
+    name: e2e
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps chromium
-      - name: E2E (shell, kernel, offline, privacy)
+      - name: Playwright (shell, kernel, offline, privacy)
         run: npm run e2e
         env:
           CI: 'true'
@@ -54,3 +87,21 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 7
+
+  deploy:
+    name: deploy (GitHub Pages)
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [build, test, e2e]
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

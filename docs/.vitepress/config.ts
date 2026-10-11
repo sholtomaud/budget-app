@@ -1,0 +1,55 @@
+import { defineConfig } from 'vitepress';
+
+// On GitHub Pages the docs live under the app: https://<owner>.github.io/<repo>/docs/
+// CI sets DOCS_BASE and APP_URL; locally the docs serve from / and link to the dev server.
+const base = process.env.DOCS_BASE ?? '/';
+const appUrl = process.env.APP_URL ?? 'http://localhost:5173/';
+
+const adrs = [
+  ['0001', 'UI framework: native web components', '0001-ui-framework'],
+  ['0002', 'Unit tests (superseded by 0006)', '0002-test-runner'],
+  ['0003', 'CSV instead of xlsx', '0003-csv-instead-of-xlsx'],
+  ['0004', 'GSSK pinned from its dist branch', '0004-gssk-pin-from-dist-branch'],
+  ['0005', 'Conservation check and sinks', '0005-conservation-check'],
+  ['0006', 'Vitest, VitePress and Pages', '0006-vitest-vitepress-pages'],
+] as const;
+
+export default defineConfig({
+  title: 'budget-app',
+  description: 'Local-first household budget and freedom-capital simulator, on the GSSK kernel.',
+  base,
+  lang: 'en-AU',
+  cleanUrls: false,
+  lastUpdated: false,
+  srcExclude: ['**/README.md'],
+  head: [['link', { rel: 'icon', type: 'image/svg+xml', href: `${base}favicon.svg` }]],
+  themeConfig: {
+    nav: [
+      { text: 'Guide', link: '/guide/getting-started' },
+      { text: 'Spec', link: '/spec' },
+      { text: 'Decisions', link: '/adr/' },
+      { text: 'Open the app', link: appUrl, target: '_self' },
+    ],
+    sidebar: [
+      {
+        text: 'Guide',
+        items: [
+          { text: 'Getting started', link: '/guide/getting-started' },
+          { text: 'Using the app', link: '/user-guide' },
+          { text: 'Architecture', link: '/guide/architecture' },
+          { text: 'Testing', link: '/guide/testing' },
+          { text: 'Deployment', link: '/guide/deployment' },
+        ],
+      },
+      { text: 'Reference', items: [{ text: 'Specification', link: '/spec' }] },
+      {
+        text: 'Decisions (ADRs)',
+        link: '/adr/',
+        items: adrs.map(([n, title, file]) => ({ text: `${n} · ${title}`, link: `/adr/${file}` })),
+      },
+    ],
+    search: { provider: 'local' },
+    socialLinks: [{ icon: 'github', link: 'https://github.com/sholtomaud/budget-app' }],
+    footer: { message: 'MIT licensed. Not financial advice.' },
+  },
+});

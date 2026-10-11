@@ -10,8 +10,8 @@ stock-and-flow kernel, compiled to WebAssembly and pinned by hash.
 - **Not financial advice.** The app simulates the consequences of your own assumptions and
   labels every number with where it came from.
 
-See [SPEC.md](SPEC.md) for the full specification and [AGENTS.md](AGENTS.md) for how to
-contribute.
+See [SPEC.md](SPEC.md) for the full specification, [AGENTS.md](AGENTS.md) for how to contribute,
+and the documentation site (`npm run docs:dev`, published at `/<repo>/docs/` on GitHub Pages).
 
 ## Status
 
@@ -24,8 +24,9 @@ contribute.
 - The **Kernel** screen runs GSSK's reference household model in a Web Worker.
 - Works offline after first load (service worker). A Content-Security-Policy limits connections
   to the app's own origin.
-- CI: lint, typecheck, unit and kernel tests, data-hygiene gate, build, bundle-size budget, and
-  Playwright e2e (shell, kernel, offline, no-egress privacy test).
+- CI: `build` (data-hygiene gate, pin check, lint, typecheck, app and docs builds, bundle-size
+  budget), `test` (Vitest) and `e2e` (Playwright: shell, kernel, offline, no-egress privacy). Pushes
+  to `main` deploy the app and docs to GitHub Pages once all three pass.
 
 ## Develop
 
@@ -34,9 +35,10 @@ Requires Node ≥ 22.18.
 ```bash
 npm install
 npm run dev          # http://localhost:5173
-npm test             # unit + kernel tests (node:test)
+npm test             # unit, kernel and component tests (Vitest)
 npm run e2e          # Playwright, against the production build
 npm run build        # static site in dist/ (set BASE_PATH=/sub/path/ to host under a path)
+npm run docs:dev     # documentation site (VitePress)
 npm run hooks:install  # data-hygiene pre-commit hook
 ```
 
@@ -45,10 +47,11 @@ npm run hooks:install  # data-hygiene pre-commit hook
 | ADR                                                | Decision                                                           |
 | -------------------------------------------------- | ------------------------------------------------------------------ |
 | [0001](docs/adr/0001-ui-framework.md)              | Native web components (Boba pattern), no UI framework              |
-| [0002](docs/adr/0002-test-runner.md)               | `node:test` for unit tests                                         |
+| [0002](docs/adr/0002-test-runner.md)               | `node:test` for unit tests (superseded by 0006)                    |
 | [0003](docs/adr/0003-csv-instead-of-xlsx.md)       | Budget workbooks imported as CSV, not xlsx                         |
 | [0004](docs/adr/0004-gssk-pin-from-dist-branch.md) | GSSK vendored from its `dist` branch, pinned by commit and SHA-256 |
 | [0005](docs/adr/0005-conservation-check.md)        | What GSSK's conservation error measures; how FR-SIM-003 is checked |
+| [0006](docs/adr/0006-vitest-vitepress-pages.md)    | Vitest for tests, VitePress for docs, GitHub Pages for deployment  |
 
 ## License
 

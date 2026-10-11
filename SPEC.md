@@ -678,7 +678,8 @@ Tools exposed to the model: `get_scenario(id)`, `list_metrics(id)`, `propose_sce
 | Kernel | `gssk.wasm` + `gssk.js` loader from GSSK `dist/`, pinned (§15.3) |
 | ML / numerics | `ml-core.wasm` (§15.2); TS reference implementations for tests |
 | Optional ML | ONNX Runtime Web (embeddings, pretrained forecasters); WebLLM (in-browser LLM on WebGPU) |
-| Tests | `node:test` on TypeScript source via Node's native type stripping (unit, kernel; property via fast-check), Playwright (e2e, network assertions) (ADR 0002) |
+| Tests | Vitest (unit, kernel, component tests in happy-dom; property via fast-check), Playwright (e2e, network assertions) (ADR 0006) |
+| Documentation | VitePress site built from `docs/` (guides, ADRs, this spec) (ADR 0006) |
 | Lint / format | ESLint, Prettier; `cargo fmt` / `clippy` for `ml-core` |
 
 ### 15.2 `ml-core` (WASM)
@@ -748,8 +749,10 @@ transactions ≤ 3 s; classification of 10 000 ≤ 2 s; FR-SIM-005 for Monte-Car
 
 ### 16.4 CI and data hygiene
 
-CI runs on `pull_request`: lint, typecheck, unit + property, golden, kernel, e2e, eval thresholds,
-`ml-core` build + tests, bundle size.
+CI (`.github/workflows/ci.yml`) runs on every pull request and push, in three parallel jobs:
+**build** (data-hygiene gate, GSSK pin check, lint, typecheck, app build, bundle size, docs build;
+later also `ml-core` build), **test** (Vitest: unit, property, golden, kernel, component; later also
+eval thresholds and `ml-core` tests) and **e2e** (Playwright, including privacy tests).
 
 **Data-hygiene gate (NFR-PRIV-002)**, run in CI and as a pre-commit hook:
 
@@ -765,6 +768,14 @@ CI runs on `pull_request`: lint, typecheck, unit + property, golden, kernel, e2e
 `AGENTS.md` is the canonical standard (as in GSSK). Work lands through PRs with green CI; the author
 does not merge their own PR. ADRs live in `docs/adr/` for decisions such as the UI framework, the
 quantile accumulator, and every deviation from this spec.
+
+### 16.6 Deployment
+
+The app and the documentation are published to **GitHub Pages** by the same workflow. A `deploy`
+job runs only on pushes to `main`, and only after `build`, `test` and `e2e` pass. The app is served
+at `/<repo>/` (built with `BASE_PATH`, with a `404.html` copy of the shell for deep links). The
+VitePress docs are served at `/<repo>/docs/`. Pages is a static host, which matches §1.1: no
+server-side code, and nothing but the app's own static assets.
 
 ---
 
@@ -790,7 +801,10 @@ deliberate pin update.
 budget-app/
 ├─ AGENTS.md  CLAUDE.md  README.md  SPEC.md  LICENSE
 ├─ docs/
-│  ├─ adr/                       0001-ui-framework.md … 0005-conservation-check.md
+│  ├─ .vitepress/config.ts        VitePress site config
+│  ├─ adr/                       0001-ui-framework.md … 0006-vitest-vitepress-pages.md
+│  ├─ guide/                     getting-started, architecture, testing, deployment
+│  ├─ spec.md                    includes ../SPEC.md
 │  └─ user-guide.md
 ├─ data/                         # git-ignored; local scratch only
 ├─ fixtures/                     # synthetic only, x-synthetic marked
@@ -818,7 +832,7 @@ budget-app/
 │  ├─ store/                     db.ts, crypto.ts, export.ts, migrations/
 │  ├─ sw/                        service-worker template (precache list filled at build)
 │  └─ workers/                   one entry per worker
-├─ tests/                        unit/, property/, golden/, kernel/, e2e/ (privacy tests live in e2e/)
+├─ tests/                        unit/, property/, golden/, kernel/, components/, e2e/ (privacy tests live in e2e/)
 ├─ scripts/                      gssk-update.sh, gssk-verify.mjs, data-hygiene.mjs, bundle-size.mjs
 ├─ .githooks/                    pre-commit (data-hygiene gate on staged files)
 └─ .github/workflows/ci.yml
@@ -833,7 +847,7 @@ data.
 
 | M | Scope | Acceptance |
 |---|---|---|
-| **M0 Skeleton** | Repo, AGENTS.md, CI, data-hygiene gate, Vite app shell, vendored GSSK with pin check, ADR for UI framework | CI green; app loads offline; `gssk.wasm` hash verified; household example model runs in a worker |
+| **M0 Skeleton** | Repo, AGENTS.md, CI, data-hygiene gate, Vite app shell, vendored GSSK with pin check, ADR for UI framework, VitePress docs, GitHub Pages deployment | CI green; app loads offline; `gssk.wasm` hash verified; household example model runs in a worker |
 | **M1 Synthetic + ingest** | Persona schema, generator (CLI + in-app), three personas, CDR schemas + importer, dedupe, pending→posted, transfers, reconciliation | FR-SYN-001…006; FR-ING-001…008; FR-REC-001; property tests pass |
 | **M2 Ledger + classification** | Ledger UI, rules, merchant memory, MCC map, NB/LR model, CAPEX proposals, refunds | FR-CLS-001…005 thresholds met in CI |
 | **M3 Budget + workbook + CAPEX register** | CSV mapping wizard and presets, tiers, actual vs budget, CAPEX register, sinking fund | FR-ING-010…014 on the synthetic workbook CSVs; FR-BUD-001; FR-CAP-001…005 |

@@ -1,6 +1,6 @@
 # ADR 0002 — Unit tests on `node:test`, not Vitest
 
-- Status: accepted
+- Status: superseded by ADR 0006
 - Date: 2026-10-11
 - SPEC: amended to match in Draft 2
 - Deviates from: SPEC §15.1 ("Vitest (unit, property via fast-check)")

@@ -6,3 +6,6 @@ test-results/
 package-lock.json
 SPEC.md
 src/sim/examples/
+docs/.vitepress/cache/
+docs/.vitepress/dist/
+site/

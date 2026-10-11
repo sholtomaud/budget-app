@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
-import { defineConfig, type Plugin } from 'vite';
+import { defineConfig, type Plugin } from 'vitest/config';
 
 /**
  * NFR-PRIV-003 / FR-API-005: the built page may only talk to its own origin.
@@ -85,4 +85,11 @@ export default defineConfig({
     assetsInlineLimit: 0,
   },
   server: { fs: { allow: ['.'] } },
+  test: {
+    include: ['tests/{unit,kernel,components}/**/*.test.ts'],
+    environment: 'node',
+    // Components import their CSS with ?raw; without this Vitest stubs it as empty.
+    css: true,
+    restoreMocks: true,
+  },
 });

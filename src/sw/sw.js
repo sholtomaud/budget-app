@@ -35,7 +35,10 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   const req = event.request;
-  if (req.method !== 'GET' || new URL(req.url).origin !== scope.origin) return;
+  const target = new URL(req.url);
+  if (req.method !== 'GET' || target.origin !== scope.origin) return;
+  // The documentation site is published under the app's path; it is not part of the app.
+  if (target.pathname.startsWith(`${scope.pathname}docs/`)) return;
   if (req.mode === 'navigate') {
     // Every screen is the same shell; the client router picks the screen.
     event.respondWith(fetch(req).catch(() => caches.match(SHELL, { cacheName: CACHE })));

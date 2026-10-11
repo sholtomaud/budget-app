@@ -1,7 +1,6 @@
-import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
-import { describe, test } from 'node:test';
+import { describe, expect, test } from 'vitest';
 import { GsskError, GsskKernel, PinMismatchError } from '../../src/sim/gssk.ts';
 import { runModel } from '../../src/sim/run.ts';
 import {
@@ -20,53 +19,47 @@ describe('GSSK pin (NFR-KER-001)', () => {
       const actual = createHash('sha256')
         .update(readFileSync(new URL(`vendor/gssk/${file}`, root)))
         .digest('hex');
-      assert.equal(actual, expected);
+      expect(actual).toBe(expected);
     });
   }
 
   test('pin names a full commit SHA', () => {
-    assert.match(pin.commit, /^[0-9a-f]{40}$/);
+    expect(pin.commit).toMatch(/^[0-9a-f]{40}$/);
   });
 
   test('load refuses a wasm whose hash does not match', async () => {
     const bytes = new Uint8Array(wasmBytes());
     bytes[bytes.length - 1] = (bytes.at(-1) ?? 0) ^ 0xff;
-    await assert.rejects(GsskKernel.load(bytes.buffer, pin), PinMismatchError);
+    await expect(GsskKernel.load(bytes.buffer, pin)).rejects.toThrow(PinMismatchError);
   });
 
   test('load refuses when the pin is altered', async () => {
     const bad = { ...pin, sha256: { ...pin.sha256, 'gssk.wasm': '0'.repeat(64) } };
-    await assert.rejects(GsskKernel.load(wasmBytes(), bad), PinMismatchError);
+    await expect(GsskKernel.load(wasmBytes(), bad)).rejects.toThrow(PinMismatchError);
   });
 
   test('loaded kernel reports the pinned version', async () => {
     const k = await loadKernel();
-    assert.equal(k.info.version, pin.version);
-    assert.equal(k.info.sha256, pin.sha256['gssk.wasm']);
+    expect(k.info.version).toBe(pin.version);
+    expect(k.info.sha256).toBe(pin.sha256['gssk.wasm']);
   });
 });
 
 describe('GSSK wrapper', () => {
   test('init rejects invalid JSON with a named status', async () => {
     const k = await loadKernel();
-    assert.throws(
-      () => k.init('{not json'),
-      (e: unknown) => {
-        assert.ok(e instanceof GsskError);
-        assert.match(e.message, /GSSK_INVALID_JSON|GSSK_ERR_INVALID_JSON/);
-        return true;
-      }
-    );
+    expect(() => k.init('{not json')).toThrow(GsskError);
+    expect(() => k.init('{not json')).toThrow(/GSSK_ERR_INVALID_JSON/);
   });
 
   test('init exposes node, edge and carrier IDs', async () => {
     const inst = (await loadKernel()).init(moneyModel);
     try {
-      assert.deepEqual(inst.carrierIds, ['money']);
-      assert.ok(inst.nodeIds.includes('bank'));
-      assert.ok(inst.edgeIds.includes('etf_gain'));
-      assert.equal(inst.tEnd, 24);
-      assert.equal(inst.dt, 1);
+      expect(inst.carrierIds).toEqual(['money']);
+      expect(inst.nodeIds).toContain('bank');
+      expect(inst.edgeIds).toContain('etf_gain');
+      expect(inst.tEnd).toBe(24);
+      expect(inst.dt).toBe(1);
     } finally {
       inst.free();
     }
@@ -76,11 +69,11 @@ describe('GSSK wrapper', () => {
     const inst = (await loadKernel()).init(moneyModel);
     try {
       const bank = inst.nodeIndex('bank');
-      assert.equal(inst.state()[bank], 12000);
+      expect(inst.state()[bank]).toBe(12000);
       inst.step();
-      assert.equal(inst.time, 1);
+      expect(inst.time).toBe(1);
       // 8200 in, 6100 + 1500 out.
-      assert.ok(Math.abs(inst.state()[bank]! - 12600) < 1e-9);
+      expect(inst.state()[bank]).toBeCloseTo(12600, 9);
     } finally {
       inst.free();
     }
@@ -92,7 +85,7 @@ describe('GSSK wrapper', () => {
       for (let n = 0; n < 120; n++) {
         inst.step();
         const err = Math.abs(inst.carrierConservationError('money'));
-        assert.ok(err <= 1e-9, `conservation error ${err} at t=${inst.time}`);
+        expect(err, `conservation error at t=${inst.time}`).toBeLessThanOrEqual(1e-9);
       }
     } finally {
       inst.free();
@@ -108,7 +101,7 @@ describe('GSSK wrapper', () => {
       inst.step();
       // Storage total 262000; net boundary flow over one month: +8200 pay − 6100 spend.
       const expected = (8200 - 6100) / 262000;
-      assert.ok(Math.abs(inst.carrierConservationError('money') - expected) < 1e-12);
+      expect(inst.carrierConservationError('money')).toBeCloseTo(expected, 12);
     } finally {
       inst.free();
     }
@@ -120,9 +113,9 @@ describe('GSSK wrapper', () => {
     const inst = (await loadKernel()).init(moneyModel);
     try {
       const opex = inst.nodeIndex('opex');
-      assert.equal(inst.state()[opex], 0);
+      expect(inst.state()[opex]).toBe(0);
       for (let n = 0; n < 3; n++) inst.step();
-      assert.ok(Math.abs(inst.state()[opex]! - 3 * 6100) < 1e-9);
+      expect(inst.state()[opex]).toBeCloseTo(3 * 6100, 9);
     } finally {
       inst.free();
     }
@@ -134,8 +127,8 @@ describe('GSSK wrapper', () => {
       const s0 = inst.state();
       for (let n = 0; n < 5; n++) inst.step();
       inst.reset();
-      assert.equal(inst.time, 0);
-      assert.deepEqual(inst.state(), s0);
+      expect(inst.time).toBe(0);
+      expect(inst.state()).toEqual(s0);
     } finally {
       inst.free();
     }
@@ -146,14 +139,14 @@ describe('GSSK wrapper', () => {
     try {
       inst.step();
       inst.setEdgeK('etf_loss', 0.02, 'policy:test-drawdown');
-      assert.equal(inst.getEdgeK('etf_loss'), 0.02);
-      assert.equal(inst.mutationCount(), 1);
+      expect(inst.getEdgeK('etf_loss')).toBe(0.02);
+      expect(inst.mutationCount()).toBe(1);
       const log = JSON.parse(inst.exportMutationLog()) as Array<Record<string, unknown>>;
-      assert.equal(log.length, 1);
-      assert.equal(log[0]!.op, 'set_edge_k');
-      assert.equal(log[0]!.target_id, 'etf_loss');
-      assert.equal(log[0]!.cause, 'policy:test-drawdown');
-      assert.equal(log[0]!.t, 1);
+      expect(log.length).toBe(1);
+      expect(log[0]!.op).toBe('set_edge_k');
+      expect(log[0]!.target_id).toBe('etf_loss');
+      expect(log[0]!.cause).toBe('policy:test-drawdown');
+      expect(log[0]!.t).toBe(1);
     } finally {
       inst.free();
     }
@@ -176,8 +169,8 @@ describe('GSSK wrapper', () => {
         inst.step();
       }
       replayed = k.replay(moneyModel, inst.exportMutationLog(), inst.tEnd);
-      assert.equal(replayed.time, inst.time);
-      assert.deepEqual(replayed.state(), inst.state());
+      expect(replayed.time).toBe(inst.time);
+      expect(replayed.state()).toEqual(inst.state());
     } finally {
       inst.free();
       replayed?.free();
@@ -187,7 +180,7 @@ describe('GSSK wrapper', () => {
   test('an instance cannot be used after free()', async () => {
     const inst = (await loadKernel()).init(moneyModel);
     inst.free();
-    assert.throws(() => inst.step(), /after free/);
+    expect(() => inst.step()).toThrow(/after free/);
   });
 });
 
@@ -196,23 +189,20 @@ describe('household example model (M0 acceptance)', () => {
     const trace = runModel(await loadKernel(), householdModel, {
       track: ['bank_account', 'super_fund'],
     });
-    assert.equal(trace.modelName, 'Household Ecological-Economy');
-    assert.equal(trace.steps, 240);
-    assert.equal(trace.times.length, 241);
-    assert.ok(Math.abs(trace.times.at(-1)! - 24) < 1e-9);
-    assert.equal(trace.series.bank_account!.length, 241);
-    assert.deepEqual(
-      trace.carriers.map((c) => c.id),
-      ['money', 'energy', 'material', 'information']
-    );
-    for (const v of trace.series.bank_account!) assert.ok(Number.isFinite(v));
+    expect(trace.modelName).toBe('Household Ecological-Economy');
+    expect(trace.steps).toBe(240);
+    expect(trace.times.length).toBe(241);
+    expect(trace.times.at(-1)).toBeCloseTo(24, 9);
+    expect(trace.series.bank_account!.length).toBe(241);
+    expect(trace.carriers.map((c) => c.id)).toEqual(['money', 'energy', 'material', 'information']);
+    expect(trace.series.bank_account!.every(Number.isFinite)).toBe(true);
   });
 
   test('is deterministic (NFR-DET-001)', async () => {
     const k = await loadKernel();
     const a = runModel(k, householdModel);
     const b = runModel(k, householdModel);
-    assert.deepEqual(a.series, b.series);
-    assert.deepEqual(a.carriers, b.carriers);
+    expect(a.series).toEqual(b.series);
+    expect(a.carriers).toEqual(b.carriers);
   });
 });
