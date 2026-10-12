@@ -66,4 +66,22 @@ describe('freedom inputs from household data (SPEC §11)', () => {
     expect(sp.ratio!.p50).toEqual([1]);
     expect(sp.ratio!.p95).toEqual([1.3]);
   });
+
+  test('a spending group that took in more than it spent counts as no spending, and is reported (ADR 0025)', async () => {
+    const svc = new DataService(new MemoryImportStore(), new MemoryStateStore());
+    await svc.importFiles(cdrInputs(await synth('default')));
+    // Pay filed under groceries, as a mistaken label (by hand or by an AI) would do.
+    const pay = svc
+      .view()
+      .txns.filter((t) => t.amount > 0n && !t.transferPairId)
+      .sort((a, b) => (b.amount > a.amount ? 1 : -1))
+      .slice(0, 40)
+      .map((t) => `${t.accountId}\u001f${t.id}`);
+    await svc.correct(pay, 'food.groceries', false);
+    const sp = spendingFrom(svc.view(), 'independent');
+    expect(sp.credits).toEqual(['food']);
+    expect(sp.current.food).toBe(0);
+    for (const x of Object.values(sp.current)) expect(x).toBeGreaterThanOrEqual(0);
+    expect(Object.values(sp.tier).reduce((a, b) => a + b, 0)).toBeGreaterThan(0);
+  });
 });

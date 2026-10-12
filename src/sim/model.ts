@@ -224,4 +224,10 @@ export interface SpendingInput {
   assets: Asset[];
   /** Annualised CAPEX of the goal tier per month, for the deterministic freedom number. */
   capexMonthly: number;
+  /**
+   * Spending groups where more money came in than went out over the last 12
+   * months (likely income or transfers in a spending category). They count
+   * as no spending, not negative spending; the screens point them out.
+   */
+  credits?: string[];
 }

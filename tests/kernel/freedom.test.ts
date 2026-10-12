@@ -12,7 +12,13 @@ import {
 } from '../../src/sim/metrics.ts';
 import type { ReturnModel, Scenario } from '../../src/sim/model.ts';
 import { modelgen, POOL } from '../../src/sim/modelgen.ts';
-import { combine, runChunk, runSeed, simulate } from '../../src/sim/montecarlo.ts';
+import {
+  combine,
+  NoValidRunsError,
+  runChunk,
+  runSeed,
+  simulate,
+} from '../../src/sim/montecarlo.ts';
 import { monthlyFixed } from '../../src/sim/returns.ts';
 import { loadKernel } from './helpers.ts';
 import { sampleScenario, sampleSpending } from './sim-fixtures.ts';
@@ -61,6 +67,22 @@ describe('Monte-Carlo (FR-SIM-002…004)', () => {
     const r = simulate(kernel, short(), sampleSpending({ assets: [] }), { runs: 20 });
     expect(r.invalidRuns).toBe(0);
     expect(r.maxDrift).toBeLessThanOrEqual(1e-9);
+  });
+
+  test('negative spending is never simulated: money cannot appear from nowhere (ADR 0025)', () => {
+    // Before the fix, a negative tier total made every run fail the money
+    // balance, and the screens reported that as a 0 % chance.
+    const sp = sampleSpending({ assets: [] });
+    const r = simulate(kernel, short(), { ...sp, tier: { food: 500, other: -5000 } }, { runs: 20 });
+    expect(r.invalidRuns).toBe(0);
+    expect(r.pSuccess).toBe(1);
+  });
+
+  test('no valid run is an error, never a 0 % result (ADR 0025)', () => {
+    const s = short();
+    const part = runChunk(kernel, { scenario: s, spending: sampleSpending(), from: 0, to: 4 });
+    const broken = { ...part, summaries: part.summaries.map((x) => ({ ...x, valid: false })) };
+    expect(() => combine([broken])).toThrow(NoValidRunsError);
   });
 
   test('deterministic, and independent of how runs are split into chunks', () => {

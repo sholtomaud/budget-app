@@ -144,6 +144,8 @@ export function combine(parts: ChunkResult[]): SimResult {
     }
   }
   const valid = summaries.filter((s) => s.valid);
+  // With no valid run there is no result: say so rather than report 0 %.
+  if (runs > 0 && !valid.length) throw new NoValidRunsError(runs);
   return {
     runs,
     months,
@@ -155,6 +157,16 @@ export function combine(parts: ChunkResult[]): SimResult {
     maxDrift: summaries.reduce((m, s) => Math.max(m, s.maxDrift), 0),
     ms: parts.reduce((m, p) => Math.max(m, p.ms), 0),
   };
+}
+
+/** Every run failed the money-balance check: a fault in the inputs or the model, not a result. */
+export class NoValidRunsError extends Error {
+  constructor(runs: number) {
+    super(
+      `None of the ${runs.toLocaleString('en-AU')} simulated futures passed the money-balance check, so there is no result to show. This is a fault in the app, not a verdict on your plan.`
+    );
+    this.name = 'NoValidRunsError';
+  }
 }
 
 /** Run everything in this thread (tests, and the worker's per-chunk entry). */

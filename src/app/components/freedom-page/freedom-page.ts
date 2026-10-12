@@ -3,7 +3,7 @@ import { data, ensureLoaded } from '../../data.ts';
 import { el, prov } from '../../format.ts';
 import { poolRunner, poolSize, runPool, type PoolResult } from '../../sim-pool.ts';
 import { sim } from '../../workers.ts';
-import { inputsFor, loadHistories } from '../../freedom-inputs.ts';
+import { creditsNote, inputsFor, loadHistories } from '../../freedom-inputs.ts';
 import { historyModel } from '../../../sim/history.ts';
 import { addScenario } from '../../scenarios.ts';
 import '../fan-chart/fan-chart.ts';
@@ -431,7 +431,8 @@ export class FreedomPage extends BaseComponent {
       r.invalidRuns
         ? `${r.invalidRuns} runs failed the money-balance check and are excluded. `
         : '',
-      prov('forecast')
+      prov('forecast'),
+      ...(creditsNote(spending) ? [el('p', { class: 'warn' }, creditsNote(spending)!)] : [])
     );
 
     const d = deterministicFreedom(scenario, spending);

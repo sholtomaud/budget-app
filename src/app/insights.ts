@@ -26,6 +26,7 @@ import { deterministicFreedom, shortfallDrivers } from '../sim/metrics.ts';
 import { monthsBetween } from '../sim/modelgen.ts';
 import {
   budgetMonthlyFor,
+  creditsNote,
   evaluator,
   inputsFor,
   runIdOf,
@@ -66,9 +67,11 @@ export async function planChance(v: DataView, runs = 500): Promise<Insight> {
   const runId = runIdOf(r);
   const target = setup.goal.targetProbability;
   const verdict = againstTarget(r.pSuccess, target);
+  const credits = creditsNote((await inputsFor(v, setup)).spending);
   const text = [
     `Your plan works **${chanceWords(r.pSuccess)}** (${percent(r.pSuccess)}). Your target is ${percent(target)}. ${TARGET_WORDS[verdict]}`,
     `I tried ${r.runs} possible futures for ${years(setup.goal.horizonYears)} of freedom starting ${monthName(setup.goal.start)}, each with its own returns, spending and replacement costs. Run \`${runId}\``,
+    ...(credits ? [`**Check this:** ${credits}`] : []),
   ].join('\n\n');
   return {
     text,
