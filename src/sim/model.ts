@@ -200,6 +200,8 @@ export interface Scenario {
   taxTable: string | null;
   /** Imported monthly real log-return histories for bootstrap models, by series id. */
   histories?: Record<string, number[]>;
+  /** Each run draws its return models' mean and volatility first (FR-BAY-004). */
+  parameterUncertainty?: boolean;
 }
 
 /**

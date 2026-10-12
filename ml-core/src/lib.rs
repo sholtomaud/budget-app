@@ -7,6 +7,7 @@
 
 #![allow(clippy::missing_safety_doc, clippy::too_many_arguments)]
 
+pub mod bayes;
 pub mod cmaes;
 pub mod kernels;
 pub mod rng;
@@ -55,7 +56,7 @@ unsafe fn sl_mut<'a>(p: *mut f64, n: usize) -> &'a mut [f64] {
 /// Kernel ABI version; bump when any signature changes.
 #[no_mangle]
 pub extern "C" fn mc_version() -> u32 {
-    2
+    3
 }
 
 #[no_mangle]
@@ -239,4 +240,34 @@ pub unsafe extern "C" fn mc_cmaes_tell(
         sl(x, lambda * n),
         sl(f, lambda),
     );
+}
+
+/// One forward-filtering backward-sampling draw of a scalar state path (ADR 0022).
+#[no_mangle]
+pub unsafe extern "C" fn mc_ffbs(
+    y: *const f64,
+    v: *const f64,
+    n: usize,
+    phi: f64,
+    w: f64,
+    m0: f64,
+    c0: f64,
+    z: *const f64,
+    out: *mut f64,
+) {
+    bayes::ffbs(sl(y, n), sl(v, n), phi, w, m0, c0, sl(z, n), sl_mut(out, n));
+}
+
+/// Kalman-filter log-likelihood of the same model, states integrated out (ADR 0022).
+#[no_mangle]
+pub unsafe extern "C" fn mc_kf_loglik(
+    y: *const f64,
+    v: *const f64,
+    n: usize,
+    phi: f64,
+    w: f64,
+    m0: f64,
+    c0: f64,
+) -> f64 {
+    bayes::kf_loglik(sl(y, n), sl(v, n), phi, w, m0, c0)
 }

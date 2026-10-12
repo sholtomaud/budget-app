@@ -35,7 +35,10 @@ export const saveHistories = (h: PriceHistory[]) => sim().saveKv('histories', h)
 
 const cache = new WeakMap<DataView, Map<string, Promise<Quantiles | null>>>();
 
-/** The OPEX forecast's total quantiles for a tier (the spending spread), cached per view. */
+/**
+ * The OPEX forecast's total quantiles for a tier (the spending spread), from
+ * the Bayesian model when it converges (ADR 0022); cached per view.
+ */
 export function ratioFor(v: DataView, tier: string): Promise<Quantiles | null> {
   let byTier = cache.get(v);
   if (!byTier) cache.set(v, (byTier = new Map()));
@@ -52,7 +55,7 @@ export function ratioFor(v: DataView, tier: string): Promise<Quantiles | null> {
     p =
       history.length || Object.keys(budgetMonthly).length
         ? forecast()
-            .opex(history, budgetMonthly, { horizon: 60, seed: '42' })
+            .opex(history, budgetMonthly, { horizon: 60, seed: '42', bayes: true })
             .then((f) => f.total)
         : Promise.resolve(null);
     byTier.set(tier, p);

@@ -5,6 +5,7 @@
  */
 import type { Asset } from '../domain/types.ts';
 import { forecastCapex, type CapexForecast } from '../forecast/capex.ts';
+import { bayesChecks, type BayesChecks } from '../bayes/forecast.ts';
 import { forecastOpex, type OpexForecast } from '../forecast/opex.ts';
 import type { MonthlySeries } from '../forecast/series.ts';
 import { useKernels } from '../forecast/kernels.ts';
@@ -48,10 +49,20 @@ const api = {
   async opex(
     history: MonthlySeries[],
     budgetMonthly: Record<string, number>,
-    opts: { horizon: number; seed: string }
+    opts: { horizon: number; seed: string; bayes?: boolean; checks?: boolean }
   ): Promise<OpexForecast> {
     await ready;
-    return forecastOpex(history, budgetMonthly, { horizon: opts.horizon, seed: BigInt(opts.seed) });
+    return forecastOpex(history, budgetMonthly, {
+      horizon: opts.horizon,
+      seed: BigInt(opts.seed),
+      bayes: opts.bayes,
+      checks: opts.checks,
+    });
+  },
+  /** The Bayesian model's checks for the Forecast screen's panel (ADR 0022). */
+  async opexChecks(history: MonthlySeries[], opts: { seed: string }): Promise<BayesChecks | null> {
+    await ready;
+    return bayesChecks(history, BigInt(opts.seed));
   },
   async capex(
     assets: Asset[],

@@ -4,6 +4,7 @@
  * within 1e-9 relative (SPEC §15.2).
  */
 import { Rng } from '../lib/prng.ts';
+import { ffbs, kfLoglik } from './ref/ffbs.ts';
 import { QUANTILES, quantileSorted } from './ref/stats.ts';
 
 export interface RunResult {
@@ -40,6 +41,25 @@ export interface Kernels {
   ): Float64Array;
   /** P5…P95 per step; one array per quantile, each h long. */
   pathQuantiles(paths: Float64Array, h: number): Float64Array[];
+  /** One draw of a scalar state path by forward-filtering backward-sampling (ADR 0022). */
+  ffbs(
+    y: Float64Array,
+    v: Float64Array,
+    phi: number,
+    w: number,
+    m0: number,
+    c0: number,
+    z: Float64Array
+  ): Float64Array;
+  /** The same model's log-likelihood with the states integrated out (Kalman filter). */
+  kfLoglik(
+    y: Float64Array,
+    v: Float64Array,
+    phi: number,
+    w: number,
+    m0: number,
+    c0: number
+  ): number;
 }
 
 // ---- TypeScript reference ----
@@ -184,6 +204,8 @@ export const tsKernels: Kernels = {
   crostonRun: crostonRunTs,
   bootstrapPaths: bootstrapPathsTs,
   pathQuantiles: pathQuantilesTs,
+  ffbs,
+  kfLoglik,
 };
 
 let active: Kernels = tsKernels;

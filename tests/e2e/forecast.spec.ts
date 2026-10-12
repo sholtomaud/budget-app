@@ -28,6 +28,20 @@ test('forecast fans per category and for capital spend, on the ml-core kernels (
   await expect(page.locator('.capex-note')).toContainText('items in the CAPEX register');
   await expect(page.locator('.fans fan-chart').first()).toBeVisible();
 
+  // The Bayesian model (ADR 0022): it converges on the sample household and
+  // shows its checks; the total's range allows for categories moving together.
+  const model = page.locator('.model-card');
+  await expect(model.getByRole('heading', { name: 'How sure is this?' })).toBeVisible();
+  await expect(model.locator('.model-summary')).toContainText('Checked and in use');
+  await expect(page.locator('.total-note')).toContainText('categories moving together');
+  await expect(model.locator('.model-checks')).toContainText('Sampler checks');
+  await expect(model.locator('.model-checks')).toContainText('Tested on the last months', {
+    timeout: 60_000,
+  });
+  await expect(model.locator('.model-checks')).toContainText('Depends on assumptions?');
+  await expect(model.locator('.model-checks')).toContainText('Sense check');
+  await model.screenshot({ path: test.info().outputPath('model-panel.png') });
+
   // Nominal dollars are larger than real ones further out.
   const real = await page.locator('.total-note').textContent();
   await page.getByLabel(/Of the day/).check();

@@ -27,6 +27,11 @@ const METHOD_LABEL: Record<string, string> = {
 };
 
 const sum = (xs: number[]) => xs.reduce((a, b) => a + b, 0);
+const wholeDollars = new Intl.NumberFormat('en-AU', {
+  style: 'currency',
+  currency: 'AUD',
+  maximumFractionDigits: 0,
+});
 
 export class ForecastPage extends BaseComponent {
   private unsubscribe: (() => void) | null = null;
@@ -88,7 +93,7 @@ export class ForecastPage extends BaseComponent {
       : `${new Date().toISOString().slice(0, 7)}-01`;
     const [kernel, opex, capex] = await Promise.all([
       forecast().kernels(),
-      forecast().opex(history, budgetMonthly, { horizon, seed: '42' }),
+      forecast().opex(history, budgetMonthly, { horizon, seed: '42', bayes: true }),
       forecast().capex(v.assets, { start, horizon, seed: '42' }),
     ]);
     if (id !== this.runId) return;
@@ -96,6 +101,76 @@ export class ForecastPage extends BaseComponent {
     this.$('.status').textContent =
       `${opex.series.length} categories forecast from ${history[0]?.months.length ?? 0} months of history (kernels: ${kernel === 'ml-core' ? 'ml-core, WebAssembly' : 'TypeScript'}).`;
     this.draw();
+    // The model checks take a few seconds: show the forecast first, then fill them in.
+    if (opex.bayes?.categories.length) {
+      const checks = await forecast().opexChecks(history, { seed: '42' });
+      if (id !== this.runId || !this.last || !checks) return;
+      this.last.opex.bayes!.checks = checks;
+      this.drawModel(this.last.opex);
+    }
+  }
+
+  /** The Bayesian model's checks, in plain words (FR-BAY-006…008). */
+  private drawModel(opex: OpexForecast): void {
+    const card = this.$('.model-card');
+    const b = opex.bayes;
+    card.hidden = !b;
+    if (!b) return;
+    const pct = (x: number) => `${Math.round(x * 100)} %`;
+    this.$('.model-summary').textContent = b.used
+      ? `Checked and in use: ${b.categories.length} categories are modelled together, so the range of your total spending allows for them rising and falling together.`
+      : `Not in use: ${b.reason} The total adds up the categories' own forecasts.`;
+    const rows: [string, string, boolean?][] = [];
+    const d = b.diagnostics;
+    if (d) {
+      rows.push([
+        'Sampler checks',
+        `${d.ok ? 'Passed' : 'Failed'}: chains agree to R̂ ${d.rhatMax.toFixed(3)} (needs ≤ 1.05), ${Math.round(d.essMin)} effective draws (needs ≥ 100)${b.retried ? ', after a longer second run' : ''}.`,
+        !d.ok,
+      ]);
+    }
+    if (b.factor) {
+      const [lo, mid, hi] = b.factor.lambda.map((l) => Math.exp(l) - 1);
+      rows.push([
+        'Moving together',
+        `A tighter or looser month moves every category by about ${pct(mid!)} (P10–P90 ${pct(lo!)}–${pct(hi!)}).`,
+      ]);
+    }
+    const c = b.checks;
+    if (!c && b.categories.length)
+      rows.push([
+        'Model checks',
+        'Running: testing on your last months and the starting assumptions…',
+      ]);
+    if (c?.holdout) {
+      const off = Math.abs(c.holdout.coverage - 0.8) > 0.15;
+      rows.push([
+        'Tested on the last months',
+        `Fitted without your last ${c.holdout.months} months: ${pct(c.holdout.coverage)} of those ${c.holdout.points} category-months fell inside the P10–P90 range (about 80 % is right).`,
+        off,
+      ]);
+    }
+    if (c?.priorSensitivity.length) {
+      // Forecasts in whole dollars, like the Freedom screen (cents would be false precision).
+      const m = (minor: number) => wholeDollars.format(minor / 100);
+      const by = Object.fromEntries(c.priorSensitivity.map((p) => [p.power, p]));
+      rows.push([
+        'Depends on assumptions?',
+        `Next 12 months at P90: ${m(by[1]!.p90)} as set; ${m(by[0.5]!.p90)} with weaker starting assumptions, ${m(by[2]!.p90)} with stronger ones.`,
+      ]);
+    }
+    if (c?.priorPredictive) {
+      const p = c.priorPredictive;
+      const inside = p.observed >= p.p5 && p.observed <= p.p95;
+      rows.push([
+        'Sense check',
+        `Your total changes by about ${pct(p.observed)} from month to month. Before seeing your data, the model expected ${pct(p.p5)}–${pct(p.p95)}${inside ? '' : ': yours is outside that, so treat the range with care'}.`,
+        !inside,
+      ]);
+    }
+    this.$('.model-checks').replaceChildren(
+      ...rows.flatMap(([k, v, bad]) => [el('dt', {}, k), el('dd', bad ? { class: 'bad' } : {}, v)])
+    );
   }
 
   private draw(): void {
@@ -137,7 +212,12 @@ export class ForecastPage extends BaseComponent {
     const t12 = (q: number[]) =>
       sum(adj({ p5: q, p10: q, p25: q, p50: q, p75: q, p90: q, p95: q }).p50.slice(0, 12));
     this.$('.total-note').textContent =
-      `Next 12 months: ${money(BigInt(Math.round(t12(opex.total.p50))))} at the median${nominal ? ', in dollars of the day' : ", in today's dollars"}. Categories are assumed independent.`;
+      `Next 12 months: ${money(BigInt(Math.round(t12(opex.total.p50))))} at the median${nominal ? ', in dollars of the day' : ", in today's dollars"}. ${
+        opex.totalSource === 'bayes'
+          ? 'The range allows for categories moving together.'
+          : 'Categories are added up as if independent, so the range may be too narrow.'
+      }`;
+    this.drawModel(opex);
     this.$<FanChart>('fan-chart.capex').data = fan(
       'Capital spend, cumulative',
       { months: [], values: [] },

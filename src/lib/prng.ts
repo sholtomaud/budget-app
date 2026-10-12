@@ -1,7 +1,8 @@
 /**
  * SplitMix64, the PRNG GSSK uses for its instance RNG (FR-SYN-001,
  * NFR-DET-001). Same seed ⇒ same sequence on every engine: the state update
- * is exact 64-bit integer arithmetic. Derived floats use only + − × ÷ and
+ * is exact 64-bit integer arithmetic (on 32-bit halves in the hot path, so no
+ * BigInt is allocated per draw). Derived floats use only + − × ÷ and
  * Math.log/exp/cos/sqrt.
  */
 const MASK = (1n << 64n) - 1n;
@@ -44,13 +45,54 @@ export function deriveSeed(seed: bigint, ...keys: (string | number)[]): bigint {
   return h;
 }
 
+const TWO32 = 4294967296;
+const GOLDEN_HI = 0x9e3779b9;
+const GOLDEN_LO = 0x7f4a7c15;
+
+/** Results of mul64/mix32 (module scratch, so the hot path allocates nothing). */
+let rHi = 0;
+let rLo = 0;
+
+/**
+ * The low 64 bits of (ah·2³² + al) × (bh·2³² + bl), as unsigned 32-bit halves
+ * in rHi, rLo. Exact: every intermediate stays below 2⁵³.
+ */
+function mul64(ah: number, al: number, bh: number, bl: number): void {
+  const a0 = al & 0xffff;
+  const a1 = al >>> 16;
+  const b0 = bl & 0xffff;
+  const b1 = bl >>> 16;
+  const mid = a0 * b1 + a1 * b0;
+  const low = a0 * b0 + (mid % 65536) * 65536;
+  const hi = a1 * b1 + Math.floor(mid / 65536) + Math.floor(low / TWO32);
+  rHi = (hi + Math.imul(ah, bl) + Math.imul(al, bh)) >>> 0;
+  rLo = (low % TWO32) >>> 0;
+}
+
+/** SplitMix64's output mix on 32-bit halves, into rHi, rLo; bit-identical to `mix`. */
+function mix32(hi: number, lo: number): void {
+  let l = (lo ^ ((lo >>> 30) | (hi << 2))) >>> 0;
+  let h = (hi ^ (hi >>> 30)) >>> 0;
+  mul64(h, l, 0xbf58476d, 0x1ce4e5b9);
+  l = (rLo ^ ((rLo >>> 27) | (rHi << 5))) >>> 0;
+  h = (rHi ^ (rHi >>> 27)) >>> 0;
+  mul64(h, l, 0x94d049bb, 0x133111eb);
+  l = (rLo ^ ((rLo >>> 31) | (rHi << 1))) >>> 0;
+  h = (rHi ^ (rHi >>> 31)) >>> 0;
+  rHi = h;
+  rLo = l;
+}
+
 export class Rng {
-  private state: bigint;
+  /** The 64-bit state as two unsigned 32-bit halves: no BigInt per draw (ADR 0022). */
+  private hi: number;
+  private lo: number;
   readonly seed: bigint;
 
   constructor(seed: string | number | bigint) {
     this.seed = parseSeed(seed);
-    this.state = this.seed;
+    this.hi = Number(this.seed >> 32n);
+    this.lo = Number(this.seed & 0xffffffffn);
   }
 
   /** An independent stream for `keys`, without consuming this one. */
@@ -58,14 +100,23 @@ export class Rng {
     return new Rng(deriveSeed(this.seed, ...keys));
   }
 
-  nextU64(): bigint {
-    this.state = (this.state + GOLDEN) & MASK;
-    return mix(this.state);
+  /** Advance the state; the output lands in rHi, rLo. */
+  private next(): void {
+    const lo = this.lo + GOLDEN_LO;
+    this.hi = (this.hi + GOLDEN_HI + (lo >= TWO32 ? 1 : 0)) >>> 0;
+    this.lo = lo >>> 0;
+    mix32(this.hi, this.lo);
   }
 
-  /** Uniform in [0, 1) with 53 bits. */
+  nextU64(): bigint {
+    this.next();
+    return (BigInt(rHi) << 32n) | BigInt(rLo);
+  }
+
+  /** Uniform in [0, 1) with 53 bits: the top 53 bits of the next output. */
   float(): number {
-    return Number(this.nextU64() >> 11n) / 9007199254740992;
+    this.next();
+    return (rHi * 2097152 + (rLo >>> 11)) / 9007199254740992;
   }
 
   /** Uniform integer in [0, n). */

@@ -167,4 +167,26 @@ describe('ml-core parity (§15.2)', () => {
       }
     });
   });
+  test('FFBS and the Kalman log-likelihood match (ADR 0022)', async () => {
+    await forAll(60, 'parity-ffbs', (rng) => {
+      const n = 2 + rng.int(60);
+      const y = Float64Array.from({ length: n }, () => (rng.chance(0.15) ? NaN : rng.normal(6, 1)));
+      const v = Float64Array.from({ length: n }, () =>
+        rng.chance(0.05) ? Infinity : rng.uniform(0.001, 1)
+      );
+      const z = Float64Array.from({ length: n }, () => rng.normal());
+      const phi = rng.chance(0.5) ? 1 : rng.uniform(0, 0.95);
+      const w = rng.uniform(1e-6, 0.2);
+      const m0 = rng.normal(6, 1);
+      const c0 = rng.uniform(0.1, 2);
+      expectClose(
+        ml.ffbs(y, v, phi, w, m0, c0, z),
+        tsKernels.ffbs(y, v, phi, w, m0, c0, z),
+        'ffbs'
+      );
+      const a = ml.kfLoglik(y, v, phi, w, m0, c0);
+      const b = tsKernels.kfLoglik(y, v, phi, w, m0, c0);
+      if (!close(a, b)) throw new Error(`kfLoglik: ${a} vs ${b}`);
+    });
+  });
 });

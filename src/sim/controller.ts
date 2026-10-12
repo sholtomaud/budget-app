@@ -330,6 +330,7 @@ export function runOnce(
   const paths = sampleReturnPaths(s.returnModels, n, runSeed, {
     frozen: freeze.returns,
     histories: withImported(s.histories),
+    parameterUncertainty: s.parameterUncertainty,
   });
   const pathOf = s.holdings.map((h) => {
     const p = paths[h.returnModelId];

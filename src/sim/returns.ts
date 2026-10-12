@@ -91,16 +91,46 @@ export function syntheticHistories(): Record<string, Float64Array> {
 }
 
 /**
+ * Months of evidence behind an assumed (μ, σ) when its parameters are
+ * uncertain (FR-BAY-004): 30 years, as if estimated from that much history.
+ */
+export const ASSUMPTION_EVIDENCE_MONTHS = 360;
+
+/**
+ * One draw of a monthly log-return mean and sd, given `n` months of evidence
+ * with mean `m` and sd `s` (ADR 0022). Under the reference prior
+ * p(μ, σ²) ∝ 1/σ², the posterior is Normal–Inverse-Gamma:
+ * σ² = (n−1)s²/χ²(n−1), then μ ~ N(m, σ²/n). Long horizons then carry the
+ * risk that the average itself was misjudged, not only the year-to-year noise.
+ */
+export function drawLogParams(rng: Rng, m: number, s: number, n: number): { m: number; s: number } {
+  const chi2 = 2 * gammaSample(rng, (n - 1) / 2);
+  const s2 = ((n - 1) * s * s) / chi2;
+  return { m: m + Math.sqrt(s2 / n) * rng.normal(), s: Math.sqrt(s2) };
+}
+
+/**
  * One run's return paths, keyed by return-model id: months × monthly r.
  * `frozen` replaces every model by its median monthly return (exp of the
  * mean log return), for the shortfall-driver attribution.
+ * `parameterUncertainty` first draws each model's mean and volatility for
+ * this run (FR-BAY-004): assumed (μ, σ) count as 30 years of evidence; a
+ * bootstrap history is re-centred and re-scaled to its draw, which keeps
+ * its volatility clustering. Fixed-rate models stay fixed.
  */
 export function sampleReturnPaths(
   models: readonly ReturnModel[],
   months: number,
   seed: bigint,
-  opts: { frozen?: boolean; histories?: Record<string, Float64Array> } = {}
+  opts: {
+    frozen?: boolean;
+    histories?: Record<string, Float64Array>;
+    parameterUncertainty?: boolean;
+  } = {}
 ): Record<string, Float64Array> {
+  const uncertain = !!opts.parameterUncertainty && !opts.frozen;
+  /** A separate stream, so turning uncertainty on leaves the other draws unchanged. */
+  const paramRng = (id: string) => new Rng(deriveSeed(seed, 'returns', 'params', id));
   const histories = opts.histories ?? syntheticHistories();
   const out: Record<string, Float64Array> = {};
   // Joint bootstrap: one sequence of history months for every bootstrap model,
@@ -129,13 +159,17 @@ export function sampleReturnPaths(
         path.fill(monthlyFixed(model.rate));
         break;
       case 'lognormal': {
-        const { m, s } = monthlyLogParams(model.mu, model.sigma);
+        let { m, s } = monthlyLogParams(model.mu, model.sigma);
+        if (uncertain)
+          ({ m, s } = drawLogParams(paramRng(model.id), m, s, ASSUMPTION_EVIDENCE_MONTHS));
         if (opts.frozen) path.fill(Math.exp(m) - 1);
         else for (let i = 0; i < months; i++) path[i] = Math.exp(rng.normal(m, s)) - 1;
         break;
       }
       case 'student-t': {
-        const { m, s } = monthlyLogParams(model.mu, model.sigma);
+        let { m, s } = monthlyLogParams(model.mu, model.sigma);
+        if (uncertain)
+          ({ m, s } = drawLogParams(paramRng(model.id), m, s, ASSUMPTION_EVIDENCE_MONTHS));
         if (opts.frozen) path.fill(Math.exp(m) - 1);
         else
           for (let i = 0; i < months; i++)
@@ -151,7 +185,25 @@ export function sampleReturnPaths(
           path.fill(Math.exp(g) - 1);
         } else {
           const idx = bootIndex(model.block);
-          for (let i = 0; i < months; i++) path[i] = Math.exp(hist[idx[i]! % hist.length]!) - 1;
+          // With parameter uncertainty: the same months, shifted and scaled to
+          // this run's draw of the mean and sd.
+          let shift = 0;
+          let scale = 1;
+          let centre = 0;
+          if (uncertain) {
+            const n = hist.length;
+            for (const x of hist) centre += x / n;
+            let v = 0;
+            for (const x of hist) v += (x - centre) ** 2 / (n - 1);
+            const sd = Math.sqrt(v);
+            const d = drawLogParams(paramRng(model.id), centre, sd, n);
+            shift = d.m;
+            scale = sd > 0 ? d.s / sd : 1;
+          }
+          for (let i = 0; i < months; i++) {
+            const x = hist[idx[i]! % hist.length]!;
+            path[i] = Math.exp(uncertain ? shift + (x - centre) * scale : x) - 1;
+          }
         }
         break;
       }

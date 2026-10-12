@@ -1,6 +1,6 @@
 # ADR 0015 — Bayesian workflow for forecasting and return assumptions
 
-- Status: proposed (milestone M9, after the advisor milestone M8)
+- Status: accepted and built in M9, with changes recorded in [ADR 0022](./0022-bayesian-spending-and-return-uncertainty.md)
 - Date: 2026-10-11
 - SPEC: §10.4 (FR-BAY-001…008), §16.2, §19 (M9)
 - Reference: A. Gelman, A. Vehtari et al., _Bayesian Workflow_

@@ -59,9 +59,29 @@ interface Exports {
   mc_cmaes_init(x0: number, n: number, sigma0: number, lambda: number, state: number): void;
   mc_cmaes_ask(state: number, n: number, lambda: number, z: number, out: number): void;
   mc_cmaes_tell(state: number, n: number, lambda: number, x: number, f: number): void;
+  mc_ffbs(
+    y: number,
+    v: number,
+    n: number,
+    phi: number,
+    w: number,
+    m0: number,
+    c0: number,
+    z: number,
+    out: number
+  ): void;
+  mc_kf_loglik(
+    y: number,
+    v: number,
+    n: number,
+    phi: number,
+    w: number,
+    m0: number,
+    c0: number
+  ): number;
 }
 
-export const ML_CORE_ABI = 2;
+export const ML_CORE_ABI = 3;
 const MASK = (1n << 64n) - 1n;
 
 export interface MlCore extends Kernels {
@@ -184,6 +204,16 @@ export async function loadMlCore(bytes: BufferSource): Promise<MlCore> {
           return read(ps!, state.length);
         });
       },
+    },
+    ffbs(y, v, phi, w, m0, c0, z) {
+      const n = y.length;
+      return withBuffers([y, v, z, n], ([py, pv, pz, po]) => {
+        x.mc_ffbs(py!, pv!, n, phi, w, m0, c0, pz!, po!);
+        return read(po!, n);
+      });
+    },
+    kfLoglik(y, v, phi, w, m0, c0) {
+      return withBuffers([y, v], ([py, pv]) => x.mc_kf_loglik(py!, pv!, y.length, phi, w, m0, c0));
     },
     weibullGiven(seed, k, scale, age, n) {
       return withBuffers([n], ([p]) => {
