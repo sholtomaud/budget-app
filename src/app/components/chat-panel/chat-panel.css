@@ -83,14 +83,77 @@
 :host .msg.reply sup a {
   text-decoration: none;
 }
-:host .steps {
-  font-size: 0.75rem;
+:host .msg.reply .body:empty::after {
+  content: '…';
   color: var(--text-muted);
-  margin-bottom: var(--space-1);
 }
-:host .steps ul {
-  margin: var(--space-1) 0 0;
-  padding-left: 1rem;
+/* The activity log (ADR 0024): Crux's steps and the AI's asides, small and quiet. */
+:host .msg.activity,
+:host .msg.ai-note {
+  display: flex;
+  gap: var(--space-2);
+  align-items: baseline;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  margin: calc(-1 * var(--space-2)) 0 0;
+}
+:host .msg .src {
+  flex: none;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-radius: 999px;
+  padding: 0 var(--space-2);
+  background: var(--surface-2);
+}
+:host .msg.ai-note .src,
+:host .msg.aside .who .ai {
+  color: var(--accent);
+}
+:host .msg.activity::before {
+  flex: none;
+  content: '✓';
+  width: 1ch;
+  color: var(--ok);
+}
+:host .msg.activity[data-state='running']::before {
+  content: '●';
+  color: var(--accent);
+  animation: chat-pulse 1s ease-in-out infinite alternate;
+}
+:host .msg.activity[data-state='error']::before {
+  content: '!';
+  color: var(--bad);
+}
+:host .msg.ai-note .text {
+  font-style: italic;
+}
+:host .msg.aside {
+  font-size: 0.875rem;
+  border-left: 2px solid var(--border);
+  padding-left: var(--space-2);
+}
+:host .msg.aside .who {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+:host .msg.aside p {
+  margin: 0;
+}
+@keyframes chat-pulse {
+  from {
+    opacity: 0.3;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  :host .msg.activity[data-state='running']::before {
+    animation: none;
+  }
 }
 :host .footnotes {
   font-size: 0.75rem;

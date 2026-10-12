@@ -28,3 +28,4 @@ Every deviation from the [specification](../spec.md) gets one.
 | [0021](./0021-apis-and-advisor.md)                         | Optional AI providers: session-only keys, one egress gate with consent and a log, the advisor  | Accepted            |
 | [0023](./0023-chat-panel.md)                               | The chat panel: built-in answers first, AI second, changes as cards                            | Accepted            |
 | [0022](./0022-bayesian-spending-and-return-uncertainty.md) | The Bayesian spending model as built, its checks, and return-parameter uncertainty             | Accepted            |
+| [0024](./0024-streaming-and-activity-log.md)               | Streamed AI replies and an activity log in the chat panel                                      | Accepted            |

@@ -39,6 +39,10 @@ test('chat: open by default, answers common questions on this device, stays open
 
   const chance = await ask(page, 'How likely is my plan to work?', 0);
   await expect(chance.locator('.who')).toHaveText('Crux · on this device');
+  // What Crux did is in the log above the reply, ticked off with how long it took.
+  const did = panel.locator('.msg.activity').first();
+  await expect(did).toHaveAttribute('data-state', 'done');
+  await expect(did).toContainText(/Ran 500 simulated futures · \d+\.\d s/);
   await expect(chance).toContainText('simulated futures');
   await expect(chance.locator('.meter')).toBeVisible();
   await expect(chance.locator('.footnotes')).toContainText('seed 42');

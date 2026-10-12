@@ -27,6 +27,16 @@ name**. The chip above the message box shows which screen you're on, which is se
 question; tap ✕ to leave it out. Conversations are kept only until you reload. **New chat**
 starts again.
 
+Small lines above each reply show what is happening as it happens:
+
+- **Crux** lines are steps on your device, ticked off with how long they took: "Ran 500
+  simulated futures · 0.8 s".
+- A **Crux** line also says whenever something is sent to the AI, and how big it was.
+- Lines in the AI's name are its own notes ("I'll run your plan first"). Its answer appears as it
+  is written.
+
+**Stop** cancels a request part-way; the question is then left out of the conversation.
+
 ## Getting started
 
 The Start screen says what Crux does in a few lines. A **guide** under the menu then walks you

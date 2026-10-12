@@ -108,7 +108,8 @@ The person can always see what will change before it does.
 
 - **True token streaming from the providers.** Parsing Anthropic's and the OpenAI-compatible
   server-sent events, including tool calls and Anthropic's thinking blocks, is a separate change.
-  Until then, replies are typed out once they arrive.
+  Until then, replies are typed out once they arrive. Done in ADR 0024, which also replaces "What
+  I did" with an activity log.
 - **Saved conversations.** They stay in memory for the session, as the project owner chose.
 - **Out of scope for the panel's cards:** deleting anything, imports, encryption and settings.
 

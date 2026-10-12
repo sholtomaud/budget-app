@@ -10,6 +10,7 @@
  */
 import { formatError, validate, type Schema } from '../lib/jsonschema.ts';
 import type { ProviderConfig } from './providers.ts';
+import { parseAnthropicContent } from './stream.ts';
 
 export interface ToolDef {
   name: string;
@@ -49,6 +50,12 @@ const ANTHROPIC_VERSION = '2023-06-01';
 /** Server-side refusal fallback for the current Claude models (claude-api guidance). */
 const FALLBACK_BETA = 'server-side-fallback-2026-07-01';
 const usesFallback = (model: string) => /^claude-(opus-5|fable-5|sonnet-5-5)/.test(model);
+/**
+ * Models that can return short progress notes between tool calls as thinking
+ * summaries ("I'll run your plan first"), shown in the chat as they stream.
+ */
+const UPDATES_BETA = 'thinking-display-updates-2026-08-18';
+const showsUpdates = (model: string) => /^claude-(opus-5-5|fable-5|sonnet-5-5)/.test(model);
 const trim = (s: string) => s.replace(/\/+$/, '');
 
 export function authHeaders(cfg: ProviderConfig, key: string): Record<string, string> {
@@ -109,10 +116,16 @@ function openaiMessages(system: string, turns: readonly Turn[]): unknown[] {
   return out;
 }
 
-/** A tool-using chat turn (the advisor). */
+/** A tool-using chat turn (the advisor); streamed as server-sent events when `stream`. */
 export function chatRequest(
   cfg: ProviderConfig,
-  opts: { system: string; turns: readonly Turn[]; tools: readonly ToolDef[]; maxTokens?: number }
+  opts: {
+    system: string;
+    turns: readonly Turn[];
+    tools: readonly ToolDef[];
+    maxTokens?: number;
+    stream?: boolean;
+  }
 ): HttpRequest {
   const maxTokens = opts.maxTokens ?? 16_000;
   if (cfg.kind === 'anthropic') {
@@ -120,10 +133,20 @@ export function chatRequest(
     r.body.system = opts.system;
     r.body.messages = anthropicMessages(opts.turns);
     r.body.tools = opts.tools.map((t) => ({ ...t, strict: true }));
+    if (opts.stream) {
+      r.body.stream = true;
+      if (showsUpdates(cfg.model)) {
+        r.headers['anthropic-beta'] = [r.headers['anthropic-beta'], UPDATES_BETA]
+          .filter(Boolean)
+          .join(',');
+        r.body.thinking = { type: 'adaptive', display: 'updates' };
+      }
+    }
     return r;
   }
   const r = openaiBase(cfg);
   r.body.max_tokens = maxTokens;
+  if (opts.stream) r.body.stream = true;
   r.body.messages = openaiMessages(opts.system, opts.turns);
   r.body.tools = opts.tools.map((t) => ({
     type: 'function',
@@ -163,35 +186,14 @@ export function structuredRequest(
   return r;
 }
 
-interface AnthropicBlock {
-  type: string;
-  text?: string;
-  id?: string;
-  name?: string;
-  input?: unknown;
-}
-
 export function parseReply(cfg: ProviderConfig, json: unknown): Reply {
   if (cfg.kind === 'anthropic') {
-    const r = json as { content: AnthropicBlock[]; stop_reason: string; model: string };
-    const text = r.content
-      .filter((b) => b.type === 'text')
-      .map((b) => b.text ?? '')
-      .join('');
-    const calls = r.content
-      .filter((b) => b.type === 'tool_use')
-      .map((b) => ({ id: b.id!, name: b.name!, input: b.input }));
-    const stop =
-      r.stop_reason === 'end_turn'
-        ? 'end'
-        : r.stop_reason === 'tool_use'
-          ? 'tool'
-          : r.stop_reason === 'max_tokens'
-            ? 'max_tokens'
-            : r.stop_reason === 'refusal'
-              ? 'refusal'
-              : 'other';
-    return { text, calls, raw: r.content, stop, model: r.model };
+    const r = json as {
+      content: (Record<string, unknown> & { type: string })[];
+      stop_reason: string;
+      model: string;
+    };
+    return parseAnthropicContent(r.content, r.stop_reason, r.model);
   }
   const r = json as {
     model: string;
