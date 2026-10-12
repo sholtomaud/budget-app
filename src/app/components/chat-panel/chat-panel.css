@@ -1,0 +1,217 @@
+:host {
+  --chat-w: 24rem;
+}
+:host .panel {
+  font-size: 0.9375rem;
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: var(--chat-w);
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  z-index: 20;
+  padding: var(--space-3);
+  gap: var(--space-2);
+}
+:host[data-open='false'] .panel {
+  display: none;
+}
+:host .resize {
+  position: absolute;
+  left: -4px;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  cursor: col-resize;
+}
+:host header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+:host header h2 {
+  font-size: 1rem;
+  margin: 0;
+}
+:host header .provider {
+  flex: 1;
+}
+:host .note {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+:host .log {
+  flex: 1;
+  overflow-y: auto;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+:host .msg.user {
+  align-self: flex-end;
+  background: var(--surface-2);
+  border-radius: var(--radius);
+  padding: var(--space-2) var(--space-3);
+  max-width: 90%;
+  white-space: pre-wrap;
+}
+:host .msg.reply .who {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: var(--space-1);
+}
+:host .msg.reply .who .ai {
+  color: var(--accent);
+}
+:host .msg.reply p,
+:host .msg.reply ul,
+:host .msg.reply ol {
+  margin: 0 0 var(--space-2);
+}
+:host .msg.reply ul,
+:host .msg.reply ol {
+  padding-left: 1.25rem;
+}
+:host .msg.reply sup a {
+  text-decoration: none;
+}
+:host .steps {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: var(--space-1);
+}
+:host .steps ul {
+  margin: var(--space-1) 0 0;
+  padding-left: 1rem;
+}
+:host .footnotes {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin: 0;
+  padding-left: 1.25rem;
+  font-family: var(--mono);
+  word-break: break-all;
+}
+:host .unverified {
+  font-size: 0.8125rem;
+  color: var(--bad);
+}
+:host .meter {
+  margin: var(--space-2) 0;
+}
+:host .meter .bar {
+  position: relative;
+  height: 0.75rem;
+  border-radius: 999px;
+  background: var(--surface-2);
+  overflow: visible;
+}
+:host .meter .fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 999px;
+  background: var(--accent);
+}
+:host .meter .target {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 2px;
+  background: var(--text);
+}
+:host .meter .legend {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+:host .proposal {
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  padding: var(--space-2) var(--space-3);
+  margin: var(--space-2) 0;
+  display: grid;
+  gap: var(--space-2);
+}
+:host .proposal .fields {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--space-1) var(--space-2);
+  align-items: center;
+  font-size: 0.8125rem;
+}
+:host .proposal input,
+:host .proposal select {
+  min-width: 0;
+  width: 100%;
+}
+:host .proposal .buttons {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+:host .links,
+:host .suggestions,
+:host .msg .chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+:host .context {
+  margin: 0 0 var(--space-1);
+}
+:host .chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: 0.75rem;
+  background: var(--surface-2);
+  border-radius: 999px;
+  padding: 2px var(--space-2);
+}
+:host .chip button {
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+:host textarea {
+  width: 100%;
+  resize: vertical;
+}
+:host .actions {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  margin: var(--space-1) 0 0;
+}
+:host .fab {
+  position: fixed;
+  right: var(--space-4);
+  bottom: var(--space-4);
+  z-index: 20;
+  border-radius: 999px;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.2);
+}
+:host[data-open='true'] .fab {
+  display: none;
+}
+@media (max-width: 56rem) {
+  :host .panel {
+    width: auto;
+    left: 0;
+    border-left: none;
+  }
+  :host .resize {
+    display: none;
+  }
+}

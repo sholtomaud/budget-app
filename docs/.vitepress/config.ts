@@ -27,6 +27,7 @@ const adrs = [
     'Bayesian spending model and return uncertainty',
     '0022-bayesian-spending-and-return-uncertainty',
   ],
+  ['0023', 'The chat panel', '0023-chat-panel'],
   ['0014', 'Workbook mapping assistant', '0014-workbook-mapping-assistant'],
   ['0015', 'Bayesian workflow', '0015-bayesian-workflow'],
   ['0016', 'Sync to user-owned storage', '0016-sync-and-user-owned-storage'],

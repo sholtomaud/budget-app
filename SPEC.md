@@ -5,7 +5,7 @@
 
 | | |
 |---|---|
-| Status | Draft 12: M0–M9 built (ADRs 0001–0013, 0019–0022); M10–M14 planned, with proposed directions in ADRs 0014, 0016–0018 |
+| Status | Draft 13: M0–M9 and the chat panel built (ADRs 0001–0013, 0019–0023); M10–M14 planned, with proposed directions in ADRs 0014, 0016–0018 |
 | Date | 2026-10-11 |
 | Kernel | [GSSK](https://github.com/energese-project/GSSK-Giannantoni), consumed as a pinned WebAssembly artefact |
 | Runtime | Browser only. Static site, no backend |
@@ -709,7 +709,7 @@ uncertain.
 | **Forecast** | Per-category fan charts; method and backtest score per series; CAPEX fan; totals. |
 | **Freedom** | Goal editor; pSuccess gauge per tier; capital fan chart in real terms with floor line; example paths; years to freedom; project runway; shortfall drivers. |
 | **Scenarios** | Side-by-side comparison (up to 4); optimiser; diff of decisions. |
-| **Advisor** | Optional chat (§13). Answers cite run IDs; figures no tool returned are flagged "unverified". Proposed plans are saved as scenarios. |
+| **Chat panel** (was Advisor) | Docked on the right of every screen, open by default on wide screens, a sheet on phones. Common questions and requests are answered on the device from the app's own results; others go to the optional AI provider (§13). Every reply says which. Changes are proposed as cards to Apply or Undo. ADR 0023. |
 | **Engine check** (route `/kernel`; linked from Settings and Start, not in the menu) | Pinned GSSK version, commit and SHA-256 verification status. Runs GSSK's household example model in the `sim` worker as a smoke test (M0). |
 | **Settings** | Timezone, currency, CPI, period table, categories, rules, tax tables, return models, API providers and keys, encryption, export/import, delete all data. |
 
@@ -741,10 +741,17 @@ All of this is **off by default**. The app is complete without it.
 
 ### 13.3 Advisor contract (NFR-HON-002)
 
-The advisor is a tool-using agent with a fixed tool set; it cannot compute figures itself.
+The advisor is the chat panel (ADR 0023). Common questions and requests are answered by the app
+itself from its own results and templated text, with no AI; anything else goes to the AI provider,
+a tool-using agent with a fixed tool set that cannot compute figures itself. Each reply is labelled
+`Crux` or `Crux + <provider>`, and AI answers are cached for the session by question, screen and
+data. Changes are proposed as cards (budget lines, big purchases, category changes, scenarios) that
+the person applies, and can undo.
 
-Tools exposed to the model (M8, ADR 0021): `get_plan`, `get_spending_summary`, `list_scenarios`,
-`run_plan(scenarioId)` (returns run ID + metrics), `propose_plan(changes)`, `explain_assumption(key)`.
+Tools exposed to the model (M8, ADR 0021; ADR 0023): `get_plan`, `get_spending_summary`,
+`list_scenarios`, `run_plan(scenarioId)` (returns run ID + metrics), `propose_plan(changes)`,
+`explain_assumption(key)`, `explain_shortfall`, `find_plan_changes`, `get_forecast_confidence`,
+`propose_budget_line`, `propose_big_purchase`, `propose_categorisation`, `go_to_screen`.
 
 - `propose_plan` input is validated against its JSON Schema (bounded lever changes); invalid
   proposals are rejected back to the model with the validation error. Proposals are saved as

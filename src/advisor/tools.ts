@@ -72,6 +72,71 @@ export const ADVISOR_TOOLS: ToolDef[] = [
     }),
   },
   {
+    name: 'explain_shortfall',
+    description:
+      'Why the current plan falls short: typical capital when freedom starts against the simple freedom number, and which uncertainty (returns, spending, big purchases) costs the most. Cites a run id.',
+    input_schema: obj({}),
+  },
+  {
+    name: 'find_plan_changes',
+    description:
+      'Search for the smallest change to when freedom starts and spending after it that reaches the target, on the same simulated futures. Takes a while. Offers the result to the user as a scenario card.',
+    input_schema: obj({}),
+  },
+  {
+    name: 'get_forecast_confidence',
+    description:
+      "How far to trust the spending forecast: whether the Bayesian model is in use, how much categories move together, held-out months inside the range, and month-to-month variability against the model's expectations.",
+    input_schema: obj({}),
+  },
+  {
+    name: 'propose_budget_line',
+    description:
+      'Offer the user a card to add a recurring cost to their budget. Nothing changes until they click Apply. Use when they mention a regular cost.',
+    input_schema: obj({
+      item: { type: 'string' },
+      amountDollars: { type: 'number' },
+      period: { type: 'string', enum: ['d', 'w', 'f', 'm', 'q', 'y'] },
+      categoryHint: nullable({ type: 'string' }),
+    }),
+  },
+  {
+    name: 'propose_big_purchase',
+    description:
+      'Offer the user a card to add something they own and will replace (a car, a laptop) to Big purchases. Nothing changes until they click Apply.',
+    input_schema: obj({
+      name: { type: 'string' },
+      costDollars: nullable({ type: 'number' }),
+      ageYears: nullable({ type: 'number' }),
+    }),
+  },
+  {
+    name: 'propose_categorisation',
+    description:
+      'Offer the user a card to put every transaction mentioning some text (a merchant) in a category, by the category name. Nothing changes until they click Apply.',
+    input_schema: obj({ match: { type: 'string' }, category: { type: 'string' } }),
+  },
+  {
+    name: 'go_to_screen',
+    description: 'Offer the user a button to open a screen of the app.',
+    input_schema: obj({
+      screen: {
+        type: 'string',
+        enum: [
+          'Start',
+          'Import',
+          'Transactions',
+          'Budget',
+          'Big purchases',
+          'Forecast',
+          'Freedom',
+          'Scenarios',
+          'Settings',
+        ],
+      },
+    }),
+  },
+  {
     name: 'explain_assumption',
     description: 'How the app models one assumption, and where the value comes from.',
     input_schema: obj({ key: { type: 'string', enum: [...ASSUMPTION_KEYS] } }),
@@ -80,10 +145,15 @@ export const ADVISOR_TOOLS: ToolDef[] = [
 
 export const ADVISOR_SYSTEM = `You are the advisor inside Crux, a private household budget and freedom planner. Crux's mission is to help people move out of financial stress and towards a life they choose; you serve that and nothing else.
 
+The user may know budgeting arithmetic but not statistics. Each message may start with [Screen: …], the screen they are looking at.
+
 Rules:
 - You cannot calculate. Every dollar amount, percentage or probability you state must come from a tool result in this conversation. If you need a number, call a tool. Never estimate, round further or derive new figures.
-- Cite the run id (from run_plan) next to any simulated figure.
-- Speak plainly and briefly. Explain what a result means for the person, and what they could change.
+- Cite the run id once, after the first simulated figure. The app turns it into a footnote; don't repeat it.
+- Speak plainly and briefly: a few short paragraphs at most. Use frequencies ("in about 9 in 10 simulated futures"), not jargon (no "pSuccess", "P90" without saying what it means).
+- Explain what a result means for the person, why (explain_shortfall), and what they could change (find_plan_changes).
+- Changes go through the propose_ tools as cards the user applies. Never say a change was made; say it is ready for them to apply.
+- Don't add a "not financial advice" note: the app shows it once.
 - To explore a change, use propose_plan, then run_plan on the new scenario, and compare it with the current plan. The user decides; scenarios you propose are saved for them to review.
 - Ask about what matters to them (what they'd do with free time, which standard of living is non-negotiable) when it helps.
 - This is not financial advice. The figures come from the user's own assumptions. For tax, legal or product decisions, suggest a licensed professional.

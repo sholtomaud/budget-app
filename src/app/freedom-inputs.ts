@@ -35,6 +35,18 @@ export const saveHistories = (h: PriceHistory[]) => sim().saveKv('histories', h)
 
 const cache = new WeakMap<DataView, Map<string, Promise<Quantiles | null>>>();
 
+/** Budgeted OPEX per category per month (minor units) for a tier. */
+export function budgetMonthlyFor(v: DataView, tier: string): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const l of v.budget.lines) {
+    if (l.categoryId.startsWith('capex.')) continue;
+    out[l.categoryId] =
+      (out[l.categoryId] ?? 0) +
+      (weeklyRate(l, tier, (c) => perWeek(c, v.budget.periods)) * 52) / 12;
+  }
+  return out;
+}
+
 /**
  * The OPEX forecast's total quantiles for a tier (the spending spread), from
  * the Bayesian model when it converges (ADR 0022); cached per view.
@@ -45,13 +57,7 @@ export function ratioFor(v: DataView, tier: string): Promise<Quantiles | null> {
   let p = byTier.get(tier);
   if (!p) {
     const history = monthlySeries(v.txns);
-    const budgetMonthly: Record<string, number> = {};
-    for (const l of v.budget.lines) {
-      if (l.categoryId.startsWith('capex.')) continue;
-      budgetMonthly[l.categoryId] =
-        (budgetMonthly[l.categoryId] ?? 0) +
-        (weeklyRate(l, tier, (c) => perWeek(c, v.budget.periods)) * 52) / 12;
-    }
+    const budgetMonthly = budgetMonthlyFor(v, tier);
     p =
       history.length || Object.keys(budgetMonthly).length
         ? forecast()

@@ -1,9 +1,31 @@
 # Using Crux
 
 ::: info Status
-M0–M7 are done: everything from import to the freedom simulation, scenarios, encryption and export.
-The optional AI assistant arrives with M8 ([SPEC §19](./spec.md#_19-milestones)).
+M0–M9 are done, with the chat panel: everything from import to the freedom simulation, scenarios,
+encryption and export, the checked spending model, and optional AI help
+([SPEC §19](./spec.md#_19-milestones)).
 :::
+
+## Ask Crux (the chat panel)
+
+The panel on the right is there on every screen. Open or close it with **Chat** at the top, or
+Ctrl+J. On a phone, tap **Ask Crux**. Ask in plain words:
+
+- **How likely is my plan to work?** It runs your plan in 500 possible futures and says how many
+  work, against your target.
+- **Why is it low?** and **What would make it work?** It finds the smallest change to when you
+  stop work and what you spend after, and offers it as a scenario to save.
+- **Where does my money go?**, **How sure is the forecast?**, **What does P90 mean?**,
+  **Explain this screen.**
+- Tell it about a cost: **I pay $45 a month for the gym**, **My car is 6 years old**,
+  **Categorise the cafe ones as Cafes**. It shows a card with the details. Change anything, then
+  **Apply**; **Undo** reverses it.
+
+Those answers are worked out on this device, with no AI, and say **Crux · on this device**. With an
+AI provider turned on (Settings), other questions go to it and say **Crux + the provider's
+name**. The chip above the message box shows which screen you're on, which is sent with the
+question; tap ✕ to leave it out. Conversations are kept only until you reload. **New chat**
+starts again.
 
 ## Getting started
 
@@ -243,11 +265,10 @@ With a provider on:
   waiting for review. Suggestions are marked as the model's, and your own choices always win.
 - **Budget → import wizard → Ask AI to map columns** suggests which column is which for a budget
   CSV in an unusual layout. Check it in the preview before importing.
-- **Advisor** answers questions about your plan ("How likely is my plan to work?"). It can't do
-  sums itself: it asks the app to run your plan and quotes the results, with the run they came
-  from. Any figure it states that the app did not compute is marked **Unverified figure**. Plans it
-  proposes are saved under **Scenarios** marked "Advisor", for you to look at. It is not financial
-  advice.
+- **The chat panel** passes questions it can't answer itself to the AI. The AI can't do sums: it
+  asks the app to run your plan and quotes the results, with the run they came from. Any figure
+  it states that the app did not compute is marked **Unverified figure**. Changes it suggests
+  come as cards for you to apply. It is not financial advice.
 
 **Investment return history.** Upload a CSV of monthly prices (columns `Date` and `Adj Close`,
 `Close` or `Price`; at least 25 months) for any investment. It then appears as a return model for
@@ -264,7 +285,7 @@ your holdings on the Freedom screen. The file stays on this device.
 | Forecast  | Fan charts per category, with method and backtest score                          | M4        |
 | Freedom   | Goal editor, probability of success, capital fan chart                           | M5        |
 | Scenarios | Side-by-side comparison, the optimiser and its trade-offs                        | M6        |
-| Advisor   | Optional chat; figures come from simulation runs, others are flagged             | M8        |
+| Chat      | Panel on every screen; built-in answers, optional AI, changes as cards           | M8, chat  |
 | Settings  | Encryption, export, delete all; AI provider, call log, return history            | M7, M8    |
 | Kernel    | Shows the pinned kernel and runs an example model                                | M0        |
 

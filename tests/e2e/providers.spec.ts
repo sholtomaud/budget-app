@@ -164,21 +164,35 @@ test('advisor: tool loop on this device; an invented figure is flagged (§13.3, 
   await form.getByLabel('API key, for this session only').fill(KEY);
   await form.getByRole('button', { name: 'Save' }).click();
 
-  await nav.getByRole('link', { name: 'Advisor' }).click();
-  await page.getByRole('button', { name: 'How likely is my plan to work?' }).click();
-  await page.getByRole('button', { name: 'Ask' }).click();
+  // The advisor is the chat panel. A free-form question goes to the AI (common
+  // questions like "How likely is my plan to work?" are answered on the device).
+  const panel = page.locator('chat-panel');
+  const question = 'Talk me through my plan in a couple of sentences';
+  await panel.getByLabel('Your message').fill(question);
+  await panel.getByRole('button', { name: 'Send' }).click();
   const dialog = page.getByRole('dialog');
   await dialog.getByLabel("Don't ask again for this until the app reloads").check();
   await dialog.getByRole('button', { name: 'Send', exact: true }).click();
 
-  const answer = page.locator('.msg.advisor').last();
-  await expect(answer).toContainText('Your plan succeeds in', { timeout: 120_000 });
-  await expect(answer).toContainText('ran a simulation');
-  await expect(answer).toContainText('Runs:');
+  const answer = panel.locator('.msg.reply').last();
+  await expect(answer).toHaveAttribute('data-done', 'true', { timeout: 120_000 });
+  await expect(answer.locator('.who')).toHaveText('Crux + Anthropic (Claude)');
+  await expect(answer).toContainText('Your plan succeeds in');
+  await expect(answer.locator('.steps')).toContainText('Ran a simulation');
+  await expect(answer.locator('.meter')).toBeVisible();
   await expect(answer.locator('.unverified')).toContainText('$123,456');
   await expect(answer.locator('.unverified')).not.toContainText('%');
+  // The screen the user was on went with the question, as a context line.
+  expect(bodies[0]).toContain('[Screen: Settings]');
   expect(step).toBe(2);
   // The tool result sent back holds rounded aggregates, never account data.
   expect(bodies[1]).toContain('tool_result');
   expect(bodies[1]).not.toMatch(/SYN-[A-Z]/);
+
+  // The same question about the same data on the same screen: the earlier answer, no new call.
+  await panel.getByLabel('Your message').fill(question);
+  await panel.getByRole('button', { name: 'Send' }).click();
+  const again = panel.locator('.msg.reply').last();
+  await expect(again.locator('.who')).toContainText('same answer as earlier');
+  expect(step).toBe(2);
 });

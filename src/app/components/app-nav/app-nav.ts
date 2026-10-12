@@ -8,6 +8,8 @@ import style from './app-nav.css?raw';
 
 export class AppNav extends BaseComponent {
   private readonly onRoute = (e: Event) => this.highlight((e as CustomEvent<string>).detail);
+  private readonly onChat = (e: Event) =>
+    this.$('.chat').setAttribute('aria-pressed', String((e as CustomEvent<boolean>).detail));
 
   constructor() {
     super(template, style);
@@ -37,11 +39,15 @@ export class AppNav extends BaseComponent {
       setTheme(currentTheme() === 'dark' ? 'light' : 'dark');
       label();
     };
+    this.$<HTMLButtonElement>('.chat').onclick = () =>
+      window.dispatchEvent(new CustomEvent('app:chat-toggle'));
     window.addEventListener(ROUTE_EVENT, this.onRoute);
+    window.addEventListener('app:chat-state', this.onChat);
   }
 
   override destroy(): void {
     window.removeEventListener(ROUTE_EVENT, this.onRoute);
+    window.removeEventListener('app:chat-state', this.onChat);
   }
 
   private highlight(path: string): void {

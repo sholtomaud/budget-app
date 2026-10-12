@@ -1,0 +1,38 @@
+<aside class="panel" aria-label="Chat">
+  <div class="resize" title="Drag to resize" aria-hidden="true"></div>
+  <header>
+    <h2>Ask Crux</h2>
+    <span class="provider muted small"></span>
+    <button type="button" class="secondary small new">New chat</button>
+    <button type="button" class="secondary small close" aria-label="Close chat">✕</button>
+  </header>
+  <p class="note">
+    Works from your own data on this device. If you turn on an AI provider, answers that use it say
+    so. Not financial advice.
+  </p>
+  <ol class="log" aria-live="polite"></ol>
+  <div class="suggestions"></div>
+  <form class="ask" aria-label="Ask Crux">
+    <p class="context" hidden>
+      <span class="chip"
+        ><span class="ctx-text"></span>
+        <button type="button" class="ctx-remove" aria-label="Don't include this screen">
+          ✕
+        </button></span
+      >
+    </p>
+    <label for="chat-q" class="visually-hidden">Your message</label>
+    <textarea
+      id="chat-q"
+      name="q"
+      rows="2"
+      placeholder="Ask about your plan, or tell me about a cost…"
+    ></textarea>
+    <p class="actions">
+      <button type="submit" class="send">Send</button>
+      <button type="button" class="secondary stop" hidden>Stop</button>
+      <span class="status muted small" role="status" aria-live="polite"></span>
+    </p>
+  </form>
+</aside>
+<button type="button" class="fab" aria-label="Open chat">Ask Crux</button>
