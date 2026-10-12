@@ -27,6 +27,11 @@ const METHOD_LABEL: Record<string, string> = {
 };
 
 const sum = (xs: number[]) => xs.reduce((a, b) => a + b, 0);
+const wholeDollars = new Intl.NumberFormat('en-AU', {
+  style: 'currency',
+  currency: 'AUD',
+  maximumFractionDigits: 0,
+});
 
 export class ForecastPage extends BaseComponent {
   private unsubscribe: (() => void) | null = null;
@@ -146,7 +151,8 @@ export class ForecastPage extends BaseComponent {
       ]);
     }
     if (c?.priorSensitivity.length) {
-      const m = (x: number) => money(BigInt(Math.round(x)));
+      // Forecasts in whole dollars, like the Freedom screen (cents would be false precision).
+      const m = (minor: number) => wholeDollars.format(minor / 100);
       const by = Object.fromEntries(c.priorSensitivity.map((p) => [p.power, p]));
       rows.push([
         'Depends on assumptions?',
