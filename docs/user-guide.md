@@ -37,6 +37,20 @@ Small lines above each reply show what is happening as it happens:
 
 **Stop** cancels a request part-way; the question is then left out of the conversation.
 
+## Plan checks
+
+If a setting is likely to make your plan fail in a way you didn't mean, the Freedom screen says so
+under **Plan checks**, in one sentence, usually with a button to fix it (and **Undo**). For example:
+
+- **No pay before freedom.** If you've stopped working, **Start freedom now**.
+- **A lot of "cash kept in the bank".** That's an everyday buffer that earns nothing; **keep about
+  six months of spending there** and move the rest to savings.
+- **Paid work ends before freedom starts**, or **spending more than you take home**.
+
+The chat gives the same checks first when you ask **Why is it low?** or **What would make it
+work?**, with the fixes as cards. Crux never recommends what to invest in: where your savings are
+held is your decision, and a licensed adviser can help.
+
 ## Getting started
 
 The Start screen says what Crux does in a few lines. A **guide** under the menu then walks you

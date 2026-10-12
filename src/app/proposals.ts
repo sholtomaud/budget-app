@@ -13,12 +13,18 @@ import { addMonths } from '../lib/dates.ts';
 import type { FreedomSetup } from '../sim/inputs.ts';
 import { addAsset, clearLabel, correct, deleteAsset, deleteLine, upsertLine } from './data.ts';
 import { addScenario, loadScenarios, saveScenarios } from './scenarios.ts';
+import { sim } from './workers.ts';
 
 export type Proposal =
   | { kind: 'budget-line'; line: BudgetLine }
   | { kind: 'asset'; asset: Asset; ageYears?: number }
   | { kind: 'categorise'; keys: string[]; categoryId: string; match: string; examples: string[] }
-  | { kind: 'scenario'; name: string; setup: FreedomSetup; summary: string };
+  | { kind: 'scenario'; name: string; setup: FreedomSetup; summary: string }
+  /** A change to the current plan on the Freedom screen (a plan check's fix, ADR 0026). */
+  | { kind: 'setup'; label: string; setup: FreedomSetup; from: FreedomSetup; summary: string };
+
+/** Fired when the current plan is changed from outside the Freedom screen. */
+export const SETUP_CHANGED = 'app:setup-changed';
 
 export const PERIOD_WORDS: Record<string, string> = {
   d: 'a day',
@@ -173,6 +179,8 @@ export function describe(p: Proposal, v: DataView): string {
       return `Put ${p.keys.length} transaction${p.keys.length === 1 ? '' : 's'} mentioning "${p.match}" (${p.examples.join(', ')}) in ${categoryName(p.categoryId, v.categories)}, and remember it for similar ones.`;
     case 'scenario':
       return `Save a scenario "${p.name}": ${p.summary}`;
+    case 'setup':
+      return `${p.label}: ${p.summary}.`;
   }
 }
 
@@ -193,6 +201,14 @@ export async function applyProposal(p: Proposal): Promise<() => Promise<void>> {
     case 'scenario': {
       const saved = await addScenario(p.name, p.setup, 'advisor');
       return async () => saveScenarios((await loadScenarios()).filter((s) => s.id !== saved.id));
+    }
+    case 'setup': {
+      const put = async (s: FreedomSetup) => {
+        await sim().saveSetup(s);
+        window.dispatchEvent(new CustomEvent(SETUP_CHANGED));
+      };
+      await put(p.setup);
+      return () => put(p.from);
     }
   }
 }

@@ -37,8 +37,11 @@ function markRuns(text: string, runIds: readonly string[]): { text: string; runs
   let out = text;
   for (const id of runIds) {
     if (!id || runs.includes(id)) continue;
+    // Emphasis wrapping the citation goes with it, but never a neighbour's: an
+    // opening ** before it must not end a word, a closing one after it must not
+    // start one, and line breaks around it stay (they separate paragraphs).
     const re = new RegExp(
-      `[*_]*\\s*(?:run(?:\\s*id)?\\s*:?\\s*)?\`?${escapeRe(id)}\`?\\s*[*_]*`,
+      `(?:(?<![*_\\w])[*_]+)?[ \\t]*(?:run(?:\\s*id)?\\s*:?\\s*)?\`?${escapeRe(id)}\`?[ \\t]*(?:[*_]+(?![*_\\w]))?`,
       'gi'
     );
     if (!re.test(out)) continue;

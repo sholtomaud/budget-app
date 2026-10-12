@@ -89,7 +89,7 @@ const fromInsight = (i: Insight): ChatReply =>
     text: i.text,
     runIds: i.runIds,
     ...(i.chart ? { chart: i.chart } : {}),
-    proposals: i.proposal ? [i.proposal] : [],
+    proposals: [...(i.proposals ?? []), ...(i.proposal ? [i.proposal] : [])],
     links: i.link ? [i.link] : [],
     suggestions: i.suggestions ?? [],
   });

@@ -22,11 +22,11 @@ import { optimise, type OptimiseResult } from '../optimise/optimiser.ts';
 import type { AsyncCma } from '../optimise/optimiser.ts';
 import { baseValues } from '../optimise/levers.ts';
 import { defaultSetup, type FreedomSetup } from '../sim/inputs.ts';
+import { checkPlan, type PlanCheck } from '../sim/checks.ts';
 import { deterministicFreedom, shortfallDrivers } from '../sim/metrics.ts';
 import { monthsBetween } from '../sim/modelgen.ts';
 import {
   budgetMonthlyFor,
-  creditsNote,
   evaluator,
   inputsFor,
   runIdOf,
@@ -44,6 +44,8 @@ export interface Insight {
   runIds: string[];
   chart?: { kind: 'chance'; p: number; target: number };
   proposal?: Proposal;
+  /** More cards, e.g. plan checks' fixes. */
+  proposals?: Proposal[];
   link?: { label: string; path: string };
   suggestions?: string[];
 }
@@ -53,6 +55,29 @@ const sum = (r: Record<string, number>) => Object.values(r).reduce((a, b) => a +
 export async function currentSetup(v: DataView): Promise<FreedomSetup> {
   return (await sim().loadSetup()) ?? defaultSetup(v);
 }
+
+/** The plan checks for the current setup (ADR 0026), problems first. */
+export async function planChecks(v: DataView, setup?: FreedomSetup): Promise<PlanCheck[]> {
+  const s = setup ?? (await currentSetup(v));
+  const { scenario, spending } = await inputsFor(v, s);
+  return checkPlan(s, spending, scenario.asOf).sort((a, b) =>
+    a.level === b.level ? 0 : a.level === 'problem' ? -1 : 1
+  );
+}
+
+/** A check's fix as a card that changes the current plan. */
+export const checkProposals = (checks: PlanCheck[], from: FreedomSetup): Proposal[] =>
+  checks.flatMap((c) =>
+    c.fix
+      ? [{ kind: 'setup', label: c.fix.label, summary: c.fix.summary, setup: c.fix.setup, from }]
+      : []
+  );
+
+/** Checks as markdown paragraphs. */
+const checkLines = (checks: PlanCheck[]) =>
+  checks.map(
+    (c) => `${c.level === 'problem' ? '**Check this:**' : '**Worth knowing:**'} ${c.text}`
+  );
 
 const monthName = (ym: string) =>
   new Date(`${ym.slice(0, 7)}-01T00:00:00`).toLocaleDateString('en-AU', {
@@ -67,11 +92,11 @@ export async function planChance(v: DataView, runs = 500): Promise<Insight> {
   const runId = runIdOf(r);
   const target = setup.goal.targetProbability;
   const verdict = againstTarget(r.pSuccess, target);
-  const credits = creditsNote((await inputsFor(v, setup)).spending);
+  const checks = await planChecks(v, setup);
   const text = [
     `Your plan works **${chanceWords(r.pSuccess)}** (${percent(r.pSuccess)}). Your target is ${percent(target)}. ${TARGET_WORDS[verdict]}`,
     `I tried ${r.runs} possible futures for ${years(setup.goal.horizonYears)} of freedom starting ${monthName(setup.goal.start)}, each with its own returns, spending and replacement costs. Run \`${runId}\``,
-    ...(credits ? [`**Check this:** ${credits}`] : []),
+    ...checkLines(checks),
   ].join('\n\n');
   return {
     text,
@@ -85,6 +110,7 @@ export async function planChance(v: DataView, runs = 500): Promise<Insight> {
     },
     runIds: [runId],
     chart: { kind: 'chance', p: r.pSuccess, target },
+    proposals: checkProposals(checks, setup),
     link: { label: 'Open Freedom', path: '/freedom' },
     suggestions:
       verdict === 'met'
@@ -106,7 +132,13 @@ export async function whyShort(v: DataView): Promise<Insight> {
   );
   const atStart = r.capital.p50[startIdx] ?? 0;
   const gap = det.freedomNumber - atStart;
-  const lines: string[] = [];
+  const checks = (await planChecks(v, setup)).filter((c) => c.level === 'problem');
+  const lines: string[] = checks.length
+    ? [
+        `Before the numbers, ${checks.length === 1 ? 'one setting is' : `${checks.length} settings are`} likely holding your plan back:`,
+        ...checks.map((c) => `- ${c.text}`),
+      ]
+    : [];
   if (gap > 0)
     lines.push(
       `When freedom starts in ${monthName(setup.goal.start)}, you'd typically have about **${dollars(atStart)}** invested (half the futures more, half less). The spending you've planned for after that needs about **${dollars(det.freedomNumber)}**: a year of spending, ${dollars(det.annualNeed)}, at a ${percent(det.withdrawalRate)} withdrawal rate. The gap, about **${dollars(gap)}**, is the main reason. Run \`${runId}\``
@@ -136,8 +168,10 @@ export async function whyShort(v: DataView): Promise<Insight> {
       withdrawalRate: percent(det.withdrawalRate),
       gap: gap > 0 ? roughAmount(gap) : null,
       biggestUncertainty: top ?? null,
+      planChecks: checks.map((c) => c.text),
     },
     runIds: [runId],
+    proposals: checkProposals(checks, setup),
     link: { label: 'Open Freedom', path: '/freedom' },
     suggestions: ['What would make it work?'],
   };
@@ -157,18 +191,32 @@ export async function findChanges(
   const setup = await currentSetup(v);
   const base = baseValues(setup);
   const target = setup.goal.targetProbability;
+  // Starting later only helps while pay comes in. With none before freedom, a
+  // later start adds years paid from savings, so that lever is left alone and
+  // the check's own fix (start now) is offered instead (ADR 0026).
+  const checks = await planChecks(v, setup);
+  const noPay = checks.some((c) => c.id === 'no-pay');
   const result: OptimiseResult = await optimise(
     {
       setup,
       levers: [
-        { id: 'start', lo: 0, hi: 8 },
-        { id: 'tierSpend', lo: Math.min(0.7, base.tierSpend), hi: base.tierSpend },
+        ...(noPay ? [] : [{ id: 'start' as const, lo: 0, hi: 8 }]),
+        {
+          id: 'tierSpend' as const,
+          lo: Math.min(noPay ? 0.5 : 0.7, base.tierSpend),
+          hi: base.tierSpend,
+        },
       ],
       target,
       budget: 30,
     },
     { evaluate: evaluator(v, 200), cma: workerCma, onProgress: (d, t) => onProgress?.(d, t) }
   );
+  const problems = checks.filter((c) => c.level === 'problem');
+  const fixes = checkProposals(problems, setup);
+  const first = problems.length
+    ? `${problems.map((c) => `**Check this:** ${c.text}`).join('\n\n')}\n\n`
+    : '';
   const b = result.best;
   if (result.base.feasible)
     return {
@@ -180,7 +228,7 @@ export async function findChanges(
   if (!b) {
     const near = [...result.candidates].sort((x, y) => y.pSuccess - x.pSuccess)[0]!;
     return {
-      text: `Even starting freedom up to 8 years later and spending up to 30 % less after it, none of the ${result.candidates.length} plans I tried reached ${percent(target)}. The best worked ${chanceWords(near.pSuccess)}. Run \`${near.runId}\`\n\nThe other levers are worth a look on the Scenarios screen: project income after freedom, spending less now, or a lower spending tier.`,
+      text: `${first}${noPay ? `Spending up to half as much after freedom` : `Even starting freedom up to 8 years later and spending up to 30 % less after it`}, none of the ${result.candidates.length} plans I tried reached ${percent(target)}. The best worked ${chanceWords(near.pSuccess)}. Run \`${near.runId}\`\n\nThe other levers are worth a look on the Scenarios screen: project income after freedom, spending less now, or a lower spending tier.`,
       facts: {
         reachedTarget: false,
         bestChance: percent(near.pSuccess),
@@ -188,6 +236,7 @@ export async function findChanges(
         plansTried: result.candidates.length,
       },
       runIds: [near.runId],
+      proposals: fixes,
       link: { label: 'Open Scenarios', path: '/scenarios' },
     };
   }
@@ -201,7 +250,7 @@ export async function findChanges(
     );
   const summary = changes.join(' and ').replace(/\*\*/g, '');
   return {
-    text: `The smallest change I found: ${changes.join(' and ')}. That plan works ${chanceWords(b.pSuccess)} (${percent(b.pSuccess)}), meeting your ${percent(target)} target. I tried ${result.candidates.length} plans on the same simulated futures, so the comparison is fair. Run \`${b.runId}\`\n\nSave it as a scenario to compare it with your current plan.`,
+    text: `${first}The smallest change I found: ${changes.join(' and ')}. That plan works ${chanceWords(b.pSuccess)} (${percent(b.pSuccess)}), meeting your ${percent(target)} target. I tried ${result.candidates.length} plans on the same simulated futures, so the comparison is fair. Run \`${b.runId}\`\n\nSave it as a scenario to compare it with your current plan.`,
     facts: {
       reachedTarget: true,
       startYearsLater: Math.round(later * 10) / 10,
@@ -217,6 +266,7 @@ export async function findChanges(
       setup: b.setup,
       summary: `${summary}; works ${chanceWords(b.pSuccess)}.`,
     },
+    proposals: fixes,
     link: { label: 'Open Scenarios', path: '/scenarios' },
   };
 }

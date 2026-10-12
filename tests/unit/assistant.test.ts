@@ -59,6 +59,16 @@ This just means the current levers are out of balance:
     const p = parseMarkdown('Hello <img src=x onerror=alert(1)> **world**');
     expect(plainText(p)).toBe('Hello <img src=x onerror=alert(1)> world');
   });
+
+  test('a citation at the end of a paragraph leaves the next paragraph and its bold alone', () => {
+    const run = 'abc·seed 42·runs 0–499';
+    const p = parseMarkdown(`Costs. Run \`${run}\`\n\n**Worth knowing:** cash earns little.`, [
+      run,
+    ]);
+    expect(p.blocks).toHaveLength(2);
+    expect(plainText(p)).not.toContain('**');
+    expect(p.blocks[1]).toMatchObject({ inline: [{ t: 'b' }, { t: 'text' }] });
+  });
 });
 
 describe('built-in intents (no AI)', async () => {

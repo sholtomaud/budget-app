@@ -5,7 +5,7 @@
 
 | | |
 |---|---|
-| Status | Draft 15: M0–M9 and the chat panel built (ADRs 0001–0013, 0019–0025); M10–M14 planned, with proposed directions in ADRs 0014, 0016–0018 |
+| Status | Draft 16: M0–M9, the chat panel and plan guidance built (ADRs 0001–0013, 0019–0026); M10–M14 planned, with proposed directions in ADRs 0014, 0016–0018 |
 | Date | 2026-10-12 |
 | Kernel | [GSSK](https://github.com/energese-project/GSSK-Giannantoni), consumed as a pinned WebAssembly artefact |
 | Runtime | Browser only. Static site, no backend |
@@ -748,7 +748,9 @@ a tool-using agent with a fixed tool set that cannot compute figures itself. Eac
 data. Changes are proposed as cards (budget lines, big purchases, category changes, scenarios) that
 the person applies, and can undo. AI replies stream as they are written, and an activity log shows
 each step as it happens: what ran on the device, what was sent to the AI and how big it was, and
-the AI's own notes (ADR 0024).
+the AI's own notes (ADR 0024). Plan checks find settings that make a plan fail in a way the person
+likely didn't mean (no pay before freedom, a large bank buffer that earns nothing, and others) and
+offer fixes as cards; the AI calls `check_plan` first when a plan looks surprisingly bad (ADR 0026).
 
 Tools exposed to the model (M8, ADR 0021; ADR 0023): `get_plan`, `get_spending_summary`,
 `list_scenarios`, `run_plan(scenarioId)` (returns run ID + metrics), `propose_plan(changes)`,

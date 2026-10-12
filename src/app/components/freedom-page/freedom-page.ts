@@ -3,7 +3,9 @@ import { data, ensureLoaded } from '../../data.ts';
 import { el, prov } from '../../format.ts';
 import { poolRunner, poolSize, runPool, type PoolResult } from '../../sim-pool.ts';
 import { sim } from '../../workers.ts';
-import { creditsNote, inputsFor, loadHistories } from '../../freedom-inputs.ts';
+import { inputsFor, loadHistories } from '../../freedom-inputs.ts';
+import { SETUP_CHANGED } from '../../proposals.ts';
+import { checkPlan } from '../../../sim/checks.ts';
 import { historyModel } from '../../../sim/history.ts';
 import { addScenario } from '../../scenarios.ts';
 import '../fan-chart/fan-chart.ts';
@@ -104,10 +106,21 @@ export class FreedomPage extends BaseComponent {
     this.$<HTMLButtonElement>('.save-scenario').onclick = () => void this.saveScenario();
     this.$<HTMLButtonElement>('.drivers-run').onclick = () => void this.drivers();
     this.unsubscribe = data.subscribe(() => void this.load());
+    window.addEventListener(SETUP_CHANGED, this.onSetupChanged);
     void ensureLoaded().then(() => this.load());
   }
 
+  /** The plan was changed elsewhere (a chat card): show it. */
+  private readonly onSetupChanged = async () => {
+    const s = await sim().loadSetup();
+    if (!s || !this.view) return;
+    this.setup = s;
+    this.fill();
+    if (this.main) this.$('.status').textContent = 'Inputs changed: simulate again to update.';
+  };
+
   override destroy(): void {
+    window.removeEventListener(SETUP_CHANGED, this.onSetupChanged);
     this.unsubscribe?.();
     this.runId++;
   }
@@ -175,6 +188,7 @@ export class FreedomPage extends BaseComponent {
     this.showStrategyParams();
     this.taxNote();
     this.renderHoldings();
+    void this.showChecks();
   }
 
   private async saveScenario(): Promise<void> {
@@ -310,7 +324,7 @@ export class FreedomPage extends BaseComponent {
         const value = el('input', {
           type: 'number',
           min: '0',
-          step: '100',
+          step: 'any',
           value: String(Math.round(dollars(h.value))),
           'aria-label': `Value of ${h.name}`,
         });
@@ -370,8 +384,66 @@ export class FreedomPage extends BaseComponent {
   private changed(): void {
     if (this.saveTimer) clearTimeout(this.saveTimer);
     const s = this.setup;
-    if (s) this.saveTimer = setTimeout(() => void sim().saveSetup(s), 300);
+    if (s)
+      this.saveTimer = setTimeout(() => {
+        void sim().saveSetup(s);
+        void this.showChecks();
+      }, 300);
     if (this.main) this.$('.status').textContent = 'Inputs changed: simulate again to update.';
+  }
+
+  /**
+   * Plan checks (ADR 0026): settings that make the plan fail in a way the
+   * person likely didn't mean, each with its fix where there is an obvious one.
+   */
+  private async showChecks(): Promise<void> {
+    const s = this.setup;
+    const v = this.view;
+    if (!s || !v) return;
+    const { scenario, spending } = await inputsFor(v, s);
+    if (s !== this.setup) return;
+    const checks = checkPlan(s, spending, scenario.asOf).sort((a, b) =>
+      a.level === b.level ? 0 : a.level === 'problem' ? -1 : 1
+    );
+    this.$('.checks').hidden = !checks.length && this.$('.check-done').hidden;
+    this.$('.check-list').replaceChildren(
+      ...checks.map((c) => {
+        const li = el(
+          'li',
+          { class: c.level, 'data-check': c.id },
+          el('span', { class: 'tag' }, c.level === 'problem' ? 'Check this' : 'Worth knowing'),
+          ' ',
+          c.text
+        );
+        if (c.fix) {
+          const fix = c.fix;
+          const apply = el('button', { type: 'button', class: 'small' }, fix.label);
+          apply.onclick = () => {
+            const before = this.setup!;
+            this.setup = structuredClone(fix.setup);
+            this.fill();
+            this.changed();
+            const done = this.$('.check-done');
+            const undo = el('button', { type: 'button', class: 'secondary small' }, 'Undo');
+            undo.onclick = () => {
+              done.hidden = true;
+              done.replaceChildren();
+              this.setup = before;
+              this.fill();
+              this.changed();
+            };
+            done.hidden = false;
+            done.replaceChildren(
+              el('span', { class: 'tag' }, 'Changed:'),
+              ` ${fix.summary}. Simulate to see the difference. `,
+              undo
+            );
+          };
+          li.append(' ', apply);
+        }
+        return li;
+      })
+    );
   }
 
   private async inputs(tier: string): Promise<{ scenario: Scenario; spending: SpendingInput }> {
@@ -431,8 +503,7 @@ export class FreedomPage extends BaseComponent {
       r.invalidRuns
         ? `${r.invalidRuns} runs failed the money-balance check and are excluded. `
         : '',
-      prov('forecast'),
-      ...(creditsNote(spending) ? [el('p', { class: 'warn' }, creditsNote(spending)!)] : [])
+      prov('forecast')
     );
 
     const d = deterministicFreedom(scenario, spending);
