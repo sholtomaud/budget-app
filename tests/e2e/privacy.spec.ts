@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures.ts';
 
 /** NFR-PRIV-003: with all APIs off, nothing leaves the app origin. */
 test('no request goes outside the app origin', async ({ page, baseURL }) => {
@@ -10,7 +10,7 @@ test('no request goes outside the app origin', async ({ page, baseURL }) => {
     if (url.origin !== origin) foreign.push(req.url());
   });
 
-  await page.goto('/');
+  await page.goto('./');
   await expect(page.locator('.kstate')).toHaveText(/verified/);
   const nav = page.getByRole('navigation', { name: 'Screens' });
   for (const link of await nav.getByRole('link').all()) await link.click();

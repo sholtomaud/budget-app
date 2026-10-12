@@ -1,15 +1,15 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures.ts';
 
 test('forecast fans per category and for capital spend, on the ml-core kernels (FR-FC-001, FR-FC-010)', async ({
   page,
 }) => {
-  await page.goto('/');
+  await page.goto('./');
   await page.getByLabel('Household').selectOption('high-capex-crypto');
   await page.getByRole('button', { name: 'Load sample household' }).click();
   await expect(page).toHaveURL(/\/import$/);
 
   // Put the confirmed CAPEX proposals into the register so capital spend has something to forecast.
-  await page.goto('/ledger?tab=capex');
+  await page.goto('ledger?tab=capex');
   const confirm = page.getByRole('button', { name: 'Confirm asset' });
   await expect(confirm.first()).toBeVisible();
   const n = await confirm.count();

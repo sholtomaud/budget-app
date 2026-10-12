@@ -74,3 +74,29 @@ Then re-run the latest `CI` run on `main` (or merge this fix) to publish the bui
   test on the live URL catches it.
 - **Waiting on a URL is not waiting on a page.** In e2e tests, wait for the navigation's `load`
   event and for something the new page renders.
+
+## Follow-up (same day)
+
+The live site still 404'd after the fix merged: the repository's Pages source was still
+_Deploy from a branch_ (the API reports `legacy`), and the new check stopped CI's deploy as
+designed. Two more gaps were found and closed:
+
+- **CI did not test what it shipped.** `e2e` built its own copy of the app at `/`; `build`
+  built the deployed copy at `/<repo>/`. Now `e2e` downloads the `build` job's site and tests it
+  under `/<repo>/`, and `deploy` publishes that same artifact.
+- **The test server hid missing files.** `vite preview` answers any missing path with
+  `index.html` and status 200, so a missing `favicon.svg` or `/src/main.ts` looked fine. The e2e
+  tests now use `scripts/serve-pages.ts`, which serves like Pages (real 404s, `404.html` for
+  deep links), and every test fails on a failed request, an uncaught error or a console error.
+  A test also requests every linked asset, since browsers fetch favicons outside the page.
+- **A browser now checks the live site** after each deploy (`live` job), with screenshots kept
+  for every run.
+
+Verified locally: a site with `favicon.svg` removed fails the asset test; the raw repository (what
+Pages is serving now) fails the start-screen and live tests on `HTTP 404 …/src/main.ts`; the
+correct site passes all 26 e2e tests under `/budget-app/` and all 3 live tests.
+
+One unexplained failure: in one of about ten local full runs, the storage test timed out once
+(30 s). It did not recur in 20 isolated runs or a 78-test stress run, and its trace was
+overwritten. CI now keeps traces and screenshots for 14 days on any failure, so a recurrence
+can be diagnosed.

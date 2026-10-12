@@ -1,4 +1,4 @@
-import { expect, test, type Page, type Route } from '@playwright/test';
+import { expect, test, type Page, type Route } from './fixtures.ts';
 
 /** IndexedDB and localStorage, as text: the API key must appear in neither. */
 const stored = (page: Page) =>
@@ -54,7 +54,7 @@ test('AI provider: key never stored; consent shows a redacted payload; declining
     });
   });
 
-  await page.goto('/');
+  await page.goto('./');
   await page.getByLabel('Household').selectOption('default');
   await page.getByRole('button', { name: 'Load sample household' }).click();
   await expect(page).toHaveURL(/\/import$/);
@@ -153,7 +153,7 @@ test('advisor: tool loop on this device; an invented figure is flagged (§13.3, 
     });
   });
 
-  await page.goto('/');
+  await page.goto('./');
   await page.getByLabel('Household').selectOption('default');
   await page.getByRole('button', { name: 'Load sample household' }).click();
   await expect(page).toHaveURL(/\/import$/);

@@ -3,6 +3,7 @@ node_modules/
 vendor/
 playwright-report/
 test-results/
+playwright-live-report/
 package-lock.json
 SPEC.md
 src/sim/examples/
