@@ -25,3 +25,15 @@ load the app on GitHub Pages. The service worker leaves `/docs/` alone.
 In the repository's **Settings → Pages**, set **Source** to **GitHub Actions**. The workflow
 cannot do this with the default token. The `github-pages` environment that GitHub creates allows
 deployments from `main`.
+
+This matters: with the source left on _Deploy from a branch_, GitHub also runs its own
+`pages build and deployment` on every push. That publishes the raw repository, whose
+`index.html` loads `/src/main.ts` and does not work outside the dev server, and it does not wait
+for the tests. See the [incident report](../reports/2026-10-12-pages-regression.md).
+
+## Guards in the `deploy` job
+
+- **Pages source check:** before deploying, the job reads the repository's Pages settings and
+  fails unless the source is _GitHub Actions_.
+- **Smoke test:** after deploying, the job fetches the live URL and fails unless it loads the
+  built bundle (`/assets/…`) and does not reference `src/main.ts`.

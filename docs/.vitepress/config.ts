@@ -58,6 +58,15 @@ export default defineConfig({
       },
       { text: 'Reference', items: [{ text: 'Specification', link: '/spec' }] },
       {
+        text: 'Reports',
+        items: [
+          {
+            text: 'Incident: Pages regression (2026-10-12)',
+            link: '/reports/2026-10-12-pages-regression',
+          },
+        ],
+      },
+      {
         text: 'Decisions (ADRs)',
         link: '/adr/',
         items: adrs.map(([n, title, file]) => ({ text: `${n} · ${title}`, link: `/adr/${file}` })),

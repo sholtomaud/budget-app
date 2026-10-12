@@ -82,8 +82,14 @@ test('storage: encrypt at rest, lock, export, delete all, import (NFR-STO-002…
   // Delete everything.
   const del = page.getByRole('form', { name: 'Delete all data' });
   await del.getByLabel(/Type/).fill('DELETE');
+  // Deleting ends with a full page load of the start screen: wait for that
+  // load, not just the URL, before touching the page (the old document's
+  // context is destroyed mid-navigation).
+  const fresh = page.waitForEvent('load');
   await del.getByRole('button', { name: 'Delete all data' }).click();
+  await fresh;
   await expect(page).toHaveURL(/\/$/, { timeout: 30_000 });
+  await expect(page.getByRole('heading', { name: 'Crux', level: 1 })).toBeVisible();
   expect(await rawDb(page)).not.toContain('SYN-TXN');
   await expect(page.locator('lock-screen .backdrop')).toBeHidden();
 
@@ -93,9 +99,11 @@ test('storage: encrypt at rest, lock, export, delete all, import (NFR-STO-002…
   await imp.getByLabel('File', { exact: true }).setInputFiles(file);
   await imp.getByLabel('File passphrase').fill('export passphrase');
   await imp.getByLabel('Replace everything on this device').check();
+  // Restoring reloads the app shortly after "Restored": wait for that reload.
+  const reloaded = page.waitForEvent('load', { timeout: 30_000 });
   await imp.getByRole('button', { name: 'Import' }).click();
   await expect(page.locator('.import .msg')).toContainText('Restored', { timeout: 30_000 });
-  await page.waitForLoadState('load');
+  await reloaded;
   await nav(page, 'Transactions');
   await expect(page.locator('table tbody tr').first()).toBeVisible({ timeout: 30_000 });
   if (rowsBefore) await expect(page.locator('.count, .summary').first()).toHaveText(rowsBefore);
