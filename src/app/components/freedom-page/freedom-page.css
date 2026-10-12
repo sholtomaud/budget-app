@@ -94,3 +94,8 @@
   font-family: var(--mono);
   word-break: break-all;
 }
+:host .warn {
+  color: var(--bad);
+  font-weight: 600;
+  margin: var(--space-2) 0 0;
+}

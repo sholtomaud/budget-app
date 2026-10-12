@@ -405,7 +405,8 @@ export function runOnce(
     const pay = working ? plan.netPay : 0;
     const project = free ? plan.projectMonthly : 0;
     const ratio = ratioAt(plan.spending.ratio, m, u);
-    const opex = (free ? tierOpex : currentOpex) * ratio;
+    // Spending is never negative (inputs are checked; this is the last guard).
+    const opex = Math.max(0, (free ? tierOpex : currentOpex) * ratio);
     const capex = capexPath[m]!;
     const need = opex + capex;
 

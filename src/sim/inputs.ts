@@ -292,6 +292,13 @@ export function spendingFrom(
     const g = groupOf(s.categoryId);
     current[g] = (current[g] ?? 0) + vals.reduce((a, b) => a + b, 0) / vals.length / 100;
   }
+  // A group that took in more than it spent (refunds aside, usually pay or a
+  // transfer filed under a spending category) is no spending, never negative:
+  // negative spending would make money appear from nowhere.
+  const credits = Object.keys(current)
+    .filter((g) => current[g]! < 0)
+    .sort();
+  for (const g of credits) current[g] = 0;
   const budget: Record<string, number> = {};
   for (const l of d.budget.lines) {
     const g = groupOf(l.categoryId);
@@ -317,5 +324,6 @@ export function spendingFrom(
     ratio,
     assets,
     capexMonthly: (annualisedCapexPerWeek(d.assets, tier, d.budget.tiers) * 52) / 12 / 100,
+    ...(credits.length ? { credits } : {}),
   };
 }
