@@ -30,3 +30,4 @@ Every deviation from the [specification](../spec.md) gets one.
 | [0022](./0022-bayesian-spending-and-return-uncertainty.md) | The Bayesian spending model as built, its checks, and return-parameter uncertainty             | Accepted            |
 | [0024](./0024-streaming-and-activity-log.md)               | Streamed AI replies and an activity log in the chat panel                                      | Accepted            |
 | [0025](./0025-negative-spending-and-invalid-runs.md)       | Negative spending is no spending; no valid runs is an error, never 0 %                         | Accepted            |
+| [0026](./0026-plan-guidance.md)                            | Plan guidance: checks that find the settings behind a bad result                               | Accepted            |

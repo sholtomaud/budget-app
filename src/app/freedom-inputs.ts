@@ -97,18 +97,6 @@ export async function inputsFor(
   return { scenario, spending };
 }
 
-/**
- * When a spending group took in more than it spent (ADR 0025): it counts as no
- * spending, and the person should know, because the plan then assumes less
- * spending than they really have.
- */
-export function creditsNote(spending: SpendingInput): string | null {
-  const g = spending.credits;
-  if (!g?.length) return null;
-  const names = g.map((x) => x.charAt(0).toUpperCase() + x.slice(1)).join(', ');
-  return `${names}: more money came in than went out over the last 12 months, so ${g.length > 1 ? 'these count' : 'this counts'} as no spending. Pay or a transfer may be filed under a spending category; check Transactions.`;
-}
-
 /** A short, stable citation for a set of runs (SPEC §11.4: results cite their run IDs). */
 export function runIdOf(r: PoolResult): string {
   return `${r.record.inputsHash.slice(0, 12)}·seed ${r.record.seed}·runs 0–${r.record.runs - 1}`;

@@ -94,8 +94,23 @@
   font-family: var(--mono);
   word-break: break-all;
 }
-:host .warn {
-  color: var(--bad);
+:host .checks .check-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+:host .checks .check-list li {
+  border-left: 3px solid var(--border-strong);
+  padding-left: var(--space-2);
+}
+:host .checks .check-list li.problem {
+  border-left-color: var(--bad);
+}
+:host .checks .tag {
   font-weight: 600;
-  margin: var(--space-2) 0 0;
+}
+:host .checks .problem .tag {
+  color: var(--bad);
 }

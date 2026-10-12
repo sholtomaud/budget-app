@@ -22,37 +22,37 @@
           >Years of freedom <input name="horizon" type="number" min="1" max="60" step="1"
         /></label>
         <label
-          >Never below (floor, $) <input name="floor" type="number" min="0" step="1000"
+          >Never below (floor, $) <input name="floor" type="number" min="0" step="any"
         /></label>
         <label
           >Target probability (%) <input name="target" type="number" min="50" max="99" step="1"
         /></label>
         <label
-          >Project income ($ a year) <input name="project" type="number" min="0" step="1000"
+          >Project income ($ a year) <input name="project" type="number" min="0" step="any"
         /></label>
         <label
           >Spending after freedom (% of tier)
-          <input name="tierSpend" type="number" min="30" max="200" step="5"
+          <input name="tierSpend" type="number" min="30" max="200" step="any"
         /></label>
         <label
           >Spending now (% of today)
-          <input name="currentSpend" type="number" min="30" max="200" step="5"
+          <input name="currentSpend" type="number" min="30" max="200" step="any"
         /></label>
       </div>
       <h3>Work and pay</h3>
       <div class="fields">
         <label
-          >Take-home pay ($ a month) <input name="netPay" type="number" min="0" step="100"
+          >Take-home pay ($ a month) <input name="netPay" type="number" min="0" step="any"
         /></label>
         <label>Paid work until <input name="workUntil" type="month" /></label>
         <label
-          >Your gross salary ($ a year) <input name="gross1" type="number" min="0" step="1000"
+          >Your gross salary ($ a year) <input name="gross1" type="number" min="0" step="any"
         /></label>
         <label
-          >Partner's gross salary ($ a year) <input name="gross2" type="number" min="0" step="1000"
+          >Partner's gross salary ($ a year) <input name="gross2" type="number" min="0" step="any"
         /></label>
         <label
-          >Cash kept in the bank ($) <input name="buffer" type="number" min="0" step="500"
+          >Cash kept in the bank ($) <input name="buffer" type="number" min="0" step="any"
         /></label>
       </div>
       <h3>Withdrawals</h3>
@@ -145,6 +145,13 @@
       <span class="status muted" role="status" aria-live="polite"></span>
     </form>
   </div>
+
+  <article class="card checks" hidden aria-labelledby="checks-h">
+    <h2 id="checks-h">Plan checks</h2>
+    <p class="muted">Settings that may make this plan fail in a way you didn't mean.</p>
+    <ul class="check-list"></ul>
+    <p class="check-done" role="status" hidden></p>
+  </article>
 
   <div class="results" hidden>
     <div class="cards">

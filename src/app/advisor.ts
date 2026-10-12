@@ -22,7 +22,14 @@ import { activityId, elapsed, kb, step, type ActivitySink } from './activity.ts'
 import { activeProvider, sendStream } from './egress.ts';
 import { inputsFor, runIdOf, simulateSetup } from './freedom-inputs.ts';
 import { addScenario, loadScenarios } from './scenarios.ts';
-import { findChanges, forecastConfidence, whyShort, type Insight } from './insights.ts';
+import {
+  checkProposals,
+  findChanges,
+  forecastConfidence,
+  planChecks,
+  whyShort,
+  type Insight,
+} from './insights.ts';
 import {
   assetProposal,
   budgetLineProposal,
@@ -86,14 +93,30 @@ export async function runTool(
     });
   };
   switch (name) {
+    case 'check_plan': {
+      const checks = await planChecks(v, setup);
+      for (const p of checkProposals(checks, setup)) sink?.proposals.push(p);
+      return JSON.stringify({
+        checks: checks.map((c) => ({
+          level: c.level,
+          finding: c.text,
+          ...(c.fix ? { offered: `A card to ${c.fix.label.toLowerCase()}.` } : {}),
+        })),
+        note: checks.some((c) => c.fix)
+          ? 'Fixes are shown to the user as cards. Nothing has changed until they click Apply.'
+          : undefined,
+      });
+    }
     case 'explain_shortfall': {
       const i = await whyShort(v);
+      for (const p of i.proposals ?? []) sink?.proposals.push(p);
       return JSON.stringify(i.facts);
     }
     case 'find_plan_changes': {
       const i = await findChanges(v, (d, t) =>
         sink?.onProgress?.(`Trying plans: ${d} of up to ${t}…`)
       );
+      for (const p of i.proposals ?? []) sink?.proposals.push(p);
       if (i.proposal) sink?.proposals.push(i.proposal);
       if (i.link) sink?.links.push(i.link);
       return JSON.stringify({
@@ -284,6 +307,8 @@ export function toolActivity(name: string, input: Record<string, unknown>): [str
       return ['Saving a proposed plan to Scenarios…', 'Saved a proposed plan to Scenarios'];
     case 'explain_assumption':
       return ['Looking up an assumption…', 'Looked up an assumption'];
+    case 'check_plan':
+      return ["Checking your plan's settings…", "Checked your plan's settings"];
     case 'explain_shortfall':
       return ['Looking at what holds your plan back…', 'Looked at what holds your plan back'];
     case 'find_plan_changes':

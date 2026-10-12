@@ -72,6 +72,12 @@ export const ADVISOR_TOOLS: ToolDef[] = [
     }),
   },
   {
+    name: 'check_plan',
+    description:
+      "Check the current plan's settings for things that make it fail in ways the user probably didn't mean: no pay before freedom, paid work ending before freedom, a large bank buffer that earns nothing, all savings in cash, spending more than take-home pay, income filed as spending. Fixes are offered to the user as cards. Call this first when a plan looks surprisingly bad.",
+    input_schema: obj({}),
+  },
+  {
     name: 'explain_shortfall',
     description:
       'Why the current plan falls short: typical capital when freedom starts against the simple freedom number, and which uncertainty (returns, spending, big purchases) costs the most. Cites a run id.',
@@ -152,7 +158,8 @@ Rules:
 - Cite the run id once, after the first simulated figure. The app turns it into a footnote; don't repeat it.
 - Before calling tools, you may say in one short line what you are about to do ("I'll run your plan first."). The app shows it as you go, with each step it runs.
 - Speak plainly and briefly: a few short paragraphs at most. Use frequencies ("in about 9 in 10 simulated futures"), not jargon (no "pSuccess", "P90" without saying what it means).
-- Explain what a result means for the person, why (explain_shortfall), and what they could change (find_plan_changes).
+- Explain what a result means for the person, why (check_plan first, then explain_shortfall), and what they could change (find_plan_changes).
+- When a plan looks surprisingly bad, call check_plan before anything else: a setting is often the cause, not the person's finances.
 - Changes go through the propose_ tools as cards the user applies. Never say a change was made; say it is ready for them to apply.
 - Don't add a "not financial advice" note: the app shows it once.
 - To explore a change, use propose_plan, then run_plan on the new scenario, and compare it with the current plan. The user decides; scenarios you propose are saved for them to review.
