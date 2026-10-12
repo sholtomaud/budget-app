@@ -118,6 +118,22 @@ the darker band holds half the likely outcomes, the lighter one 90 %. Capital sp
 simulating your CAPEX register thousands of times. Switch between today's dollars and dollars of
 the day (inflated by your CPI assumption).
 
+The **total** comes from a model of all your categories together, because spending categories rise
+and fall together: a tight month is tight everywhere. **How sure is this?** shows the model's own
+checks in plain words:
+
+- **Sampler checks:** whether the calculation settled.
+- **Moving together:** how much categories move as one.
+- **Tested on the last months:** how often your last few months fell inside the forecast range.
+  About 80 % is right.
+- **Depends on assumptions?** How much next year's range moves if the model's starting
+  assumptions are weakened or strengthened.
+- **Sense check:** whether your spending is as steady as the model expected before it saw your
+  data. If it isn't, that is shown in red.
+
+Bills that never change are forecast as themselves. If the model can't settle, the total adds up the
+categories instead and says so.
+
 ## Freedom
 
 When could you stop working for money, and how sure can you be?
@@ -150,6 +166,12 @@ Mark super as locked until your preservation date.
 returns, spending and replacement costs, all in today's dollars. Tax follows the 2025-26
 Australian resident rates, Medicare levy and capital-gains discount. That table is labelled
 _assumed_ until a maintainer has checked it against the ATO.
+
+**Allow for not knowing the true average return** (on by default): nobody knows the true average
+return of shares or bitcoin; it is estimated from the past. With this on, each simulated future first
+picks its own average, as uncertain as 30 years of history would leave it (or as your imported
+history does). Over long plans this widens the range of outcomes, and the chance of success usually
+falls a little. That is honest, not pessimistic.
 
 **Results:**
 

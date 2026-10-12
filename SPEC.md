@@ -5,7 +5,7 @@
 
 | | |
 |---|---|
-| Status | Draft 11: M0–M8 built (ADRs 0001–0013, 0019–0021); M9–M14 planned, with proposed directions in ADRs 0014–0018 |
+| Status | Draft 12: M0–M9 built (ADRs 0001–0013, 0019–0022); M10–M14 planned, with proposed directions in ADRs 0014, 0016–0018 |
 | Date | 2026-10-11 |
 | Kernel | [GSSK](https://github.com/energese-project/GSSK-Giannantoni), consumed as a pinned WebAssembly artefact |
 | Runtime | Browser only. Static site, no backend |
@@ -555,18 +555,19 @@ synthetic series.
 
 Forecasts are built, checked and compared following the Bayesian workflow (Gelman, Vehtari et al.,
 *Bayesian Workflow*). The aim is calibrated uncertainty, because pSuccess is only as honest as its
-inputs. ADR 0015.
+inputs. ADR 0015 proposed it; ADR 0022 records what was built and why it differs, with the lab notes
+in `docs/reports/`.
 
 | ID | Requirement |
 |---|---|
-| FR-BAY-001 | A Bayesian structural time-series model per category (local level, optional damped trend, seasonality as random walks, log scale), with a hurdle component for intermittent categories. It joins the forecast candidates (§10.1). |
-| FR-BAY-002 | Partial pooling across a household's categories through shared hyper-priors. Weakly informative priors come from the synthetic population. |
-| FR-BAY-003 | A shared latent household spending factor loads on every category, so totals carry cross-category correlation. Full multi-construct SEM is out of scope (not identifiable from one household's data). |
-| FR-BAY-004 | Return-parameter uncertainty: Normal–Inverse-Gamma posteriors for each return model's monthly log-return mean and variance. Each Monte-Carlo run draws its parameters first (FR-FC-020). |
-| FR-BAY-005 | Inference runs in ml-core: Gibbs with forward-filtering backward-sampling, slice or Metropolis steps for hyper-parameters, and conjugate updates. Every kernel has a TypeScript twin and a parity test, and is seeded (NFR-DET-001). |
-| FR-BAY-006 | Diagnostics per fit: split-R̂ and effective sample size. A failing fit falls back to the §10.1 forecaster, labelled as such. |
-| FR-BAY-007 | Prior and posterior predictive checks are shown in a model panel and on `/eval`. LOO-PIT calibration and P10–P90 coverage on held-out months are CI gates. |
-| FR-BAY-008 | Simulation-based calibration tests every sampler in CI. Prior sensitivity of pSuccess (power-scaling) is reported as a shortfall driver. |
+| FR-BAY-001 | A Bayesian structural time-series model of a household's categories (local level, seasonal effects with ≥ 24 months, log scale), with a hurdle for categories with zero months. Fixed bills are left out. It supplies the **total** spending paths the simulation uses; category charts keep their §10.1 method (ADR 0022). |
+| FR-BAY-002 | Partial pooling across a household's categories through shared hyper-priors. Weakly informative priors, checked (and once revised) by the prior predictive check. |
+| FR-BAY-003 | A shared latent household spending factor (AR(1)) with **one common loading** moves every category together, so totals carry cross-category correlation. Per-category loadings and full multi-construct SEM are out of scope (not identifiable from one household's data). |
+| FR-BAY-004 | Return-parameter uncertainty: Normal–Inverse-Gamma posteriors for each return model's monthly log-return mean and variance (assumed values count as 30 years of evidence; histories as their own length). Each Monte-Carlo run draws its parameters first (FR-FC-020). On by default; a switch on the Freedom screen. |
+| FR-BAY-005 | Inference: collapsed Metropolis on the Kalman-filter likelihood for variances, the factor's loading and persistence, with paths by forward-filtering backward-sampling. The FFBS and Kalman kernels are in ml-core with TypeScript twins and parity tests. Seeded (NFR-DET-001). |
+| FR-BAY-006 | Diagnostics per fit: split-R̂ ≤ 1.05 and effective sample size ≥ 100, with one longer retry. A failing fit falls back to the §10.1 forecaster, labelled as such. |
+| FR-BAY-007 | The Forecast screen's model panel shows the diagnostics, holdout calibration (randomised PIT on held-out months), prior sensitivity and a prior predictive check. CI gates: on the synthetic personas every fit converges, every prior predictive check passes, and pooled P10–P90 holdout coverage is 70–95 %. |
+| FR-BAY-008 | Simulation-based calibration of the sampler in CI (λ, φ, σ, τ). Prior sensitivity (power-scaling ×0.5, ×2) of next year's spending is shown in the model panel; prior sensitivity of pSuccess is deferred. |
 
 ---
 
@@ -989,7 +990,7 @@ data.
 | **M6 Scenarios + optimiser** | Scenario compare, optimiser, Pareto view, shortfall drivers | FR-OPT-001; monotonicity property tests |
 | **M7 Storage, encryption, export** | Encryption at rest, export/import, delete-all, migrations | NFR-STO-001…005 |
 | **M8 Optional APIs + advisor** | Provider settings, consent + redaction, price-history import (fetch deferred, ADR 0021), LLM classification, LLM mapping assistant (structured outputs), advisor with tools | FR-API-001…005; FR-ING-017 (proposes the wizard's mapping; the full mapping spec of FR-ING-015 and per-column provenance of FR-ING-018 move to M10); §13.3; privacy tests |
-| **M9 Bayesian workflow** | Bayesian structural time series with pooling and a shared spending factor, return-parameter uncertainty, ml-core samplers with parity, model checks (ADR 0015) | FR-BAY-001…008; calibration gates in CI |
+| **M9 Bayesian workflow** | Bayesian structural time series with pooling and a shared spending factor, return-parameter uncertainty, ml-core samplers with parity, model checks (ADRs 0015, 0022) | FR-BAY-001…008; calibration gates in CI |
 | **M10 Real data** | User loads own exports locally; bank-specific CSV adapters as needed; learned in-browser CSV mapper | Reconciliation clean on real exports (verified locally, nothing committed); FR-ING-016 accuracy gate |
 | **M11 Live connections (production)** | Optional connector (§6.4): CDR consent via an accredited partner, or bank personal-API plugins; sync into the existing import pipeline; consent management in Settings | FR-LIVE-001…006; a sync from a CDR sandbox passes the same validation, dedupe and reconciliation tests as file import; the privacy e2e shows egress only to the configured connector origin |
 | **M12 Sync** | Local-first sync to user-owned storage, Google Drive first, end-to-end encrypted (ADR 0016) | FR-SYNC-001…008; two-device merge property tests; privacy e2e shows ciphertext only |

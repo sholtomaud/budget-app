@@ -168,6 +168,8 @@ export class FreedomPage extends BaseComponent {
     set('minSpend', String(w.kind === 'guardrails' ? w.minSpendFraction * 100 : 80));
     set('threshold', String(w.kind === 'skim' ? w.threshold * 100 : 2));
     set('tax', s.taxTable ?? '');
+    this.field<HTMLInputElement>('.goal', 'returnUncertainty').checked =
+      s.returnUncertainty ?? true;
     this.field<HTMLInputElement>('.run', 'seed').value = s.seed;
     this.showStrategyParams();
     this.taxNote();
@@ -249,6 +251,7 @@ export class FreedomPage extends BaseComponent {
         : []),
     ];
     s.taxTable = str('tax') || null;
+    s.returnUncertainty = this.field<HTMLInputElement>('.goal', 'returnUncertainty').checked;
     this.showStrategyParams();
     this.taxNote();
     this.changed();

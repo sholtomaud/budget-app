@@ -1,6 +1,21 @@
 :host {
   display: block;
 }
+:host .model-checks {
+  display: grid;
+  grid-template-columns: minmax(10rem, max-content) 1fr;
+  gap: var(--space-2) var(--space-4);
+  margin: var(--space-3) 0;
+}
+:host .model-checks dt {
+  color: var(--text-muted);
+}
+:host .model-checks dd {
+  margin: 0;
+}
+:host .model-checks .bad {
+  color: var(--danger, #b42318);
+}
 :host .controls {
   display: flex;
   flex-wrap: wrap;

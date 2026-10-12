@@ -4,6 +4,7 @@
  * Short histories (< 6 months) fall back to the budget line, labelled
  * `budgeted`. Everything is in real terms; callers inflate by CPI.
  */
+import { bayesTotal, type BayesReport } from '../bayes/forecast.ts';
 import { addMonths } from '../lib/dates.ts';
 import { deriveSeed, Rng } from '../lib/prng.ts';
 import { choose, type Score } from './ref/backtest.ts';
@@ -34,6 +35,14 @@ export interface OpexForecast {
   months: string[];
   series: SeriesForecast[];
   total: Quantiles;
+  /**
+   * Where the total's spread comes from: the Bayesian model (categories move
+   * together through a household factor, ADR 0022), or the per-category
+   * forecasts added up as if independent.
+   */
+  totalSource: 'bayes' | 'categories';
+  /** The Bayesian model's report, when it was asked for. */
+  bayes?: BayesReport;
 }
 
 function toQuantiles(q: Float64Array[]): Quantiles {
@@ -43,7 +52,7 @@ function toQuantiles(q: Float64Array[]): Quantiles {
 export function forecastOpex(
   history: MonthlySeries[],
   budgetMonthly: Record<string, number>,
-  opts: { horizon: number; seed: bigint; m?: number }
+  opts: { horizon: number; seed: bigint; m?: number; bayes?: boolean; checks?: boolean }
 ): OpexForecast {
   const m = opts.m ?? 12;
   const h = opts.horizon;
@@ -54,6 +63,7 @@ export function forecastOpex(
   const months = Array.from({ length: h }, (_, i) => addMonths(nextMonth, i).slice(0, 7));
   const totalPaths = new Float64Array(PATHS * h);
   const series: SeriesForecast[] = [];
+  const pathsById = new Map<string, Float64Array>();
   const ids = [
     ...new Set([...history.map((s) => s.categoryId), ...Object.keys(budgetMonthly)]),
   ].sort();
@@ -66,6 +76,7 @@ export function forecastOpex(
       const rate = budgetMonthly[id] ?? (y.length ? y.reduce((a, b) => a + b, 0) / y.length : 0);
       if (rate === 0) continue;
       for (let i = 0; i < totalPaths.length; i++) totalPaths[i]! += rate;
+      pathsById.set(id, new Float64Array(PATHS * h).fill(rate));
       const flat = new Array<number>(h).fill(rate);
       series.push({
         categoryId: id,
@@ -90,6 +101,7 @@ export function forecastOpex(
     const fit = METHODS[chosen]!(y, h, m);
     const paths = bootstrapPaths(fit, h, PATHS, rng);
     for (let i = 0; i < paths.length; i++) totalPaths[i]! += paths[i]!;
+    pathsById.set(id, paths);
     const chosenScore = scores.find((x) => x.method === chosen);
     const naive = scores.find((x) => x.method === 'seasonal-naive');
     series.push({
@@ -104,7 +116,35 @@ export function forecastOpex(
       quantiles: toQuantiles(pathQuantiles(paths, h)),
     });
   }
-  return { months, series, total: toQuantiles(pathQuantiles(totalPaths, h)) };
+  if (opts.bayes) {
+    const { report, total } = bayesTotal(history, pathsById, {
+      horizon: h,
+      nPaths: PATHS,
+      seed: opts.seed,
+      checks: opts.checks,
+    });
+    if (total)
+      return {
+        months,
+        series,
+        total: toQuantiles(pathQuantiles(total, h)),
+        totalSource: 'bayes',
+        bayes: report,
+      };
+    return {
+      months,
+      series,
+      total: toQuantiles(pathQuantiles(totalPaths, h)),
+      totalSource: 'categories',
+      bayes: report,
+    };
+  }
+  return {
+    months,
+    series,
+    total: toQuantiles(pathQuantiles(totalPaths, h)),
+    totalSource: 'categories',
+  };
 }
 
 /** Real → nominal: month i (0-based from the first forecast month) inflated by CPI. */

@@ -44,6 +44,8 @@ export interface FreedomSetup {
   provenance: Record<string, Provenance>;
   /** Spending levers (SPEC §11.3): multipliers on the tier's and today's spending. Default 1. */
   levers?: SpendingLevers;
+  /** Uncertainty about average returns (FR-BAY-004). Default on. */
+  returnUncertainty?: boolean;
 }
 
 export interface SpendingLevers {
@@ -266,6 +268,7 @@ export function scenarioFrom(setup: FreedomSetup, asOf: string, cpi: number): Sc
     returnModels: setup.returnModels,
     cpi,
     taxTable: setup.taxTable,
+    parameterUncertainty: setup.returnUncertainty ?? true,
   };
 }
 
