@@ -8,9 +8,11 @@ import { weeklyRate } from '../../../budget/model.ts';
 import { perWeek } from '../../../budget/periods.ts';
 import { categoryName } from '../../../classify/categories.ts';
 import type { CapexForecast } from '../../../forecast/capex.ts';
-import { inflate, type OpexForecast, type Quantiles } from '../../../forecast/opex.ts';
+import { inflate, MIN_HISTORY, type OpexForecast, type Quantiles } from '../../../forecast/opex.ts';
 import { monthlySeries } from '../../../forecast/series.ts';
 import { addMonths } from '../../../lib/dates.ts';
+import { creditsText } from '../../../sim/checks.ts';
+import { spendingFrom } from '../../../sim/inputs.ts';
 import { setPageDetail } from '../../page-context.ts';
 import template from './forecast-page.html?raw';
 import style from './forecast-page.css?raw';
@@ -102,6 +104,19 @@ export class ForecastPage extends BaseComponent {
     setPageDetail('/forecast', `${horizon / 12}-year forecast, ${opex.series.length} categories`);
     this.$('.status').textContent =
       `${opex.series.length} categories forecast from ${history[0]?.months.length ?? 0} months of history (kernels: ${kernel === 'ml-core' ? 'ml-core, WebAssembly' : 'TypeScript'}).`;
+    // Say when the tier choice changes nothing, so the same result isn't a puzzle.
+    const fromBudget = opex.series.filter((x) => x.method === 'budget').length;
+    const tierName = tierSel.selectedOptions[0]?.text ?? tier;
+    const note = this.$('.tier-note');
+    note.hidden = false;
+    note.textContent = fromBudget
+      ? `${fromBudget} categor${fromBudget === 1 ? 'y has' : 'ies have'} under ${MIN_HISTORY} months of history, so ${fromBudget === 1 ? 'it uses' : 'they use'} the ${tierName} budget; the others follow your spending.`
+      : `The tier makes no difference here: every category has at least ${MIN_HISTORY} months of history${v.budget.lines.length ? '' : ' and there are no budget lines yet'}, so the forecast follows your spending. The tier matters on the Freedom screen, for spending after freedom.`;
+    // Months that took in more than they spent pull the history below zero (ADR 0025).
+    const credits = spendingFrom(v, tier).credits;
+    const warn = this.$('.credits');
+    warn.hidden = !credits?.length;
+    warn.textContent = credits?.length ? creditsText(credits) : '';
     this.draw();
     // The model checks take a few seconds: show the forecast first, then fill them in.
     if (opex.bayes?.categories.length) {
