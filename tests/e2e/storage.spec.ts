@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Page } from './fixtures.ts';
 
 /** Every row of the app's IndexedDB, as text (to check what is stored at rest). */
 const rawDb = (page: Page) =>
@@ -32,7 +32,7 @@ test('storage: encrypt at rest, lock, export, delete all, import (NFR-STO-002…
   page,
 }) => {
   test.setTimeout(180_000);
-  await page.goto('/');
+  await page.goto('./');
   await page.getByLabel('Household').selectOption('default');
   await page.getByRole('button', { name: 'Load sample household' }).click();
   await expect(page).toHaveURL(/\/import$/);
@@ -112,7 +112,7 @@ test('storage: encrypt at rest, lock, export, delete all, import (NFR-STO-002…
 
 test('storage: change passphrase, lock now, turn encryption off', async ({ page }) => {
   test.setTimeout(180_000);
-  await page.goto('/settings');
+  await page.goto('settings');
   const enable = page.getByRole('form', { name: 'Turn on encryption' });
   await enable.getByLabel('Passphrase').fill('first passphrase');
   await enable.getByLabel('Again').fill('first passphrase');

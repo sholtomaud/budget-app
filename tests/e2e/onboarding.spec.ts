@@ -1,9 +1,9 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures.ts';
 
 test('landing page explains the app in plain words, and the guide walks through the screens', async ({
   page,
 }) => {
-  await page.goto('/');
+  await page.goto('./');
   await expect(page).toHaveTitle(/Crux/);
   await expect(page.getByRole('heading', { name: 'Crux', level: 1 })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'What Crux does' })).toBeVisible();
@@ -35,7 +35,7 @@ test('landing page explains the app in plain words, and the guide walks through 
   await expect(guide).toContainText('step 3 of 7');
   await guide.getByRole('button', { name: 'Hide guide' }).click();
   await expect(guide).toBeHidden();
-  await page.goto('/');
+  await page.goto('./');
   await expect(page.getByRole('heading', { name: 'Welcome back' })).toBeVisible();
   await page.getByRole('button', { name: 'Start the guide again' }).click();
   await expect(guide).toBeVisible();

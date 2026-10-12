@@ -1,8 +1,8 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures.ts';
 
 test('scenarios: save, compare side by side, and optimise (FR-OPT-001)', async ({ page }) => {
   test.setTimeout(240_000);
-  await page.goto('/');
+  await page.goto('./');
   await page.getByLabel('Household').selectOption('default');
   await page.getByRole('button', { name: 'Load sample household' }).click();
   await expect(page).toHaveURL(/\/import$/);

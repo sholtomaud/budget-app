@@ -1,7 +1,7 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Page } from './fixtures.ts';
 
 async function loadSynthetic(page: Page, persona = 'default') {
-  await page.goto('/');
+  await page.goto('./');
   await page.getByLabel('Household').selectOption(persona);
   await page.getByRole('button', { name: 'Load sample household' }).click();
   await expect(page).toHaveURL(/\/import$/);

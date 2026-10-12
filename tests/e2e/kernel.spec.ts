@@ -1,7 +1,7 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures.ts';
 
 test('household example model runs in the sim worker (M0 acceptance)', async ({ page }) => {
-  await page.goto('/kernel');
+  await page.goto('kernel');
   await expect(page.locator('.k-status')).toHaveText('SHA-256 matches the pin');
   await expect(page.locator('.k-version')).toHaveText('5.3.0');
 
@@ -16,7 +16,7 @@ test('household example model runs in the sim worker (M0 acceptance)', async ({ 
 test('the built page carries a CSP that limits connections to its origin and the allowed providers', async ({
   page,
 }) => {
-  await page.goto('/');
+  await page.goto('./');
   const csp = await page
     .locator('meta[http-equiv="Content-Security-Policy"]')
     .getAttribute('content');

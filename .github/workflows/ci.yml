@@ -74,6 +74,9 @@ jobs:
 
   e2e:
     name: e2e
+    # Tests exactly the site `build` produced, served as GitHub Pages serves
+    # it (under /<repo>/, real 404s): what passes here is what deploys.
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -82,19 +85,27 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
       - run: npm ci
-      - name: Rust toolchain for ml-core (rust-toolchain.toml)
-        run: rustup toolchain install
       - run: npx playwright install --with-deps chromium
-      - name: Playwright (shell, kernel, offline, privacy)
+      - name: The site from the build job
+        uses: actions/download-artifact@v4
+        with:
+          name: github-pages
+          path: artifact
+      - run: mkdir site && tar -xf artifact/artifact.tar -C site
+      - name: Playwright against the built site
         run: npm run e2e
         env:
           CI: 'true'
+          E2E_SITE: site
+          E2E_BASE: /${{ github.event.repository.name }}/
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: playwright-report
-          path: playwright-report/
-          retention-days: 7
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 14
 
   deploy:
     name: deploy (GitHub Pages)
@@ -110,12 +121,14 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+    outputs:
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       # Pages must publish only what this workflow builds, after build, test
-      # and e2e pass. With the source set to "Deploy from a branch", GitHub
-      # also runs its own ungated "pages build and deployment" on every push
-      # and publishes the raw repository (index.html loading /src/main.ts),
-      # which breaks the live app. Fail loudly instead.
+      # and e2e pass. With the source set to "Deploy from a branch" (the API
+      # calls it "legacy"), GitHub also runs its own ungated "pages build and
+      # deployment" on every push and publishes the raw repository
+      # (index.html loading /src/main.ts), which breaks the live app.
       - name: Pages source is GitHub Actions
         env:
           GH_TOKEN: ${{ github.token }}
@@ -127,18 +140,32 @@ jobs:
           fi
       - id: deployment
         uses: actions/deploy-pages@v4
-      # The live site must be the built app.
-      - name: Smoke test the live site
+
+  live:
+    name: live site check
+    # A browser on the deployed site: the app and docs load, the kernel
+    # verifies, no request fails and nothing logs an error. Screenshots are
+    # kept for every run.
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Playwright against the live site
+        run: npx playwright test -c playwright.live.config.ts
         env:
-          URL: ${{ steps.deployment.outputs.page_url }}
-        run: |
-          for i in 1 2 3 4 5 6; do
-            html=$(curl -fsSL "$URL" || true)
-            if echo "$html" | grep -q '/assets/' && ! echo "$html" | grep -q 'src/main.ts'; then
-              echo "Live site serves the built app."
-              exit 0
-            fi
-            sleep 10
-          done
-          echo "::error::$URL does not serve the built app (no /assets/ bundle, or it loads src/main.ts)."
-          exit 1
+          CI: 'true'
+          LIVE_URL: ${{ needs.deploy.outputs.url }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: live-site-report
+          path: |
+            playwright-live-report/
+            test-results/
+          retention-days: 30

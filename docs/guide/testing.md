@@ -10,7 +10,7 @@
 ```bash
 npm test             # all Vitest suites
 npm run test:watch   # watch mode
-npm run e2e          # Playwright (builds the app first)
+npm run e2e          # Playwright (builds the app first, serves it as GitHub Pages does)
 ```
 
 Components are tested in a real browser by Playwright, not in a simulated DOM. Unit tests cover

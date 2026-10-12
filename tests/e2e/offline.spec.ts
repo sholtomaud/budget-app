@@ -1,10 +1,10 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures.ts';
 
 test('works offline after first load, including the kernel (NFR-STO-005)', async ({
   page,
   context,
 }) => {
-  await page.goto('/');
+  await page.goto('./');
   await expect(page.locator('.kstate')).toHaveText(/verified/);
   await page.evaluate(async () => {
     await navigator.serviceWorker.ready;
@@ -25,6 +25,6 @@ test('works offline after first load, including the kernel (NFR-STO-005)', async
   await expect(page.locator('.result')).toHaveAttribute('data-ready', 'true');
 
   // A deep link typed while offline is served the cached shell.
-  await page.goto('/budget');
+  await page.goto('budget');
   await expect(page.getByRole('heading', { name: 'Budget', level: 1 })).toBeVisible();
 });

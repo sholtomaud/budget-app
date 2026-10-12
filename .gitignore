@@ -162,6 +162,7 @@ vite.config.ts.timestamp-*
 dist/
 playwright-report/
 test-results/
+playwright-live-report/
 
 # VitePress
 docs/.vitepress/cache/
