@@ -11,6 +11,7 @@ import type { CapexForecast } from '../../../forecast/capex.ts';
 import { inflate, type OpexForecast, type Quantiles } from '../../../forecast/opex.ts';
 import { monthlySeries } from '../../../forecast/series.ts';
 import { addMonths } from '../../../lib/dates.ts';
+import { setPageDetail } from '../../page-context.ts';
 import template from './forecast-page.html?raw';
 import style from './forecast-page.css?raw';
 
@@ -98,6 +99,7 @@ export class ForecastPage extends BaseComponent {
     ]);
     if (id !== this.runId) return;
     this.last = { opex, capex };
+    setPageDetail('/forecast', `${horizon / 12}-year forecast, ${opex.series.length} categories`);
     this.$('.status').textContent =
       `${opex.series.length} categories forecast from ${history[0]?.months.length ?? 0} months of history (kernels: ${kernel === 'ml-core' ? 'ml-core, WebAssembly' : 'TypeScript'}).`;
     this.draw();

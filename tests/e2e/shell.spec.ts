@@ -40,7 +40,6 @@ test('every SPEC §12 screen is reachable from the nav', async ({ page }) => {
     'Forecast',
     'Freedom',
     'Scenarios',
-    'Advisor',
     'Settings',
   ];
   for (const label of labels) {
@@ -52,6 +51,10 @@ test('every SPEC §12 screen is reachable from the nav', async ({ page }) => {
     const placeholder = page.locator('placeholder-page .milestone');
     if (await placeholder.count()) await expect(placeholder).toHaveText(/^M\d/);
   }
+  // The advisor is the chat panel now (ADR 0023): its old address opens the panel.
+  await page.goto('advisor');
+  await expect(page.locator('chat-panel').getByRole('heading', { name: 'Ask Crux' })).toBeVisible();
+  await page.goBack();
   // The engine check is a technical screen: linked from Settings, not in the nav.
   await page.getByRole('link', { name: 'Simulation engine check' }).click();
   await expect(page.getByRole('heading', { name: 'Engine check' })).toBeVisible();

@@ -130,6 +130,10 @@ h2 {
   margin: 0 0 var(--space-2);
 }
 
+/* The chat panel docks on the right of wide screens (ADR 0023). */
+body.chat-open {
+  padding-right: var(--chat-w, 24rem);
+}
 #router-outlet {
   outline: none;
 }

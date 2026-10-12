@@ -19,9 +19,12 @@ test('forecast fans per category and for capital spend, on the ml-core kernels (
     .getByRole('navigation', { name: 'Screens' })
     .getByRole('link', { name: 'Forecast' })
     .click();
-  await expect(page.locator('.status')).toContainText('kernels: ml-core, WebAssembly', {
-    timeout: 30_000,
-  });
+  await expect(page.locator('forecast-page .status')).toContainText(
+    'kernels: ml-core, WebAssembly',
+    {
+      timeout: 30_000,
+    }
+  );
   await expect(page.locator('table.methods tbody tr').first()).toBeVisible();
   await expect(page.locator('fan-chart.total svg polygon.outer')).toBeVisible();
   await expect(page.locator('fan-chart.total .prov')).toHaveText('forecast');

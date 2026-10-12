@@ -28,6 +28,7 @@ import {
   type WithdrawalStrategy,
 } from '../../../sim/model.ts';
 import { taxProvenance, taxTable } from '../../../sim/tax.ts';
+import { setPageDetail } from '../../page-context.ts';
 import template from './freedom-page.html?raw';
 import style from './freedom-page.css?raw';
 
@@ -420,6 +421,10 @@ export class FreedomPage extends BaseComponent {
     const target = scenario.goal.targetProbability;
     const ps = this.$('.psuccess');
     ps.textContent = pct(r.pSuccess);
+    setPageDetail(
+      '/freedom',
+      `last run: works in ${pct(r.pSuccess)} of futures, target ${pct(target)}`
+    );
     ps.className = `v psuccess ${r.pSuccess >= target ? 'ok' : 'bad'}`;
     this.$('.psuccess-note').replaceChildren(
       `of ${(r.runs - r.invalidRuns).toLocaleString('en-AU')} futures keep capital above ${aud.format(dollars(scenario.goal.floor))} and always meet the ${this.tierName(scenario.goal.tier)} tier, for ${scenario.goal.horizonYears} years from ${scenario.goal.start.slice(0, 7)}. Target ${pct(target)}. `,

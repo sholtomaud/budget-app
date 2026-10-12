@@ -3,6 +3,7 @@ import { Router } from './app/core/router.ts';
 import { screens } from './app/screens.ts';
 import './app/components/app-nav/app-nav.ts';
 import './app/components/guide-bar/guide-bar.ts';
+import './app/components/chat-panel/chat-panel.ts';
 import { applyStoredTheme } from './app/theme.ts';
 import './app/components/lock-screen/lock-screen.ts';
 import { initVault } from './app/vault.ts';

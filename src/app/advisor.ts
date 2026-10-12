@@ -21,6 +21,15 @@ import { taxProvenance, taxTable } from '../sim/tax.ts';
 import { activeProvider, send } from './egress.ts';
 import { inputsFor, runIdOf, simulateSetup } from './freedom-inputs.ts';
 import { addScenario, loadScenarios } from './scenarios.ts';
+import { findChanges, forecastConfidence, whyShort, type Insight } from './insights.ts';
+import {
+  assetProposal,
+  budgetLineProposal,
+  categoriseProposal,
+  describe,
+  type Proposal,
+} from './proposals.ts';
+import { SCREEN_WORDS } from '../assistant/intents.ts';
 import { sim } from './workers.ts';
 
 const pct = (x: number) => `${Math.round(x * 100)} %`;
@@ -52,14 +61,77 @@ function withdrawalOf(
   }
 }
 
+/** What tools hand to the panel besides their text for the model: cards, buttons, a chart. */
+export interface ToolSink {
+  proposals: Proposal[];
+  links: { label: string; path: string }[];
+  chart?: Insight['chart'];
+  onProgress?: (text: string) => void;
+}
+
 /** Run one tool; returns JSON text for the model. Amounts are rounded (FR-API-003). */
 export async function runTool(
   v: DataView,
   name: string,
-  input: Record<string, unknown>
+  input: Record<string, unknown>,
+  sink?: ToolSink
 ): Promise<string> {
   const setup = await currentSetup(v);
+  const offered = (p: Proposal) => {
+    sink?.proposals.push(p);
+    return JSON.stringify({
+      offered: describe(p, v),
+      note: 'Shown to the user as a card. Nothing has changed until they click Apply.',
+    });
+  };
   switch (name) {
+    case 'explain_shortfall': {
+      const i = await whyShort(v);
+      return JSON.stringify(i.facts);
+    }
+    case 'find_plan_changes': {
+      const i = await findChanges(v, (d, t) =>
+        sink?.onProgress?.(`Trying plans: ${d} of up to ${t}…`)
+      );
+      if (i.proposal) sink?.proposals.push(i.proposal);
+      if (i.link) sink?.links.push(i.link);
+      return JSON.stringify({
+        ...i.facts,
+        ...(i.proposal ? { offered: 'Shown to the user as a scenario card to save.' } : {}),
+      });
+    }
+    case 'get_forecast_confidence': {
+      const i = await forecastConfidence(v);
+      if (i.link) sink?.links.push(i.link);
+      return JSON.stringify(i.facts);
+    }
+    case 'propose_budget_line':
+      return offered(
+        budgetLineProposal(
+          v,
+          String(input.item),
+          Number(input.amountDollars),
+          String(input.period),
+          (input.categoryHint as string | null) ?? undefined
+        )
+      );
+    case 'propose_big_purchase':
+      return offered(
+        assetProposal(v, String(input.name), {
+          ...(typeof input.costDollars === 'number' ? { costDollars: input.costDollars } : {}),
+          ...(typeof input.ageYears === 'number' ? { ageYears: input.ageYears } : {}),
+        })
+      );
+    case 'propose_categorisation': {
+      const p = categoriseProposal(v, String(input.match), String(input.category));
+      return 'error' in p ? JSON.stringify({ error: p.error }) : offered(p);
+    }
+    case 'go_to_screen': {
+      const s = SCREEN_WORDS.find((x) => x.label === input.screen);
+      if (!s) return JSON.stringify({ error: 'Unknown screen' });
+      sink?.links.push({ label: `Open ${s.label}`, path: s.path });
+      return JSON.stringify({ offered: `A button to open ${s.label}.` });
+    }
     case 'get_plan': {
       const byClass: Record<string, bigint> = {};
       for (const h of setup.holdings)
@@ -113,6 +185,7 @@ export async function runTool(
       const { scenario, spending } = await inputsFor(v, s);
       const det = deterministicFreedom(scenario, spending);
       const end = (k: 'p10' | 'p50' | 'p90') => roughAmount(r.capital[k].at(-1) ?? 0);
+      if (sink) sink.chart = { kind: 'chance', p: r.pSuccess, target: s.goal.targetProbability };
       return JSON.stringify({
         runId: runIdOf(r),
         plan: saved?.name ?? 'current plan',
@@ -183,6 +256,12 @@ export interface AdvisorMessage {
   unverified: string[];
   runIds: string[];
   tools: string[];
+  /** Cards, buttons and a chart the tools offered. */
+  proposals: Proposal[];
+  links: { label: string; path: string }[];
+  chart?: Insight['chart'];
+  /** The provider's label, e.g. "Google Gemini". */
+  provider: string;
 }
 
 export class AdvisorSession {
@@ -194,10 +273,22 @@ export class AdvisorSession {
     this.view = view;
   }
 
-  async ask(question: string, onTool?: (name: string) => void): Promise<AdvisorMessage> {
+  async ask(
+    question: string,
+    onTool?: (name: string) => void,
+    opts: { context?: string; onProgress?: (text: string) => void } = {}
+  ): Promise<AdvisorMessage> {
     const ap = await activeProvider();
     if (!ap.ok) throw new Error(ap.reason);
-    this.turns.push({ role: 'user', text: question });
+    this.turns.push({
+      role: 'user',
+      text: opts.context ? `[Screen: ${opts.context}]\n${question}` : question,
+    });
+    const sink: ToolSink = {
+      proposals: [],
+      links: [],
+      ...(opts.onProgress ? { onProgress: opts.onProgress } : {}),
+    };
     const runIds: string[] = [];
     const tools: string[] = [];
     let text = '';
@@ -231,7 +322,7 @@ export class AdvisorSession {
         const bad = tool ? checkToolInput(tool, c.input) : `Unknown tool ${c.name}`;
         const content = bad
           ? JSON.stringify({ error: `Invalid input: ${bad}` })
-          : await runTool(this.view(), c.name, c.input as Record<string, unknown>);
+          : await runTool(this.view(), c.name, c.input as Record<string, unknown>, sink);
         this.toolTexts.push(content);
         const id = /"runId":"([^"]+)"/.exec(content)?.[1];
         if (id) runIds.push(id);
@@ -245,6 +336,10 @@ export class AdvisorSession {
       unverified: unverifiedFigures(text, this.toolTexts, question),
       runIds,
       tools,
+      proposals: sink.proposals,
+      links: sink.links,
+      ...(sink.chart ? { chart: sink.chart } : {}),
+      provider: ap.provider.label,
     };
   }
 }
