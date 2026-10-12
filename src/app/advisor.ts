@@ -475,7 +475,8 @@ export class AdvisorSession {
     return {
       role: 'advisor',
       text,
-      unverified: unverifiedFigures(text, this.toolTexts, question),
+      // The screen context the person sent counts as theirs (e.g. their own target).
+      unverified: unverifiedFigures(text, this.toolTexts, `${opts.context ?? ''}\n${question}`),
       runIds,
       tools,
       proposals: sink.proposals,

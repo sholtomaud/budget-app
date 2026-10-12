@@ -178,7 +178,7 @@ export function describe(p: Proposal, v: DataView): string {
     case 'categorise':
       return `Put ${p.keys.length} transaction${p.keys.length === 1 ? '' : 's'} mentioning "${p.match}" (${p.examples.join(', ')}) in ${categoryName(p.categoryId, v.categories)}, and remember it for similar ones.`;
     case 'scenario':
-      return `Save a scenario "${p.name}": ${p.summary}`;
+      return `Save as a scenario to compare, without changing your plan: ${p.summary}`;
     case 'setup':
       return `${p.label}: ${p.summary}.`;
   }

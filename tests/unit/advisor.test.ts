@@ -31,6 +31,13 @@ describe('advisor figure check (NFR-HON-002, §13.3)', () => {
       )
     ).toEqual([]);
   });
+
+  test("figures in the screen context the person sent (their own target) aren't flagged", () => {
+    const context = 'Freedom · last run: works in 92 % of futures, target 90 %';
+    expect(
+      unverifiedFigures('That meets your 90 % target.', [tool], `${context}\nFind changes`)
+    ).toEqual([]);
+  });
 });
 
 describe('advisor tool schemas are strict', () => {

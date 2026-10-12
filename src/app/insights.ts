@@ -231,6 +231,7 @@ export async function findChanges(
       text: `${first}${noPay ? `Spending up to half as much after freedom` : `Even starting freedom up to 8 years later and spending up to 30 % less after it`}, none of the ${result.candidates.length} plans I tried reached ${percent(target)}. The best worked ${chanceWords(near.pSuccess)}. Run \`${near.runId}\`\n\nThe other levers are worth a look on the Scenarios screen: project income after freedom, spending less now, or a lower spending tier.`,
       facts: {
         reachedTarget: false,
+        target: percent(target),
         bestChance: percent(near.pSuccess),
         runId: near.runId,
         plansTried: result.candidates.length,
@@ -242,31 +243,48 @@ export async function findChanges(
   }
   const later = b.values.start;
   const spend = b.values.tierSpend;
+  // Spending after freedom in dollars a month, not as a share of "the tier".
+  const { spending } = await inputsFor(v, setup);
+  const perMonth = sum(spending.tier) / Math.max(1e-9, base.tierSpend);
   const changes: string[] = [];
   if (later >= 0.05) changes.push(`start freedom **${years(later)} later**`);
   if (spend < base.tierSpend - 0.005)
     changes.push(
-      `spend **${percent(spend)}** of your planned amount after freedom (now ${percent(base.tierSpend)})`
+      `spend about **${dollars(perMonth * spend)} a month** after freedom instead of ${dollars(perMonth * base.tierSpend)} (${percent(spend)} of what you've planned)`
     );
   const summary = changes.join(' and ').replace(/\*\*/g, '');
+  const works = `works ${chanceWords(b.pSuccess)} (${percent(b.pSuccess)}), meeting your ${percent(target)} target`;
   return {
-    text: `${first}The smallest change I found: ${changes.join(' and ')}. That plan works ${chanceWords(b.pSuccess)} (${percent(b.pSuccess)}), meeting your ${percent(target)} target. I tried ${result.candidates.length} plans on the same simulated futures, so the comparison is fair. Run \`${b.runId}\`\n\nSave it as a scenario to compare it with your current plan.`,
+    text: `${first}The smallest change I found: ${changes.join(' and ')}. That plan ${works}. I tried ${result.candidates.length} plans on the same simulated futures, so the comparison is fair. Run \`${b.runId}\`\n\nYou can use it in your plan now (and undo it), or save it as a scenario to compare first.`,
     facts: {
       reachedTarget: true,
+      target: percent(target),
       startYearsLater: Math.round(later * 10) / 10,
+      spendingAfterFreedomPerMonth: roughAmount(perMonth * spend),
+      spendingAfterFreedomNowPerMonth: roughAmount(perMonth * base.tierSpend),
       spendingAfterFreedom: percent(spend),
       chance: percent(b.pSuccess),
       runId: b.runId,
       plansTried: result.candidates.length,
+      offered: 'Two cards: one changes the current plan (with undo), one saves it as a scenario.',
     },
     runIds: [b.runId],
-    proposal: {
-      kind: 'scenario',
-      name: `Crux: ${summary}`,
-      setup: b.setup,
-      summary: `${summary}; works ${chanceWords(b.pSuccess)}.`,
-    },
-    proposals: fixes,
+    proposals: [
+      ...fixes,
+      {
+        kind: 'setup',
+        label: 'Use in my plan',
+        summary,
+        setup: b.setup,
+        from: setup,
+      },
+      {
+        kind: 'scenario',
+        name: `Crux: ${summary}`.slice(0, 80),
+        setup: b.setup,
+        summary: `${summary}; ${works}.`,
+      },
+    ],
     link: { label: 'Open Scenarios', path: '/scenarios' },
   };
 }

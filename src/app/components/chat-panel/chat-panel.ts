@@ -470,12 +470,21 @@ export class ChatPanel extends BaseComponent {
         break;
       }
       case 'scenario': {
-        const name = input('Name', p0.name);
+        const name = input('Scenario name', p0.name);
         read = () => ({ ...p0, name: name.value.trim() || p0.name });
         break;
       }
     }
-    const apply = el('button', { type: 'button', class: 'small apply' }, 'Apply');
+    // Say what the button does: saving a scenario doesn't change the plan.
+    const verb =
+      p0.kind === 'scenario' ? 'Save scenario' : p0.kind === 'setup' ? 'Change my plan' : 'Apply';
+    const doneText =
+      p0.kind === 'scenario'
+        ? 'Saved to Scenarios. Your plan is unchanged.'
+        : p0.kind === 'setup'
+          ? 'Your plan is changed. Simulate on Freedom to see it.'
+          : 'Applied.';
+    const apply = el('button', { type: 'button', class: 'small apply' }, verb);
     const discard = el('button', { type: 'button', class: 'secondary small discard' }, 'Discard');
     const note = el('span', { class: 'muted small result', role: 'status' });
     const buttons = el('div', { class: 'buttons' }, apply, discard, note);
@@ -486,7 +495,7 @@ export class ChatPanel extends BaseComponent {
         .forEach((x) => ((x as HTMLInputElement).disabled = true));
       try {
         const undo = await applyProposal(read());
-        note.textContent = 'Applied.';
+        note.textContent = doneText;
         const u = el('button', { type: 'button', class: 'secondary small undo' }, 'Undo');
         u.onclick = async () => {
           u.disabled = true;
