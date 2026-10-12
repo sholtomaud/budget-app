@@ -30,6 +30,40 @@ test('forecast fans per category and for capital spend, on the ml-core kernels (
   await expect(page.locator('fan-chart.total .prov')).toHaveText('forecast');
   await expect(page.locator('.capex-note')).toContainText('items in the CAPEX register');
   await expect(page.locator('.fans fan-chart').first()).toBeVisible();
+  // With long histories and no budget, the tier changes nothing, and the screen says so.
+  await expect(page.locator('forecast-page .tier-note')).toContainText(
+    'The tier makes no difference here'
+  );
+
+  // A history that dips below zero (a month that took in more than it spent)
+  // stays inside the chart: the axis extends below $0.
+  const inside = await page.locator('fan-chart.total').evaluate((el) => {
+    const chart = el as HTMLElement & { data: unknown };
+    chart.data = {
+      history: { months: ['2026-01', '2026-02', '2026-03'], values: [300000, -250000, 150000] },
+      months: ['2026-04', '2026-05'],
+      quantiles: {
+        p5: [100000, 100000],
+        p25: [200000, 200000],
+        p50: [300000, 300000],
+        p75: [400000, 400000],
+        p95: [500000, 500000],
+      },
+      provenance: 'forecast',
+      label: 'Test',
+    };
+    const svg = el.querySelector('svg')!;
+    const [, , , h] = svg.getAttribute('viewBox')!.split(' ').map(Number);
+    const ys = [...svg.querySelectorAll('polyline, polygon')].flatMap((p) =>
+      p
+        .getAttribute('points')!
+        .trim()
+        .split(/\s+/)
+        .map((xy) => Number(xy.split(',')[1]))
+    );
+    return ys.every((y) => y >= 0 && y <= h!);
+  });
+  expect(inside).toBe(true);
 
   // The Bayesian model (ADR 0022): it converges on the sample household and
   // shows its checks; the total's range allows for categories moving together.

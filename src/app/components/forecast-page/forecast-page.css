@@ -62,3 +62,6 @@
 :host .capex {
   --band-color: var(--series-2);
 }
+:host .warn {
+  color: var(--bad);
+}

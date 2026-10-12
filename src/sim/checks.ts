@@ -156,14 +156,13 @@ export function checkPlan(setup: FreedomSetup, spending: SpendingInput, asOf: st
     });
 
   // 6. Spending groups that took in more than they spent (ADR 0025).
-  const g = spending.credits;
-  if (g?.length) {
-    const names = g.map((x) => x.charAt(0).toUpperCase() + x.slice(1)).join(', ');
-    out.push({
-      id: 'credits',
-      level: 'note',
-      text: `${names}: more money came in than went out over the last 12 months, so ${g.length > 1 ? 'these count' : 'this counts'} as no spending. Pay or a transfer may be filed under a spending category; check Transactions.`,
-    });
-  }
+  if (spending.credits?.length)
+    out.push({ id: 'credits', level: 'note', text: creditsText(spending.credits) });
   return out;
+}
+
+/** Spending groups that took in more than they spent (ADR 0025), in plain words. */
+export function creditsText(groups: readonly string[]): string {
+  const names = groups.map((x) => x.charAt(0).toUpperCase() + x.slice(1)).join(', ');
+  return `${names}: more money came in than went out over the last 12 months, so ${groups.length > 1 ? 'these count' : 'this counts'} as no spending. Pay or a transfer may be filed under a spending category; check Transactions.`;
 }

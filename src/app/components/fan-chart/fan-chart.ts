@@ -61,12 +61,17 @@ export class FanChart extends BaseComponent {
     svg.replaceChildren();
     const hist = d.history.values;
     const all = [...hist, ...d.quantiles.p95, ...d.quantiles.p5, d.floor ?? 0].map((v) => v / 100);
+    // The axis covers every value: history can dip below zero (a month that took
+    // in more than it spent), and must never be drawn outside the chart.
     const yMax = Math.max(1, ...all);
-    const yt = ticks(0, yMax, 4);
+    const yMin = Math.min(0, ...all);
+    const yt = ticks(yMin, yMax, 4);
     const top = Math.max(yMax, yt.at(-1) ?? yMax);
+    const bottom = Math.min(yMin, yt[0] ?? yMin);
     const n = hist.length + d.months.length;
     const sx = (i: number) => M.left + (n <= 1 ? 0 : (i / (n - 1)) * (W - M.left - M.right));
-    const sy = (v: number) => H - M.bottom - (v / 100 / top) * (H - M.top - M.bottom);
+    const sy = (v: number) =>
+      H - M.bottom - ((v / 100 - bottom) / (top - bottom)) * (H - M.top - M.bottom);
     const mk = (name: string, attrs: Record<string, string | number>, text?: string) => {
       const e = document.createElementNS(SVG, name);
       for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, String(v));
