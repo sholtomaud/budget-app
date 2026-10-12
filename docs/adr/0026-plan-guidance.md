@@ -84,3 +84,19 @@ next to a citation is now taken only if it wraps the citation.
   - an end-to-end test finds and fixes the owner's plan on the Freedom screen and from the chat,
     with Undo in both, and checks that the app's own defaults are valid input;
   - a markdown test covers the citation bug.
+
+## Addendum: clearer "what would make it work"
+
+The owner found the first answer from "find changes" hard to follow. It said "70 % of your planned
+amount" with no dollars. The card repeated its summary. Its "Apply" only saved a scenario, so
+"Applied." looked like a plan change that hadn't happened. And the person's own 90 % target was
+flagged as an unverified figure. Now:
+
+- **Dollars.** The change is stated in dollars a month ("about $2,700 a month after freedom instead
+  of $3,900"), with the share in brackets.
+- **Two cards.**
+  - **Change my plan** applies the change to the current plan, with Undo.
+  - **Save scenario** saves it to compare, and says the plan is unchanged.
+  - Every card's button names what it does.
+- **The figure check.** It counts the screen context the person sent as their own figures, so
+  their target isn't flagged. The AI also receives the target in the tool result.
