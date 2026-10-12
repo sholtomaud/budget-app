@@ -57,6 +57,9 @@ jobs:
 
   test:
     name: test
+    # Runs after build so the pipeline reads in order:
+    # build → (test, e2e) → deploy → live.
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
