@@ -111,7 +111,44 @@ test('AI provider: key never stored; consent shows a redacted payload; declining
   ).toHaveAttribute('placeholder', 'Not stored');
 });
 
-test('advisor: tool loop on this device; an invented figure is flagged (§13.3, NFR-HON-002)', async ({
+/** An Anthropic Messages reply as server-sent events, as the API streams it. */
+function anthropicSse(model: string, stop: string, blocks: Record<string, unknown>[]): string {
+  const ev = (type: string, data: Record<string, unknown>) =>
+    `event: ${type}\ndata: ${JSON.stringify({ type, ...data })}\n\n`;
+  let out = ev('message_start', { message: { model, content: [] } });
+  blocks.forEach((b, index) => {
+    if (b.type === 'text') {
+      out += ev('content_block_start', { index, content_block: { type: 'text', text: '' } });
+      // Word by word, as a model would.
+      for (const w of String(b.text).split(/(?<= )/))
+        out += ev('content_block_delta', { index, delta: { type: 'text_delta', text: w } });
+    } else if (b.type === 'thinking') {
+      out += ev('content_block_start', {
+        index,
+        content_block: { type: 'thinking', thinking: '' },
+      });
+      out += ev('content_block_delta', {
+        index,
+        delta: { type: 'thinking_delta', thinking: b.thinking },
+      });
+      out += ev('content_block_delta', {
+        index,
+        delta: { type: 'signature_delta', signature: 's' },
+      });
+    } else {
+      out += ev('content_block_start', { index, content_block: { ...b, input: {} } });
+      out += ev('content_block_delta', {
+        index,
+        delta: { type: 'input_json_delta', partial_json: JSON.stringify(b.input) },
+      });
+    }
+    out += ev('content_block_stop', { index });
+  });
+  out += ev('message_delta', { delta: { stop_reason: stop } });
+  return out + ev('message_stop', {});
+}
+
+test('advisor: streamed, with an activity log; tool loop on this device; an invented figure is flagged (§13.3, NFR-HON-002)', async ({
   page,
 }) => {
   test.setTimeout(180_000);
@@ -121,36 +158,28 @@ test('advisor: tool loop on this device; an invented figure is flagged (§13.3, 
     const body = route.request().postData() ?? '';
     bodies.push(body);
     step++;
-    const reply =
+    const sse =
       step === 1
-        ? {
-            stop_reason: 'tool_use',
-            content: [
-              { type: 'text', text: "I'll run your plan." },
-              {
-                type: 'tool_use',
-                id: 'tu_1',
-                name: 'run_plan',
-                input: { scenarioId: null, runs: 200 },
-              },
-            ],
-          }
+        ? anthropicSse('claude-opus-5-5', 'tool_use', [
+            { type: 'thinking', thinking: 'Checking the plan before answering.' },
+            { type: 'text', text: "I'll run your plan first." },
+            {
+              type: 'tool_use',
+              id: 'tu_1',
+              name: 'run_plan',
+              input: { scenarioId: null, runs: 200 },
+            },
+          ])
         : (() => {
             const chance = /\\"chanceOfSuccess\\":\\"(\d+) %\\"/.exec(body)?.[1] ?? '?';
-            return {
-              stop_reason: 'end_turn',
-              content: [
-                {
-                  type: 'text',
-                  text: `Your plan succeeds in ${chance}% of futures. You would also have $123,456 spare.`,
-                },
-              ],
-            };
+            return anthropicSse('claude-opus-5-5', 'end_turn', [
+              {
+                type: 'text',
+                text: `Your plan succeeds in ${chance}% of futures. You would also have $123,456 spare.`,
+              },
+            ]);
           })();
-    await route.fulfill({
-      contentType: 'application/json',
-      body: JSON.stringify({ model: 'claude-opus-5-5', ...reply }),
-    });
+    await route.fulfill({ contentType: 'text/event-stream', body: sse });
   });
 
   await page.goto('./');
@@ -178,12 +207,28 @@ test('advisor: tool loop on this device; an invented figure is flagged (§13.3, 
   await expect(answer).toHaveAttribute('data-done', 'true', { timeout: 120_000 });
   await expect(answer.locator('.who')).toHaveText('Crux + Anthropic (Claude)');
   await expect(answer).toContainText('Your plan succeeds in');
-  await expect(answer.locator('.steps')).toContainText('Ran a simulation');
   await expect(answer.locator('.meter')).toBeVisible();
+  // The activity log, in order: what was sent, the AI's note and aside, the
+  // simulation it asked for, the results going back, then the reply.
+  const log = panel.locator('.log > li');
+  const kinds = await log.evaluateAll((lis) =>
+    lis.map((li) => `${li.className.replace('msg ', '')}: ${li.textContent?.trim()}`)
+  );
+  const at = (re: RegExp) => kinds.findIndex((k) => re.test(k));
+  expect(
+    at(/^activity: Crux.*Sent to Anthropic \(Claude\) \(.*kB, amounts rounded\) · replied/)
+  ).toBe(1);
+  expect(at(/^ai-note: Anthropic \(Claude\)Checking the plan/)).toBeGreaterThan(1);
+  expect(at(/^aside: Crux \+ Anthropic \(Claude\)I'll run your plan first\./)).toBeGreaterThan(1);
+  expect(at(/^activity: .*Ran 200 simulated futures · \d+\.\d s/)).toBeGreaterThan(at(/^aside:/));
+  expect(at(/^activity: .*Sent to Anthropic/)).toBeLessThan(at(/^activity: .*Ran 200/));
+  expect(at(/^reply/)).toBe(kinds.length - 1);
+  await expect(panel.locator('.msg.activity[data-state="running"]')).toHaveCount(0);
   await expect(answer.locator('.unverified')).toContainText('$123,456');
   await expect(answer.locator('.unverified')).not.toContainText('%');
   // The screen the user was on went with the question, as a context line.
   expect(bodies[0]).toContain('[Screen: Settings]');
+  expect(JSON.parse(bodies[0]!).stream).toBe(true);
   expect(step).toBe(2);
   // The tool result sent back holds rounded aggregates, never account data.
   expect(bodies[1]).toContain('tool_result');
@@ -194,5 +239,64 @@ test('advisor: tool loop on this device; an invented figure is flagged (§13.3, 
   await panel.getByRole('button', { name: 'Send' }).click();
   const again = panel.locator('.msg.reply').last();
   await expect(again.locator('.who')).toContainText('same answer as earlier');
+  await expect(panel.locator('.msg.activity').last()).toContainText('Nothing sent');
   expect(step).toBe(2);
+});
+
+test('advisor: Gemini streams through its OpenAI-compatible endpoint; Stop cancels a request and the next one starts clean', async ({
+  page,
+}) => {
+  test.setTimeout(120_000);
+  const bodies: Record<string, unknown>[] = [];
+  let release: () => void = () => {};
+  await page.route('https://generativelanguage.googleapis.com/**', async (route: Route) => {
+    bodies.push(route.request().postDataJSON() as Record<string, unknown>);
+    if (bodies.length === 1) {
+      // The first request hangs until the test ends: only Stop gets out of it.
+      await new Promise<void>((r) => (release = r));
+      return route.abort().catch(() => {});
+    }
+    const chunk = (d: unknown) => `data: ${JSON.stringify(d)}\n\n`;
+    await route.fulfill({
+      contentType: 'text/event-stream',
+      body:
+        chunk({ model: 'gemini-3.8-flash', choices: [{ delta: { content: 'Happy ' } }] }) +
+        chunk({ choices: [{ delta: { content: 'to help.' }, finish_reason: 'stop' }] }) +
+        'data: [DONE]\n\n',
+    });
+  });
+
+  await page.goto('./');
+  await page.getByLabel('Household').selectOption('default');
+  await page.getByRole('button', { name: 'Load sample household' }).click();
+  await expect(page).toHaveURL(/\/import$/);
+  const nav = page.getByRole('navigation', { name: 'Screens' });
+  await nav.getByRole('link', { name: 'Settings' }).click();
+  const form = page.getByRole('form', { name: 'AI provider' });
+  await form.getByLabel('Provider').selectOption('gemini');
+  await form.getByLabel('API key, for this session only').fill('gemini-test-key');
+  await form.getByRole('button', { name: 'Save' }).click();
+
+  const panel = page.locator('chat-panel');
+  await panel.getByLabel('Your message').fill('Say something kind about saving');
+  await panel.getByRole('button', { name: 'Send' }).click();
+  const dialog = page.getByRole('dialog');
+  await dialog.getByLabel("Don't ask again for this until the app reloads").check();
+  await dialog.getByRole('button', { name: 'Send', exact: true }).click();
+  await expect(panel.locator('.msg.activity').last()).toContainText('to Google Gemini');
+  await panel.getByRole('button', { name: 'Stop' }).click();
+  await expect(panel.locator('.status')).toHaveText('Stopped.');
+  release();
+
+  await panel.getByLabel('Your message').fill('Say something kind about budgets');
+  await panel.getByRole('button', { name: 'Send' }).click();
+  const answer = panel.locator('.msg.reply').last();
+  await expect(answer).toHaveAttribute('data-done', 'true');
+  await expect(answer.locator('.who')).toHaveText('Crux + Google Gemini');
+  await expect(answer.locator('.body')).toHaveText('Happy to help.');
+  expect(bodies).toHaveLength(2);
+  expect(bodies[1]!.stream).toBe(true);
+  // The stopped question was dropped: the conversation holds only the new one.
+  const users = (bodies[1]!.messages as { role: string }[]).filter((m) => m.role === 'user');
+  expect(users).toHaveLength(1);
 });

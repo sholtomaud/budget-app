@@ -4,7 +4,7 @@
  * conversation loop, where every provider call goes through the egress
  * gate. The conversation lives in memory only.
  */
-import { checkToolInput, chatRequest, parseReply, type Turn } from '../api/llm.ts';
+import { checkToolInput, chatRequest, type Turn } from '../api/llm.ts';
 import { roughAmount } from '../api/redact.ts';
 import {
   ADVISOR_SYSTEM,
@@ -18,7 +18,8 @@ import { defaultSetup, type FreedomSetup } from '../sim/inputs.ts';
 import { deterministicFreedom } from '../sim/metrics.ts';
 import type { WithdrawalStrategy } from '../sim/model.ts';
 import { taxProvenance, taxTable } from '../sim/tax.ts';
-import { activeProvider, send } from './egress.ts';
+import { activityId, elapsed, kb, step, type ActivitySink } from './activity.ts';
+import { activeProvider, sendStream } from './egress.ts';
 import { inputsFor, runIdOf, simulateSetup } from './freedom-inputs.ts';
 import { addScenario, loadScenarios } from './scenarios.ts';
 import { findChanges, forecastConfidence, whyShort, type Insight } from './insights.ts';
@@ -264,6 +265,44 @@ export interface AdvisorMessage {
   provider: string;
 }
 
+/** What a tool call looks like in the activity log: while it runs, and once done. */
+export function toolActivity(name: string, input: Record<string, unknown>): [string, string] {
+  const runs = typeof input.runs === 'number' && input.runs > 0 ? input.runs : 200;
+  switch (name) {
+    case 'run_plan':
+      return [
+        `Running ${input.scenarioId ? 'that scenario' : 'your plan'} in ${runs} simulated futures…`,
+        `Ran ${runs} simulated futures`,
+      ];
+    case 'get_plan':
+      return ['Reading your plan…', 'Read your plan'];
+    case 'get_spending_summary':
+      return ['Adding up your spending…', 'Added up your spending'];
+    case 'list_scenarios':
+      return ['Listing your scenarios…', 'Listed your scenarios'];
+    case 'propose_plan':
+      return ['Saving a proposed plan to Scenarios…', 'Saved a proposed plan to Scenarios'];
+    case 'explain_assumption':
+      return ['Looking up an assumption…', 'Looked up an assumption'];
+    case 'explain_shortfall':
+      return ['Looking at what holds your plan back…', 'Looked at what holds your plan back'];
+    case 'find_plan_changes':
+      return ['Trying changes to your plan…', 'Tried changes to your plan'];
+    case 'get_forecast_confidence':
+      return ["Reading the forecast model's checks…", "Read the forecast model's checks"];
+    case 'propose_budget_line':
+      return ['Preparing a budget line…', 'Prepared a budget line for you to check'];
+    case 'propose_big_purchase':
+      return ['Preparing a big purchase…', 'Prepared a big purchase for you to check'];
+    case 'propose_categorisation':
+      return ['Preparing category changes…', 'Prepared category changes for you to check'];
+    case 'go_to_screen':
+      return ['Finding that screen…', 'Offered a button to open it'];
+    default:
+      return [`Running ${name}…`, `Ran ${name}`];
+  }
+}
+
 export class AdvisorSession {
   turns: Turn[] = [];
   private toolTexts: string[] = [];
@@ -273,62 +312,140 @@ export class AdvisorSession {
     this.view = view;
   }
 
+  /**
+   * One question, answered by the AI with the tools on this device. Each
+   * request, each tool run and the AI's words are reported to `onActivity` as
+   * they happen. Stopping (`signal`) forgets the unfinished exchange, so the
+   * conversation stays valid for the next question.
+   */
   async ask(
     question: string,
-    onTool?: (name: string) => void,
-    opts: { context?: string; onProgress?: (text: string) => void } = {}
+    opts: { context?: string; signal?: AbortSignal; onActivity?: ActivitySink } = {}
   ): Promise<AdvisorMessage> {
     const ap = await activeProvider();
     if (!ap.ok) throw new Error(ap.reason);
+    const label = ap.provider.label;
+    const say = opts.onActivity;
+    const mark = this.turns.length;
     this.turns.push({
       role: 'user',
       text: opts.context ? `[Screen: ${opts.context}]\n${question}` : question,
     });
-    const sink: ToolSink = {
-      proposals: [],
-      links: [],
-      ...(opts.onProgress ? { onProgress: opts.onProgress } : {}),
-    };
+    const sink: ToolSink = { proposals: [], links: [] };
     const runIds: string[] = [];
     const tools: string[] = [];
     let text = '';
-    for (let step = 0; step < 8; step++) {
-      const json = await send({
-        provider: ap.provider,
-        auth: ap.provider,
-        purpose: 'advisor',
-        purposeLabel:
-          'Advisor: your question, the conversation so far, and tool results with rounded amounts.',
-        note: 'Tool results contain rounded totals from your plan and simulations, never transactions, account details or exact balances.',
-        request: chatRequest(ap.provider, {
+    try {
+      for (let n = 0; n < 8; n++) {
+        const request = chatRequest(ap.provider, {
           system: ADVISOR_SYSTEM,
           turns: this.turns,
           tools: ADVISOR_TOOLS,
-        }),
-      });
-      const reply = parseReply(ap.provider, json);
-      this.turns.push({ role: 'assistant', text: reply.text, calls: reply.calls, raw: reply.raw });
-      text = reply.text;
-      if (reply.stop === 'refusal') {
-        text = 'The provider declined to answer this.';
-        break;
+          stream: true,
+        });
+        const size = kb(new TextEncoder().encode(JSON.stringify(request.body)).length);
+        const sendId = activityId('send');
+        const t0 = performance.now();
+        say?.({
+          kind: 'crux',
+          id: sendId,
+          state: 'running',
+          text:
+            n === 0
+              ? `Sending your question${opts.context ? ', the screen' : ''} and our conversation to ${label}…`
+              : `Sending the results back to ${label}…`,
+        });
+        const aiId = activityId('ai');
+        let first = true;
+        const reply = await sendStream({
+          provider: ap.provider,
+          auth: ap.provider,
+          purpose: 'advisor',
+          purposeLabel:
+            'Advisor: your question, the conversation so far, and tool results with rounded amounts.',
+          note: 'Tool results contain rounded totals from your plan and simulations, never transactions, account details or exact balances.',
+          request,
+          ...(opts.signal ? { signal: opts.signal } : {}),
+          onSent: () =>
+            say?.({
+              kind: 'crux',
+              id: sendId,
+              state: 'running',
+              text: `Sent to ${label} (${size}, amounts rounded). Waiting for its reply…`,
+            }),
+          onDelta: (d) => {
+            if (d.kind === 'tool') return;
+            if (first) {
+              first = false;
+              say?.({
+                kind: 'crux',
+                id: sendId,
+                state: 'done',
+                text: `Sent to ${label} (${size}, amounts rounded) · replied in ${elapsed(t0)}`,
+              });
+            }
+            say?.({
+              kind: 'ai',
+              id: aiId,
+              provider: label,
+              text: d.text,
+              ...(d.kind === 'note' ? { note: true } : {}),
+            });
+          },
+        });
+        if (first)
+          say?.({
+            kind: 'crux',
+            id: sendId,
+            state: 'done',
+            text: `Sent to ${label} (${size}, amounts rounded) · replied in ${elapsed(t0)}`,
+          });
+        say?.({ kind: 'ai-end', id: aiId });
+        this.turns.push({
+          role: 'assistant',
+          text: reply.text,
+          calls: reply.calls,
+          raw: reply.raw,
+        });
+        text = reply.text;
+        if (reply.stop === 'refusal') {
+          text = 'The provider declined to answer this.';
+          break;
+        }
+        if (reply.stop === 'max_tokens' && !reply.calls.length) {
+          text = `${text}\n\n*(The reply was cut off.)*`;
+          break;
+        }
+        if (!reply.calls.length) break;
+        const results = [];
+        for (const c of reply.calls) {
+          opts.signal?.throwIfAborted();
+          tools.push(c.name);
+          const tool = ADVISOR_TOOLS.find((t) => t.name === c.name);
+          const bad = tool ? checkToolInput(tool, c.input) : `Unknown tool ${c.name}`;
+          const input = (c.input ?? {}) as Record<string, unknown>;
+          const [running, done] = toolActivity(c.name, input);
+          const content = bad
+            ? JSON.stringify({ error: `Invalid input: ${bad}` })
+            : await step(say, `${running} (${label} asked)`, done, (update) => {
+                sink.onProgress = update;
+                return runTool(this.view(), c.name, input, sink);
+              });
+          this.toolTexts.push(content);
+          const id = /"runId":"([^"]+)"/.exec(content)?.[1];
+          if (id) {
+            runIds.push(id);
+            say?.({ kind: 'run', runId: id });
+          }
+          results.push({ id: c.id, content, ...(bad ? { isError: true } : {}) });
+        }
+        this.turns.push({ role: 'tool', results });
       }
-      if (!reply.calls.length) break;
-      const results = [];
-      for (const c of reply.calls) {
-        onTool?.(c.name);
-        tools.push(c.name);
-        const tool = ADVISOR_TOOLS.find((t) => t.name === c.name);
-        const bad = tool ? checkToolInput(tool, c.input) : `Unknown tool ${c.name}`;
-        const content = bad
-          ? JSON.stringify({ error: `Invalid input: ${bad}` })
-          : await runTool(this.view(), c.name, c.input as Record<string, unknown>, sink);
-        this.toolTexts.push(content);
-        const id = /"runId":"([^"]+)"/.exec(content)?.[1];
-        if (id) runIds.push(id);
-        results.push({ id: c.id, content, ...(bad ? { isError: true } : {}) });
-      }
-      this.turns.push({ role: 'tool', results });
+    } catch (err) {
+      // Stopped or failed part-way: drop the unfinished exchange (a tool call
+      // without its result would make the next request invalid).
+      this.turns.length = mark;
+      throw err;
     }
     return {
       role: 'advisor',
@@ -339,7 +456,7 @@ export class AdvisorSession {
       proposals: sink.proposals,
       links: sink.links,
       ...(sink.chart ? { chart: sink.chart } : {}),
-      provider: ap.provider.label,
+      provider: label,
     };
   }
 }

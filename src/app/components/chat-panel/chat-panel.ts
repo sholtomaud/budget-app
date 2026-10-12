@@ -8,6 +8,7 @@ import { BaseComponent, define } from '../../core/base-component.ts';
 import { navigate, ROUTE_EVENT } from '../../core/router.ts';
 import { data, ensureLoaded } from '../../data.ts';
 import { el } from '../../format.ts';
+import type { Activity } from '../../activity.ts';
 import { Assistant, type ChatReply, type PageContext } from '../../assistant.ts';
 import { activeProvider } from '../../egress.ts';
 import { pageDetails } from '../../page-context.ts';
@@ -46,6 +47,7 @@ export class ChatPanel extends BaseComponent {
   private includeContext = true;
   private busy = false;
   private stopped = false;
+  private controller: AbortController | null = null;
   private readonly onRoute = (e: Event) => {
     this.path = (e as CustomEvent<string>).detail;
     this.includeContext = true;
@@ -98,7 +100,10 @@ export class ChatPanel extends BaseComponent {
       this.$('.log').replaceChildren();
       this.showSuggestions(STARTERS);
     };
-    this.$<HTMLButtonElement>('.stop').onclick = () => (this.stopped = true);
+    this.$<HTMLButtonElement>('.stop').onclick = () => {
+      this.stopped = true;
+      this.controller?.abort();
+    };
     this.$<HTMLButtonElement>('.ctx-remove').onclick = () => {
       this.includeContext = false;
       this.showContext();
@@ -182,70 +187,89 @@ export class ChatPanel extends BaseComponent {
     if (!question || this.busy) return;
     this.busy = true;
     this.stopped = false;
+    this.controller = new AbortController();
     const status = this.$('.status');
     const stop = this.$<HTMLButtonElement>('.stop');
     const send = this.$<HTMLButtonElement>('.send');
     this.$<HTMLTextAreaElement>('textarea').value = '';
     this.$('.log').append(el('li', { class: 'msg user' }, question));
     this.showSuggestions([]);
-    this.scrollDown();
+    this.scrollDown(true);
     send.disabled = true;
     stop.hidden = false;
     status.textContent = 'Thinking…';
+    const live = new LiveLog(this);
     try {
       await ensureLoaded();
       this.assistant ??= new Assistant(() => data.getState().view!);
-      const reply = await this.assistant.answer(question, this.context(), (s) => {
-        status.textContent = s;
+      const reply = await this.assistant.answer(question, this.context(), {
+        signal: this.controller.signal,
+        onActivity: (a) => {
+          status.textContent = '';
+          live.on(a);
+        },
       });
       if (this.stopped) {
+        live.stop();
         status.textContent = 'Stopped.';
         return;
       }
       status.textContent = '';
-      await this.render(reply);
+      await this.render(reply, live.finalBubble(reply));
     } catch (err) {
-      status.textContent = err instanceof Error ? err.message : String(err);
+      live.stop();
+      status.textContent = this.stopped
+        ? 'Stopped.'
+        : err instanceof Error
+          ? err.message
+          : String(err);
       this.showSuggestions(STARTERS);
     } finally {
       this.busy = false;
+      this.controller = null;
       send.disabled = false;
       stop.hidden = true;
       void this.showProvider();
     }
   }
 
-  private scrollDown(): void {
+  /** Scroll to the newest message; when streaming, only if the person hasn't scrolled up. */
+  scrollDown(force = false): void {
     const log = this.$('.log');
-    log.scrollTop = log.scrollHeight;
+    if (force || log.scrollHeight - log.scrollTop - log.clientHeight < 120)
+      log.scrollTop = log.scrollHeight;
   }
 
-  /** A reply: who answered, what was done, the text (typed out), then cards, buttons and footnotes. */
-  private async render(r: ChatReply): Promise<void> {
-    const li = el('li', { class: 'msg reply', 'data-source': r.source });
-    const who = el(
-      'div',
-      { class: 'who' },
-      r.source === 'ai'
-        ? el('span', { class: 'ai' }, `Crux + ${r.provider ?? 'AI'}`)
-        : 'Crux · on this device',
-      r.cached ? ' · same answer as earlier' : ''
+  /** The reply's markdown, as DOM (never HTML). */
+  body(text: string, runIds: readonly string[]) {
+    const parsed = parseMarkdown(text, [...runIds]);
+    return { parsed, nodes: parsed.blocks.map((b) => this.block(b)) };
+  }
+
+  /**
+   * A reply: who answered, then the text, then cards, buttons and footnotes.
+   * An AI reply was already streamed into `streamed`: it is re-rendered with
+   * its footnotes. Crux's own replies are typed out.
+   */
+  private async render(r: ChatReply, streamed: HTMLElement | null): Promise<void> {
+    const li = streamed ?? el('li', { class: 'msg reply', 'data-source': r.source });
+    li.dataset.source = r.source;
+    li.classList.remove('live');
+    li.replaceChildren(
+      el(
+        'div',
+        { class: 'who' },
+        r.source === 'ai'
+          ? el('span', { class: 'ai' }, `Crux + ${r.provider ?? 'AI'}`)
+          : 'Crux · on this device',
+        r.cached ? ' · same answer as earlier' : ''
+      )
     );
-    li.append(who);
-    if (r.steps.length)
-      li.append(
-        el(
-          'details',
-          { class: 'steps' },
-          el('summary', {}, 'What I did'),
-          el('ul', {}, ...r.steps.map((s) => el('li', {}, s)))
-        )
-      );
-    const parsed = parseMarkdown(r.text, r.runIds);
-    const body = el('div', { class: 'body' }, ...parsed.blocks.map((b) => this.block(b)));
+    const { parsed, nodes } = this.body(r.text, r.runIds);
+    const body = el('div', { class: 'body' }, ...nodes);
     li.append(body);
-    this.$('.log').append(li);
-    await this.typeOut(body);
+    if (!li.isConnected) this.$('.log').append(li);
+    if (!streamed) await this.typeOut(body);
     if (this.stopped) {
       li.dataset.done = 'true';
       return;
@@ -482,6 +506,133 @@ export class ChatPanel extends BaseComponent {
     };
     card.append(summary, fields, buttons);
     return card;
+  }
+}
+
+/**
+ * One answer's activity, as it happens (ADR 0024): Crux's steps as small log
+ * bubbles that tick from running to done, and the AI's words streaming into
+ * their own bubbles. AI text before a tool call stays as an aside; the last
+ * piece becomes the reply.
+ */
+class LiveLog {
+  private readonly steps = new Map<string, HTMLElement>();
+  private readonly ai = new Map<string, { li: HTMLElement; text: string; note: boolean }>();
+  private readonly order: { li: HTMLElement; text: string; note: boolean }[] = [];
+  private readonly runIds: string[] = [];
+  private pending = new Set<string>();
+  private frame = 0;
+  private readonly panel: ChatPanel;
+
+  constructor(panel: ChatPanel) {
+    this.panel = panel;
+  }
+
+  private get log(): HTMLElement {
+    return this.panel.$('.log');
+  }
+
+  on(a: Activity): void {
+    switch (a.kind) {
+      case 'crux': {
+        let li = this.steps.get(a.id);
+        if (!li) {
+          li = el(
+            'li',
+            { class: 'msg activity' },
+            el('span', { class: 'src' }, 'Crux'),
+            el('span', { class: 'text' })
+          );
+          this.steps.set(a.id, li);
+          this.log.append(li);
+        }
+        li.dataset.state = a.state;
+        li.querySelector('.text')!.textContent = a.text;
+        break;
+      }
+      case 'ai': {
+        const key = a.note ? `${a.id}-note` : a.id;
+        let seg = this.ai.get(key);
+        if (!seg) {
+          const li = a.note
+            ? el(
+                'li',
+                { class: 'msg ai-note' },
+                el('span', { class: 'src' }, a.provider),
+                el('span', { class: 'text' })
+              )
+            : el(
+                'li',
+                { class: 'msg reply live', 'data-source': 'ai' },
+                el('div', { class: 'who' }, el('span', { class: 'ai' }, `Crux + ${a.provider}`)),
+                el('div', { class: 'body' })
+              );
+          seg = { li, text: '', note: !!a.note };
+          this.ai.set(key, seg);
+          this.order.push(seg);
+          this.log.append(li);
+        }
+        seg.text += a.text;
+        this.pending.add(key);
+        this.frame ||= requestAnimationFrame(() => this.flush());
+        break;
+      }
+      case 'ai-end':
+        this.flush();
+        break;
+      case 'run':
+        this.runIds.push(a.runId);
+        break;
+    }
+    this.panel.scrollDown();
+  }
+
+  /** Re-render the streaming bubbles at most once a frame. */
+  private flush(): void {
+    cancelAnimationFrame(this.frame);
+    this.frame = 0;
+    for (const key of this.pending) {
+      const seg = this.ai.get(key)!;
+      if (seg.note) seg.li.querySelector('.text')!.textContent = seg.text.trim();
+      else
+        seg.li
+          .querySelector('.body')!
+          .replaceChildren(...this.panel.body(seg.text, this.runIds).nodes);
+    }
+    this.pending.clear();
+    this.panel.scrollDown();
+  }
+
+  /**
+   * The bubble the reply goes into: the last streamed AI text, if it is the
+   * reply. Earlier AI text (said before a tool call) becomes an aside.
+   */
+  finalBubble(r: ChatReply): HTMLElement | null {
+    this.flush();
+    const texts = this.order.filter((s) => !s.note);
+    const last = r.source === 'ai' && !r.cached ? texts.at(-1) : undefined;
+    const reuse = last && last.text.trim() === r.text.trim() ? last : undefined;
+    for (const s of texts) {
+      if (s === reuse) continue;
+      if (!s.text.trim()) s.li.remove();
+      else {
+        s.li.classList.remove('reply', 'live');
+        s.li.classList.add('aside');
+      }
+    }
+    return reuse?.li ?? null;
+  }
+
+  /** Stopped or failed: keep what arrived, marked as unfinished. */
+  stop(): void {
+    this.flush();
+    for (const s of this.order) {
+      s.li.classList.remove('reply', 'live');
+      s.li.classList.add('aside');
+      if (!s.note) s.li.append(el('p', { class: 'muted small' }, '(stopped before the end)'));
+    }
+    for (const li of this.steps.values())
+      if (li.dataset.state === 'running') li.dataset.state = 'error';
   }
 }
 

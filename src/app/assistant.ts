@@ -17,6 +17,7 @@ import { dollars } from '../assistant/phrases.ts';
 import type { DataView } from '../data/service.ts';
 import { canonicalJson } from '../lib/hash.ts';
 import { fnv1a64 } from '../lib/prng.ts';
+import { step, type ActivitySink } from './activity.ts';
 import { AdvisorSession } from './advisor.ts';
 import { navigate } from './core/router.ts';
 import { activeProvider } from './egress.ts';
@@ -55,8 +56,6 @@ export interface ChatReply {
   text: string;
   runIds: string[];
   unverified: string[];
-  /** What was done to answer: "Ran your plan in 500 futures". */
-  steps: string[];
   chart?: Insight['chart'];
   proposals: Proposal[];
   links: { label: string; path: string }[];
@@ -79,18 +78,16 @@ const reply = (r: Partial<ChatReply> & { text: string }): ChatReply => ({
   source: 'crux',
   runIds: [],
   unverified: [],
-  steps: [],
   proposals: [],
   links: [],
   suggestions: [],
   ...r,
 });
 
-const fromInsight = (i: Insight, steps: string[]): ChatReply =>
+const fromInsight = (i: Insight): ChatReply =>
   reply({
     text: i.text,
     runIds: i.runIds,
-    steps,
     ...(i.chart ? { chart: i.chart } : {}),
     proposals: i.proposal ? [i.proposal] : [],
     links: i.link ? [i.link] : [],
@@ -117,13 +114,18 @@ export class Assistant {
     this.cache.clear();
   }
 
+  /**
+   * Answer one message. What happens on the way (Crux's steps, requests to
+   * the AI, the AI's words as they stream) goes to `onActivity`; the reply
+   * itself (text, cards, buttons, footnotes) is returned at the end.
+   */
   async answer(
     question: string,
     context: PageContext | null,
-    onStatus: (text: string) => void = () => {}
+    opts: { onActivity?: ActivitySink; signal?: AbortSignal } = {}
   ): Promise<ChatReply> {
     const intent = matchIntent(question);
-    if (intent) return this.builtIn(intent, context, onStatus);
+    if (intent) return this.builtIn(intent, context, opts.onActivity);
 
     const ap = await activeProvider();
     if (!ap.ok)
@@ -135,22 +137,28 @@ export class Assistant {
 
     const key = await this.cacheKey(question, context);
     const hit = this.cache.get(key);
-    if (hit) return { ...hit, cached: true };
+    if (hit) {
+      await step(
+        opts.onActivity,
+        'Checking this session’s answers…',
+        `Asked before about the same data on the same screen: reusing ${hit.provider ?? 'the AI'}’s answer. Nothing sent`,
+        async () => undefined
+      );
+      return { ...hit, cached: true };
+    }
 
-    onStatus(`Asking ${ap.provider.label}…`);
     const ctx = contextText(context);
-    const m = await this.session.ask(
-      question,
-      (tool) => onStatus(`Working: ${TOOL_STEPS[tool] ?? tool}…`),
-      { ...(ctx ? { context: ctx } : {}), onProgress: onStatus }
-    );
+    const m = await this.session.ask(question, {
+      ...(ctx ? { context: ctx } : {}),
+      ...(opts.signal ? { signal: opts.signal } : {}),
+      ...(opts.onActivity ? { onActivity: opts.onActivity } : {}),
+    });
     const r = reply({
       source: 'ai',
       provider: m.provider,
       text: m.text || 'The provider gave no answer.',
       runIds: [...new Set(m.runIds)],
       unverified: m.unverified,
-      steps: [...new Set(m.tools.map((t) => TOOL_STEPS[t] ?? t))],
       ...(m.chart ? { chart: m.chart } : {}),
       proposals: m.proposals,
       links: m.links,
@@ -171,30 +179,52 @@ export class Assistant {
   private async builtIn(
     intent: Intent,
     context: PageContext | null,
-    onStatus: (text: string) => void
+    say: ActivitySink | undefined
   ): Promise<ChatReply> {
     const v = this.view();
     switch (intent.id) {
       case 'chance':
-        onStatus('Running your plan in 500 simulated futures…');
-        return fromInsight(await planChance(v), ['Ran your plan in 500 simulated futures']);
-      case 'why':
-        onStatus('Looking at what holds your plan back…');
-        return fromInsight(await whyShort(v), [
-          'Ran your plan',
-          'Compared capital with what you need',
-        ]);
-      case 'fix':
-        onStatus('Trying different plans…');
         return fromInsight(
-          await findChanges(v, (d, t) => onStatus(`Trying plans: ${d} of up to ${t}…`)),
-          ['Tried changes to when freedom starts and spending after it']
+          await step(
+            say,
+            'Running your plan in 500 simulated futures…',
+            'Ran 500 simulated futures',
+            () => planChance(v)
+          )
+        );
+      case 'why':
+        return fromInsight(
+          await step(
+            say,
+            'Running your plan and comparing your capital with what you need…',
+            'Compared your capital with what you need',
+            () => whyShort(v)
+          )
+        );
+      case 'fix':
+        return fromInsight(
+          await step(
+            say,
+            'Trying changes to when freedom starts and spending after it…',
+            'Tried changes to your plan',
+            (update) => findChanges(v, (d, t) => update(`Trying plans: ${d} of up to ${t}…`))
+          )
         );
       case 'sure':
-        onStatus('Checking the forecast model…');
-        return fromInsight(await forecastConfidence(v), ["Read the forecast model's checks"]);
+        return fromInsight(
+          await step(
+            say,
+            "Checking the forecast model's checks…",
+            "Read the forecast model's checks",
+            () => forecastConfidence(v)
+          )
+        );
       case 'spending':
-        return fromInsight(await spendingSummary(v), ['Added up the last 12 months']);
+        return fromInsight(
+          await step(say, 'Adding up the last 12 months…', 'Added up the last 12 months', () =>
+            spendingSummary(v)
+          )
+        );
       case 'define': {
         const e = glossaryEntry(intent.text);
         return reply({
@@ -250,19 +280,3 @@ export class Assistant {
     }
   }
 }
-
-const TOOL_STEPS: Record<string, string> = {
-  get_plan: 'Read your plan',
-  get_spending_summary: 'Read your spending summary',
-  list_scenarios: 'Listed your scenarios',
-  run_plan: 'Ran a simulation',
-  propose_plan: 'Saved a proposed plan to Scenarios',
-  explain_assumption: 'Looked up an assumption',
-  explain_shortfall: 'Looked at what holds your plan back',
-  find_plan_changes: 'Tried changes to your plan',
-  get_forecast_confidence: "Read the forecast model's checks",
-  propose_budget_line: 'Prepared a budget line',
-  propose_big_purchase: 'Prepared a big purchase',
-  propose_categorisation: 'Prepared category changes',
-  go_to_screen: 'Offered a screen',
-};

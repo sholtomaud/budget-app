@@ -8,8 +8,9 @@
  *   3. the API key is attached from memory (never stored, ADR 0020);
  *   4. the call is logged locally: time, provider, purpose, payload hash, bytes.
  */
-import { authHeaders, type HttpRequest } from '../api/llm.ts';
+import { authHeaders, parseReply, type HttpRequest, type Reply } from '../api/llm.ts';
 import { DEFAULT_PROVIDERS, originAllowed, type ProviderConfig } from '../api/providers.ts';
+import { SseParser, streamFolder, type StreamDelta } from '../api/stream.ts';
 import { sha256Hex } from '../lib/hash.ts';
 import { askConsent } from './components/consent-dialog/consent-dialog.ts';
 import { sim } from './workers.ts';
@@ -82,7 +83,8 @@ export class ConsentDeclinedError extends Error {
   }
 }
 
-export async function send(opts: SendOptions): Promise<unknown> {
+/** Consent, the key and the log entry: everything before the request goes out. */
+async function prepare(opts: SendOptions) {
   const { request: req } = opts;
   if (!originAllowed(req.url))
     throw new Error(`${new URL(req.url).origin} is not an allowed endpoint`);
@@ -115,13 +117,65 @@ export async function send(opts: SendOptions): Promise<unknown> {
     bytes: new TextEncoder().encode(body ?? '').length,
     status: null,
   };
+  return { method, body, headers, entry };
+}
+
+export async function send(opts: SendOptions): Promise<unknown> {
+  const { method, body, headers, entry } = await prepare(opts);
   try {
-    const res = await fetch(req.url, { method, headers, body });
+    const res = await fetch(opts.request.url, { method, headers, body });
     entry.status = res.status;
     const text = await res.text();
     if (!res.ok)
       throw new Error(`${opts.provider.label} returned ${res.status}: ${text.slice(0, 300)}`);
     return JSON.parse(text);
+  } finally {
+    await sim().appendEgressLog(entry);
+  }
+}
+
+/**
+ * A streamed chat turn (ADR 0024): the same gate as `send`, then the reply is
+ * read as server-sent events and handed out as it arrives. A provider that
+ * answers with plain JSON instead still works. `signal` stops it (the Stop button).
+ */
+export async function sendStream(
+  opts: SendOptions & {
+    provider: ProviderConfig;
+    signal?: AbortSignal;
+    onSent?: () => void;
+    onDelta?: (d: StreamDelta) => void;
+  }
+): Promise<Reply> {
+  const { method, body, headers, entry } = await prepare(opts);
+  try {
+    const res = await fetch(opts.request.url, {
+      method,
+      headers,
+      body,
+      ...(opts.signal ? { signal: opts.signal } : {}),
+    });
+    entry.status = res.status;
+    opts.onSent?.();
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`${opts.provider.label} returned ${res.status}: ${text.slice(0, 300)}`);
+    }
+    if (!/text\/event-stream/.test(res.headers.get('content-type') ?? '') || !res.body)
+      return parseReply(opts.provider, JSON.parse(await res.text()));
+    const parser = new SseParser();
+    const folder = streamFolder(opts.provider);
+    const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
+    const take = (events: ReturnType<SseParser['push']>) => {
+      for (const e of events) for (const d of folder.push(e)) opts.onDelta?.(d);
+    };
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      take(parser.push(value));
+    }
+    take(parser.end());
+    return folder.finish();
   } finally {
     await sim().appendEgressLog(entry);
   }
