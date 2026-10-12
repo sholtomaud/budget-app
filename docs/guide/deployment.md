@@ -6,7 +6,7 @@ The app and these docs are deployed together to **GitHub Pages** by
 | Job      | Runs on                                | Does                                                                                                                                                         |
 | -------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `build`  | every PR and push                      | data-hygiene gate, GSSK pin check, format check, typecheck, app build under `/<repo>/`, bundle-size budget, docs build; assembles and uploads the Pages site |
-| `test`   | every PR and push                      | Vitest: unit, kernel, property and eval tests; ml-core tests                                                                                                 |
+| `test`   | after `build`                          | Vitest: unit, kernel, property and eval tests; ml-core tests                                                                                                 |
 | `e2e`    | after `build`                          | Playwright against **the site `build` uploaded**, served as Pages serves it (under `/<repo>/`, real 404s, `404.html` for deep links)                         |
 | `deploy` | pushes to `main`, after all three pass | checks the Pages source, then publishes the site the e2e tests just passed                                                                                   |
 | `live`   | after `deploy`                         | Playwright on the live URL: the app and docs load, the kernel verifies, no request fails, nothing logs an error; screenshots kept for 30 days                |
