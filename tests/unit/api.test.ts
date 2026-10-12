@@ -13,8 +13,10 @@ import { DEFAULT_PROVIDERS, originAllowed } from '../../src/api/providers.ts';
 import { bucketAmount, redactText, roughAmount } from '../../src/api/redact.ts';
 import type { Schema } from '../../src/lib/jsonschema.ts';
 
-const anthropic = DEFAULT_PROVIDERS[0]!;
-const openai = { ...DEFAULT_PROVIDERS[1]!, endpoint: 'http://localhost:11434/' };
+const provider = (id: string) => DEFAULT_PROVIDERS.find((p) => p.id === id)!;
+const anthropic = provider('anthropic');
+const openai = { ...provider('openai-compatible'), endpoint: 'http://localhost:11434/' };
+const gemini = provider('gemini');
 
 const schema: Schema = {
   type: 'object',
@@ -48,6 +50,9 @@ describe('providers and redaction (FR-API-003, FR-API-005)', () => {
   test('only allow-listed origins can be called', () => {
     expect(originAllowed('https://api.anthropic.com/v1/messages')).toBe(true);
     expect(originAllowed('http://localhost:11434/v1/chat/completions')).toBe(true);
+    expect(
+      originAllowed('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions')
+    ).toBe(true);
     expect(originAllowed('https://evil.example/v1')).toBe(false);
     expect(originAllowed('https://api.anthropic.com.evil.example')).toBe(false);
     expect(originAllowed('not a url')).toBe(false);
@@ -89,6 +94,26 @@ describe('LLM adapters', () => {
       json_schema: { name: 'labels', schema, strict: true },
     });
     expect(authHeaders(openai, 'k')).toEqual({ authorization: 'Bearer k' });
+  });
+
+  test("Gemini: Google's OpenAI-compatible endpoint, same request shape, Bearer key", () => {
+    const r = structuredRequest(gemini, { system: 's', user: 'u', schema, name: 'labels' });
+    expect(r.url).toBe('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions');
+    expect(r.body.model).toBe('gemini-3.8-flash');
+    expect(r.body.response_format).toEqual({
+      type: 'json_schema',
+      json_schema: { name: 'labels', schema, strict: true },
+    });
+    const c = chatRequest(gemini, {
+      system: 's',
+      turns: [{ role: 'user', text: 'q' }],
+      tools: [tool],
+    });
+    expect(c.url).toBe(r.url);
+    expect((c.body.tools as { type: string }[])[0]!.type).toBe('function');
+    // The key goes in a header, never in the URL (where it would end up in logs and history).
+    expect(authHeaders(gemini, 'k')).toEqual({ authorization: 'Bearer k' });
+    expect(r.url).not.toContain('key=');
   });
 
   test('a structured answer is parsed and validated', () => {

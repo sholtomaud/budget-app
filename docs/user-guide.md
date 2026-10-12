@@ -205,7 +205,7 @@ for it. **Import an export** restores a file, replacing what's on this device.
 ## Settings: AI provider and the advisor (optional)
 
 Everything above works with no AI at all. If you want help from an AI model, choose a provider
-under **AI provider (optional)**: Anthropic (Claude), or any OpenAI-compatible service, including
+under **AI provider (optional)**: Anthropic (Claude), Google Gemini, or any OpenAI-compatible service, including
 one running on your own computer (Ollama, LM Studio, llama.cpp at `localhost`). Paste an API key.
 **The key is kept only while the app is open.** It is never saved on this device or put in an
 export, and reloading or locking forgets it. **Forget key** removes it at once.

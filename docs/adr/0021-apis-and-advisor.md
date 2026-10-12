@@ -32,7 +32,8 @@ Every external call goes through `send()` in `src/app/egress.ts`:
 1. **Origin allow-list.** `ALLOWED_ORIGINS` (`src/api/providers.ts`) is the single list shared by
    the gate and the Content Security Policy's `connect-src` (`vite.config.ts`). A CSP cannot be
    widened at runtime, so the list is static: `https://api.anthropic.com`,
-   `https://api.openai.com`, and `http://localhost:*` / `http://127.0.0.1:*` for local
+   `https://api.openai.com`, `https://generativelanguage.googleapis.com` (Gemini), and
+   `http://localhost:*` / `http://127.0.0.1:*` for local
    OpenAI-compatible servers (Ollama, LM Studio, llama.cpp). Other hosted providers need a build
    with their origin added.
 2. **Consent with the exact payload.** A dialog shows the provider, purpose, URL and the request
@@ -55,6 +56,14 @@ Two adapters (`src/api/llm.ts`), no SDKs (ADR 0007):
   replayed exactly as returned, so thinking and tool-use blocks stay intact across tool rounds.
 - **OpenAI-compatible Chat Completions**, with `response_format: json_schema` (strict) and strict
   function tools. This covers OpenAI and local servers.
+- **Google Gemini** (added 2026-10-12), through Gemini's OpenAI-compatible endpoint
+  (`/v1beta/openai/chat/completions`) with the same request and reply shapes, so structured
+  answers and function tools need no second code path. The key is sent in the `Authorization`
+  header, never as a `?key=` query parameter, which would end up in logs and browser history.
+  Gemini's newer Interactions API (`/v1beta/interactions`) was considered. It would mean a third
+  request format, and its built-in `google_search` tool must not be used here: it would send
+  queries to Google Search, and the advisor's figures must come only from the app's own tools.
+  Both endpoints allow calls from the app's origin (checked by CORS preflight).
 
 Every structured answer is checked again on the device against the same schema; a refusal, a
 truncated answer or a schema mismatch is an error, not a guess.

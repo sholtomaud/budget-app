@@ -258,7 +258,7 @@ export class SettingsPage extends BaseComponent {
         if (!originAllowed(endpoint)) {
           msg(
             card,
-            'That endpoint is not allowed. The app may only call api.anthropic.com, api.openai.com, or a server on localhost.',
+            'That endpoint is not allowed. The app may only call api.anthropic.com, api.openai.com, generativelanguage.googleapis.com, or a server on localhost.',
             'bad'
           );
           return;
