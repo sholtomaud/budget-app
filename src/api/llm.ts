@@ -70,9 +70,13 @@ function anthropicBase(cfg: ProviderConfig, maxTokens: number): HttpRequest {
   return { url: `${trim(cfg.endpoint)}/v1/messages`, headers, body };
 }
 
+/** Chat Completions: OpenAI's path, or Gemini's OpenAI-compatible one. */
+const chatPath = (cfg: ProviderConfig) =>
+  cfg.kind === 'gemini' ? '/v1beta/openai/chat/completions' : '/v1/chat/completions';
+
 function openaiBase(cfg: ProviderConfig): HttpRequest {
   return {
-    url: `${trim(cfg.endpoint)}/v1/chat/completions`,
+    url: `${trim(cfg.endpoint)}${chatPath(cfg)}`,
     headers: { 'content-type': 'application/json' },
     body: { model: cfg.model },
   };

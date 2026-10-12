@@ -5,7 +5,12 @@
  * (ADR 0020).
  */
 
-export type ProviderKind = 'anthropic' | 'openai-compatible';
+/**
+ * How to talk to a provider. `gemini` uses Google's OpenAI-compatible
+ * endpoint (same request and reply shapes as `openai-compatible`, a
+ * different path), so structured outputs and function tools work the same.
+ */
+export type ProviderKind = 'anthropic' | 'openai-compatible' | 'gemini';
 
 export interface ProviderConfig {
   id: string;
@@ -25,6 +30,13 @@ export const DEFAULT_PROVIDERS: ProviderConfig[] = [
     model: 'claude-opus-5-5',
   },
   {
+    id: 'gemini',
+    kind: 'gemini',
+    label: 'Google Gemini',
+    endpoint: 'https://generativelanguage.googleapis.com',
+    model: 'gemini-3.8-flash',
+  },
+  {
     id: 'openai-compatible',
     kind: 'openai-compatible',
     label: 'OpenAI-compatible',
@@ -41,6 +53,7 @@ export const DEFAULT_PROVIDERS: ProviderConfig[] = [
 export const ALLOWED_ORIGINS = [
   'https://api.anthropic.com',
   'https://api.openai.com',
+  'https://generativelanguage.googleapis.com',
   'http://localhost:*',
   'http://127.0.0.1:*',
 ] as const;
