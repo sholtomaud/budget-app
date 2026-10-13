@@ -243,6 +243,52 @@ test('advisor: streamed, with an activity log; tool loop on this device; an inve
   expect(step).toBe(2);
 });
 
+test('advisor: a model that keeps calling tools is asked for words after 8 rounds, so the chat always answers', async ({
+  page,
+}) => {
+  test.setTimeout(180_000);
+  const bodies: Record<string, unknown>[] = [];
+  await page.route('https://api.anthropic.com/**', async (route: Route) => {
+    const body = route.request().postDataJSON() as Record<string, unknown>;
+    bodies.push(body);
+    const sse = body.tool_choice
+      ? anthropicSse('claude-opus-5-5', 'end_turn', [
+          { type: 'text', text: 'Here is what I found so far.' },
+        ])
+      : anthropicSse('claude-opus-5-5', 'tool_use', [
+          { type: 'tool_use', id: `tu_${bodies.length}`, name: 'get_plan', input: {} },
+        ]);
+    await route.fulfill({ contentType: 'text/event-stream', body: sse });
+  });
+
+  await page.goto('./');
+  await page.getByLabel('Household').selectOption('default');
+  await page.getByRole('button', { name: 'Load sample household' }).click();
+  await expect(page).toHaveURL(/\/import$/);
+  await page
+    .getByRole('navigation', { name: 'Screens' })
+    .getByRole('link', { name: 'Settings' })
+    .click();
+  const form = page.getByRole('form', { name: 'AI provider' });
+  await form.getByLabel('Provider').selectOption('anthropic');
+  await form.getByLabel('API key, for this session only').fill(KEY);
+  await form.getByRole('button', { name: 'Save' }).click();
+
+  const panel = page.locator('chat-panel');
+  await panel.getByLabel('Your message').fill('Talk me through my plan in a couple of sentences');
+  await panel.getByRole('button', { name: 'Send' }).click();
+  const dialog = page.getByRole('dialog');
+  await dialog.getByLabel("Don't ask again for this until the app reloads").check();
+  await dialog.getByRole('button', { name: 'Send', exact: true }).click();
+
+  const answer = panel.locator('.msg.reply').last();
+  await expect(answer).toHaveAttribute('data-done', 'true', { timeout: 120_000 });
+  await expect(answer).toContainText('Here is what I found so far.');
+  expect(bodies).toHaveLength(9);
+  expect(bodies.slice(0, 8).every((b) => !b.tool_choice)).toBe(true);
+  expect(bodies[8]!.tool_choice).toEqual({ type: 'none' });
+});
+
 test('advisor: Gemini streams through its OpenAI-compatible endpoint; Stop cancels a request and the next one starts clean', async ({
   page,
 }) => {

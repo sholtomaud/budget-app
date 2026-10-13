@@ -72,6 +72,21 @@ test('chat: open by default, answers common questions on this device, stays open
   expect(foreign).toEqual([]);
 });
 
+test('chat: the earliest freedom date is one search, with up to three plans as cards (FR-OPT-006)', async ({
+  page,
+}) => {
+  test.setTimeout(240_000);
+  await loadSample(page);
+  const reply = await ask(page, "What's the earliest I can retire?", 0);
+  await expect(reply.locator('.who')).toHaveText('Crux · on this device');
+  await expect(page.locator('chat-panel .msg.activity').first()).toContainText(
+    /Searched for the earliest date · \d+\.\d s/
+  );
+  await expect(reply.locator('.body')).toContainText(/earliest your plan reaches|Even starting/);
+  await expect(reply.locator('.footnotes')).toContainText('seed 42');
+  await expect(reply.locator('.body')).not.toContainText('**');
+});
+
 test('chat: a cost becomes a budget-line card; Apply adds it, Undo removes it', async ({
   page,
 }) => {

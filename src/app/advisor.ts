@@ -24,6 +24,7 @@ import { inputsFor, runIdOf, simulateSetup } from './freedom-inputs.ts';
 import { addScenario, loadScenarios } from './scenarios.ts';
 import {
   checkProposals,
+  earliestDate,
   findChanges,
   forecastConfidence,
   planChecks,
@@ -149,6 +150,15 @@ export async function runTool(
         ...i.facts,
         ...(i.proposal ? { offered: 'Shown to the user as a scenario card to save.' } : {}),
       });
+    }
+    case 'find_earliest_freedom': {
+      const i = await earliestDate(v, (d) =>
+        sink?.onProgress?.(`Searching start dates: ${d} plans tried…`)
+      );
+      for (const p of i.proposals ?? []) sink?.proposals.push(p);
+      if (i.link) sink?.links.push(i.link);
+      if (i.chart && sink) sink.chart = i.chart;
+      return JSON.stringify(i.facts);
     }
     case 'get_forecast_confidence': {
       const i = await forecastConfidence(v);
@@ -340,6 +350,11 @@ export function toolActivity(name: string, input: Record<string, unknown>): [str
       return ['Looking at what holds your plan back…', 'Looked at what holds your plan back'];
     case 'find_plan_changes':
       return ['Trying changes to your plan…', 'Tried changes to your plan'];
+    case 'find_earliest_freedom':
+      return [
+        'Searching for the earliest date your plan reaches its target…',
+        'Searched for the earliest date',
+      ];
     case 'get_forecast_confidence':
       return ["Reading the forecast model's checks…", "Read the forecast model's checks"];
     case 'propose_budget_line':
@@ -356,6 +371,9 @@ export function toolActivity(name: string, input: Record<string, unknown>): [str
       return [`Running ${name}…`, `Ran ${name}`];
   }
 }
+
+/** Rounds of tool calls in one answer; one more request then asks for the answer itself. */
+export const MAX_TOOL_ROUNDS = 8;
 
 export class AdvisorSession {
   turns: Turn[] = [];
@@ -390,11 +408,15 @@ export class AdvisorSession {
     const tools: string[] = [];
     let text = '';
     try {
-      for (let n = 0; n < 8; n++) {
+      for (let n = 0; n <= MAX_TOOL_ROUNDS; n++) {
+        // After the last round of tools, the model must answer with what it has,
+        // so a question never ends on an unanswered tool call.
+        const last = n === MAX_TOOL_ROUNDS;
         const request = chatRequest(ap.provider, {
           system: ADVISOR_SYSTEM,
           turns: this.turns,
           tools: ADVISOR_TOOLS,
+          ...(last ? { toolChoice: 'none' as const } : {}),
           stream: true,
         });
         const size = kb(new TextEncoder().encode(JSON.stringify(request.body)).length);
@@ -470,7 +492,13 @@ export class AdvisorSession {
           text = `${text}\n\n*(The reply was cut off.)*`;
           break;
         }
-        if (!reply.calls.length) break;
+        if (last && reply.calls.length) {
+          // A provider that ignored "no tools": a call without its result would
+          // make the next request invalid, so the turn is dropped.
+          this.turns.pop();
+          text ||= 'I ran out of steps before I could answer. Try asking a narrower question.';
+        }
+        if (!reply.calls.length || last) break;
         const results = [];
         for (const c of reply.calls) {
           opts.signal?.throwIfAborted();
@@ -486,10 +514,9 @@ export class AdvisorSession {
                 return runTool(this.view(), c.name, input, sink);
               });
           this.toolTexts.push(content);
-          const id = /"runId":"([^"]+)"/.exec(content)?.[1];
-          if (id) {
-            runIds.push(id);
-            say?.({ kind: 'run', runId: id });
+          for (const [, id] of content.matchAll(/"runId":"([^"]+)"/g)) {
+            runIds.push(id!);
+            say?.({ kind: 'run', runId: id! });
           }
           results.push({ id: c.id, content, ...(bad ? { isError: true } : {}) });
         }

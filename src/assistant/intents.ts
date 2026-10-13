@@ -10,6 +10,7 @@ export type Intent =
   | { id: 'chance' }
   | { id: 'why' }
   | { id: 'fix' }
+  | { id: 'earliest' }
   | { id: 'sure' }
   | { id: 'spending' }
   | { id: 'page' }
@@ -172,7 +173,13 @@ export function matchIntent(raw: string): Intent | null {
 
   // Questions the app answers from its own results.
   if (
-    /\b(what would (it take|make)|how (can|do|could) i (improve|fix|reach|get|make)|make (it|my plan|this) work|reach (my )?target|stop working (sooner|earlier)|what (can|should) i change|what if i)\b/.test(
+    /\b(earliest|soonest|how (soon|early) can i|when can i (retire|stop work|stop working|be free|quit)|stop working (sooner|earlier)|retire (sooner|earlier))\b/.test(
+      t.replace(/[_*~]/g, ' ')
+    )
+  )
+    return { id: 'earliest' };
+  if (
+    /\b(what would (it take|make)|how (can|do|could) i (improve|fix|reach|get|make)|make (it|my plan|this) work|reach (my )?target|what (can|should) i change|what if i)\b/.test(
       t
     )
   )
