@@ -8,11 +8,20 @@
  * savings are held in is the person's decision; the app only points out what
  * its own assumptions mean.
  */
+import { categoryName } from '../classify/categories.ts';
+import { minTierSpend } from './inputs.ts';
 import type { FreedomSetup } from './inputs.ts';
 import { DEFAULT_MODEL_FOR, type SpendingInput } from './model.ts';
 import { monthsBetween } from './modelgen.ts';
 
-export type CheckId = 'no-pay' | 'pay-gap' | 'idle-bank' | 'all-cash' | 'over-spending' | 'credits';
+export type CheckId =
+  | 'no-pay'
+  | 'pay-gap'
+  | 'idle-bank'
+  | 'all-cash'
+  | 'over-spending'
+  | 'credits'
+  | 'below-essentials';
 
 export interface PlanCheck {
   id: CheckId;
@@ -158,6 +167,33 @@ export function checkPlan(setup: FreedomSetup, spending: SpendingInput, asOf: st
   // 6. Spending groups that took in more than they spent (ADR 0025).
   if (spending.credits?.length)
     out.push({ id: 'credits', level: 'note', text: creditsText(spending.credits) });
+
+  // 7. Spending after freedom that can't pay for the essentials (ADR 0033).
+  const e = spending.essentials;
+  const after = sum(spending.tier);
+  const lever = setup.levers?.tierSpend ?? 1;
+  if (e && after < e.monthly * 0.99) {
+    const need = minTierSpend(spending, lever);
+    const tierOnly = after / Math.max(1e-9, lever);
+    const what = e.top.map((t) => categoryName(t.categoryId, []).toLowerCase()).join(', ');
+    const tierName = setup.goal.tier.charAt(0).toUpperCase() + setup.goal.tier.slice(1);
+    out.push({
+      id: 'below-essentials',
+      level: 'problem',
+      text:
+        tierOnly < e.monthly * 0.99
+          ? `The ${tierName} tier budgets about ${aud(tierOnly)} a month after freedom, less than your essentials cost now (about ${aud(e.monthly)} a month: ${what}). A plan on it can't pay for them. Update that tier's budget, choose a higher tier, or set spending after freedom to cover them.`
+          : `Spending after freedom is set to ${Math.round(lever * 100)} % of the ${tierName} tier, about ${aud(after)} a month: less than your essentials cost now (about ${aud(e.monthly)} a month: ${what}). A plan like that can't pay for them.`,
+      fix: {
+        label: `Spend at least ${aud(e.monthly)} a month after freedom`,
+        summary: `spending after freedom raised to ${Math.round(need * 100)} % of the tier, enough for your essentials`,
+        setup: {
+          ...setup,
+          levers: { tierSpend: need, currentSpend: setup.levers?.currentSpend ?? 1 },
+        },
+      },
+    });
+  }
   return out;
 }
 

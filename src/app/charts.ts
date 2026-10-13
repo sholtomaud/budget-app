@@ -8,6 +8,7 @@ import type { DataView } from '../data/service.ts';
 import { runChart, type ChartTable } from '../viz/query.ts';
 import { checkSpec, type ChartSpec } from '../viz/spec.ts';
 import { currentSetup } from './insights.ts';
+import { currentInputsHash, loadRuns } from './plan-run.ts';
 import { sim } from './workers.ts';
 
 export interface BuiltChart {
@@ -28,16 +29,35 @@ export async function buildChart(
 ): Promise<{ ok: true; chart: BuiltChart } | { ok: false; error: string }> {
   const bad = checkSpec(spec);
   if (bad) return { ok: false, error: `That chart can't be drawn: ${bad}` };
-  const s = spec as ChartSpec;
+  let s = spec as ChartSpec;
   const setup = await currentSetup(v);
+  // Savings over time comes from the latest full run (ADR 0032).
+  const wantsCapital = s.series.some((x) => x.dataset === 'capital');
+  const last = wantsCapital ? (await loadRuns()).at(-1) : undefined;
   const r = runChart(s, {
     txns: v.txns,
     categories: v.categories,
     lines: v.budget.lines,
     periods: v.budget.periods,
     tier: setup.goal.tier,
+    ...(last
+      ? {
+          capital: {
+            asOf: last.asOf,
+            months: last.capital.months,
+            q: last.capital.q,
+            floor: last.goal.floor,
+            start: last.goal.start,
+          },
+        }
+      : {}),
   });
   if (!r.ok) return r;
+  if (last) {
+    const stale = (await currentInputsHash(v, setup)) !== last.inputsHash;
+    const from = `From your run of ${last.at.slice(0, 10)}: ${Math.round(last.pSuccess * 100)} % of futures stay above the floor.${stale ? ' Your data or settings have changed since; run your plan again to update it.' : ''}`;
+    s = { ...s, caption: [s.caption, from].filter(Boolean).join(' ').slice(0, 240) };
+  }
   return { ok: true, chart: { spec: s, table: r.table, at: new Date().toISOString() } };
 }
 
@@ -54,7 +74,13 @@ export function chartFacts(c: BuiltChart): Record<string, unknown> {
     title: c.spec.title,
     points: t.labels.length,
     window: t.window,
-    valuesAre: t.perMonth ? 'monthly averages' : 'totals per period',
+    valuesAre:
+      t.series[0]?.provenance === 'forecast'
+        ? "savings in today's dollars at each year, across the simulated futures"
+        : t.perMonth
+          ? 'monthly averages'
+          : 'totals per period',
+    ...(t.floor !== undefined ? { floor: roughAmount(t.floor) } : {}),
     series: t.series.map((s) => {
       const fmt = (x: number) => (s.unit === 'count' ? Math.round(x) : roughAmount(x));
       let hi = 0;
@@ -63,6 +89,18 @@ export function chartFacts(c: BuiltChart): Record<string, unknown> {
         if (x > s.values[hi]!) hi = i;
         if (x < s.values[lo]!) lo = i;
       });
+      if (s.provenance === 'forecast')
+        return {
+          label: s.label,
+          provenance: s.provenance,
+          now: { at: t.labels[0], value: fmt(s.values[0] ?? 0) },
+          atEnd: {
+            at: t.labels[t.labels.length - 1],
+            value: fmt(s.values[s.values.length - 1] ?? 0),
+          },
+          highest: { at: t.labels[hi], value: fmt(s.values[hi] ?? 0) },
+          lowest: { at: t.labels[lo], value: fmt(s.values[lo] ?? 0) },
+        };
       const total = s.values.reduce((a, b) => a + b, 0);
       return {
         label: s.label,

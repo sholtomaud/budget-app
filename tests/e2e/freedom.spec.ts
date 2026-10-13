@@ -30,7 +30,7 @@ test('freedom: one button runs everything, kept as a dated run (FR-SIM-002…005
   // The chance comes first, before the slower steps finish.
   await expect(page.locator('.psuccess')).toHaveText(/\d+ %/, { timeout: 60_000 });
   await expect(page.locator('.run .status')).toContainText('Done in', { timeout: 240_000 });
-  await expect(page.locator('.steps li[data-state="done"]')).toHaveCount(6);
+  await expect(page.locator('.steps li[data-state="done"]')).toHaveCount(7);
 
   await expect(page.locator('.psuccess')).toHaveText(/\d+ %/);
   await expect(page.locator('.fn-det')).toHaveText(/\$/);
@@ -44,6 +44,7 @@ test('freedom: one button runs everything, kept as a dated run (FR-SIM-002…005
   await expect(page.locator('.fn-p90')).toContainText('At 90 %');
   await expect(page.locator('.plans .plans-note')).toContainText('start dates');
   await expect(page.locator('.run-list li')).toHaveCount(1);
+  await expect(page.locator('.priors-text')).toContainText(/As built|isn't in use/);
 
   if (process.env.SHOT) await page.screenshot({ path: process.env.SHOT, fullPage: true });
 

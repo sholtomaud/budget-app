@@ -51,20 +51,27 @@ export function budgetMonthlyFor(v: DataView, tier: string): Record<string, numb
  * The OPEX forecast's total quantiles for a tier (the spending spread), from
  * the Bayesian model when it converges (ADR 0022); cached per view.
  */
-export function ratioFor(v: DataView, tier: string): Promise<Quantiles | null> {
+export function ratioFor(v: DataView, tier: string, priorPower = 1): Promise<Quantiles | null> {
   let byTier = cache.get(v);
   if (!byTier) cache.set(v, (byTier = new Map()));
-  let p = byTier.get(tier);
+  const key = priorPower === 1 ? tier : `${tier}|${priorPower}`;
+  let p = byTier.get(key);
   if (!p) {
     const history = monthlySeries(v.txns);
     const budgetMonthly = budgetMonthlyFor(v, tier);
     p =
       history.length || Object.keys(budgetMonthly).length
         ? forecast()
-            .opex(history, budgetMonthly, { horizon: 60, seed: '42', bayes: true })
-            .then((f) => f.total)
+            .opex(history, budgetMonthly, {
+              horizon: 60,
+              seed: '42',
+              bayes: true,
+              ...(priorPower === 1 ? {} : { priorPower }),
+            })
+            // Prior sensitivity only means something when the Bayesian model is in use.
+            .then((f) => (priorPower === 1 || f.totalSource === 'bayes' ? f.total : null))
         : Promise.resolve(null);
-    byTier.set(tier, p);
+    byTier.set(key, p);
   }
   return p;
 }
@@ -72,10 +79,11 @@ export function ratioFor(v: DataView, tier: string): Promise<Quantiles | null> {
 export async function inputsFor(
   v: DataView,
   setup: FreedomSetup,
-  tier = setup.goal.tier
+  tier = setup.goal.tier,
+  priorPower = 1
 ): Promise<{ scenario: Scenario; spending: SpendingInput }> {
   const spending = applySpendingLevers(
-    spendingFrom(v, tier, await ratioFor(v, tier)),
+    spendingFrom(v, tier, await ratioFor(v, tier, priorPower)),
     setup.levers
   );
   const base = scenarioFrom(

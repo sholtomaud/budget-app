@@ -26,7 +26,12 @@ it arrives:
 3. the chance at the other tiers (200 runs each);
 4. what drives shortfalls (200 runs per frozen input);
 5. the freedom number at the target (bisection) and the years to reach it;
-6. the earliest freedom date, with a safer and a spend-less plan (ADR 0031).
+6. the earliest freedom date, with a safer and a spend-less plan (ADR 0031), never below what the
+   essentials cost (ADR 0033);
+7. how much the chance depends on the Bayesian spending model's starting assumptions: the plan on
+   the same 200 futures with the priors as built, weakened (×0.5) and strengthened (×2) (the
+   prior sensitivity of pSuccess ADR 0022 deferred). The refits use the model checks' lighter
+   sampler settings. When the Bayesian model isn't in use, the step says so.
 
 **Stop** ends the run after the current step and keeps what finished. The separate Simulate, Find
 and Analyse buttons are gone. The earliest-date plans appear on the screen with **Use this plan**
@@ -55,6 +60,13 @@ so they give the same answer.
   how far to trust the spending side.
 - **`get_plan_history`** returns the earlier runs and whether the newest is out of date.
 - **"Run my plan"** in the chat does the same on the device, with no AI, and answers in words.
+
+### Savings over time in the chat
+
+The kept capital fan is a chart dataset (`capital`, ADR 0028): "Chart my savings over time", or the
+AI's `make_chart`, draws the latest run's typical future, the half-of-futures and 9-in-10 bands, and
+the floor, a point a year, labelled _forecast_, with the run's date and a note when it is out of
+date. Without a run, it says how to make one.
 
 ## Relationship to ADR 0029
 

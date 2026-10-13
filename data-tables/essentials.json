@@ -1,0 +1,16 @@
+{
+  "$comment": "Essentials (ADR 0033): costs a household can't drop in freedom. Spending after freedom may not fall below what these cost now, or what the lowest tier budgets for them, whichever is more. A group id ('housing') covers all its categories. Editable.",
+  "categories": [
+    "housing",
+    "utilities",
+    "comms",
+    "health.insurance",
+    "health.medical",
+    "health.pharmacy",
+    "food.groceries",
+    "transport.public",
+    "transport.fuel",
+    "transport.car",
+    "fees"
+  ]
+}

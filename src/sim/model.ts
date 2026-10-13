@@ -230,4 +230,15 @@ export interface SpendingInput {
    * as no spending, not negative spending; the screens point them out.
    */
   credits?: string[];
+  /**
+   * What essentials (housing, utilities, groceries…: data-tables/essentials.json)
+   * cost a month: the floor spending after freedom may not fall below (ADR 0033).
+   * The larger of their actual cost over the last 12 months and the lowest
+   * tier's budget for them. Not scaled by the spending levers.
+   */
+  essentials?: {
+    monthly: number;
+    source: 'actual' | 'budgeted';
+    top: { categoryId: string; monthly: number }[];
+  };
 }

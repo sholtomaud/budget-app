@@ -52,7 +52,14 @@ function toQuantiles(q: Float64Array[]): Quantiles {
 export function forecastOpex(
   history: MonthlySeries[],
   budgetMonthly: Record<string, number>,
-  opts: { horizon: number; seed: bigint; m?: number; bayes?: boolean; checks?: boolean }
+  opts: {
+    horizon: number;
+    seed: bigint;
+    m?: number;
+    bayes?: boolean;
+    checks?: boolean;
+    priorPower?: number;
+  }
 ): OpexForecast {
   const m = opts.m ?? 12;
   const h = opts.horizon;
@@ -122,6 +129,7 @@ export function forecastOpex(
       nPaths: PATHS,
       seed: opts.seed,
       checks: opts.checks,
+      ...(opts.priorPower !== undefined ? { priorPower: opts.priorPower } : {}),
     });
     if (total)
       return {

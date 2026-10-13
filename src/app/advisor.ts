@@ -39,6 +39,7 @@ import {
   type Proposal,
 } from './proposals.ts';
 import { percent } from '../assistant/phrases.ts';
+import { minTierSpend } from '../sim/inputs.ts';
 import { buildChart, chartFacts, type BuiltChart } from './charts.ts';
 import {
   currentInputsHash,
@@ -249,6 +250,26 @@ export async function runTool(
         targetProbability: pct(setup.goal.targetProbability),
         floor: rough(setup.goal.floor),
         spendingAfterFreedom: `${pct(setup.levers?.tierSpend ?? 1)} of the tier`,
+        ...(await (async () => {
+          const sp = (await inputsFor(v, setup)).spending;
+          const e = sp.essentials;
+          const lever = setup.levers?.tierSpend ?? 1;
+          const tier = Object.values(sp.tier).reduce((a, b) => a + b, 0);
+          return {
+            spendingAfterFreedomPerMonth: rough(BigInt(Math.round(tier * 100))),
+            tierBudgetPerMonth: rough(BigInt(Math.round((tier / Math.max(1e-9, lever)) * 100))),
+            ...(e
+              ? {
+                  essentialsPerMonth: rough(BigInt(Math.round(e.monthly * 100))),
+                  essentialsFrom:
+                    e.source === 'actual'
+                      ? 'what they cost over the last 12 months'
+                      : 'the lowest tier budget',
+                  lowestSpendingAfterFreedom: `${pct(minTierSpend(sp, lever))} of the tier: below this the essentials (rent, groceries, utilities…) can't be paid`,
+                }
+              : {}),
+          };
+        })()),
         spendingNow: `${pct(setup.levers?.currentSpend ?? 1)} of today's`,
         projectIncomePerYear: rough(setup.goal.projectIncome ?? 0n),
         takeHomePayPerMonth: rough(setup.decisions.netPayMonthly ?? 0n),
@@ -322,11 +343,27 @@ export async function runTool(
             withdrawal: withdrawalOf(input.withdrawal as never, next),
           },
         };
+      // Never below what the essentials cost (ADR 0033).
+      const lever = next.levers?.tierSpend ?? 1;
+      const nextSpending = (await inputsFor(v, next)).spending;
+      const floor = minTierSpend(nextSpending, lever);
+      const raised = lever < floor;
+      if (raised)
+        next = {
+          ...next,
+          levers: { tierSpend: floor, currentSpend: next.levers?.currentSpend ?? 1 },
+        };
       const saved = await addScenario(String(input.name || 'Advisor proposal'), next, 'advisor');
       return JSON.stringify({
         scenarioId: saved.id,
         name: saved.name,
         freedomStarts: next.goal.start.slice(0, 7),
+        spendingAfterFreedom: `${pct(next.levers?.tierSpend ?? 1)} of the tier`,
+        ...(raised
+          ? {
+              raised: `Spending after freedom was raised from ${pct(lever)} to ${pct(floor)} of the tier: lower can't pay for the essentials (about ${rough(BigInt(Math.round((nextSpending.essentials?.monthly ?? 0) * 100)))} a month).`,
+            }
+          : {}),
         note: 'Saved for the user to review on the Scenarios screen.',
       });
     }

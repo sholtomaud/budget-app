@@ -158,7 +158,7 @@ export const ADVISOR_TOOLS: ToolDef[] = [
   {
     name: 'run_my_plan',
     description:
-      "Run the user's plan in full, exactly as the Freedom screen's Run my plan button does, and keep it in their history: the chance of success, plan checks, the chance at each tier, what drives shortfalls, the freedom number at their target and years to reach it, and the earliest freedom date with a safer and a spend-less plan (each found by searching on the same simulated futures). Also returns how far to trust the spending forecast (the Bayesian model's checks). Takes 20–60 seconds. Use it when asked how the plan is doing overall or to run everything; for one quick number, run_plan is faster.",
+      "Run the user's plan in full, exactly as the Freedom screen's Run my plan button does, and keep it in their history: the chance of success, plan checks, the chance at each tier, what drives shortfalls, the freedom number at their target and years to reach it, the earliest freedom date with a safer and a spend-less plan (each found by searching on the same simulated futures, never below what the essentials cost), and how much the chance depends on the Bayesian spending model's starting assumptions. Also returns how far to trust the spending forecast (the model's checks). For savings over time afterwards, call make_chart with the capital dataset. Takes 20–60 seconds. Use it when asked how the plan is doing overall or to run everything; for one quick number, run_plan is faster.",
     input_schema: obj({ runs: { type: 'integer', enum: [200, 500, 1000] } }),
   },
   {
@@ -194,6 +194,7 @@ Rules:
 - When a plan looks surprisingly bad, call check_plan before anything else: a setting is often the cause, not the person's finances.
 - To check the whole plan (chance, drivers, freedom number, earliest date, the forecast's checks), call run_my_plan; get_plan_history says how it has changed.
 - To show something over time or by category, call make_chart; the chart appears in the chat. Describe it from the facts it returns.
+- Spending after freedom can never go below what the essentials cost (rent, groceries, utilities…: essentialsPerMonth in get_plan). Never suggest a plan below it; the app raises any proposal that is.
 - Changes go through the propose_ tools as cards the user applies. Never say a change was made; say it is ready for them to apply.
 - Don't add a "not financial advice" note: the app shows it once.
 - For "when is the earliest I can stop work?" and the like, call find_earliest_freedom once and present its plans. Don't search for a date yourself with propose_plan and run_plan.

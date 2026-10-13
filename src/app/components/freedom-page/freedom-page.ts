@@ -679,9 +679,37 @@ export class FreedomPage extends BaseComponent {
       )
     );
 
+    this.showPriors(r);
     this.showPlans(r);
     this.showHistory();
     this.record(r.record, main?.maxDrift);
+  }
+
+  private showPriors(r: PlanRun): void {
+    const p = r.priors;
+    const box = this.$('.priors-text');
+    if (!p) {
+      box.textContent = 'Worked out when you run your plan.';
+      return;
+    }
+    if ('unavailable' in p) {
+      box.textContent = p.unavailable;
+      return;
+    }
+    const lo = Math.min(p.weaker, p.stronger, p.baseline);
+    const hi = Math.max(p.weaker, p.stronger, p.baseline);
+    box.replaceChildren(
+      `As built: ${pct(p.baseline)}. Weaker assumptions: ${pct(p.weaker)}. Stronger: ${pct(p.stronger)} (each on the same ${p.runs} futures). `,
+      el(
+        'strong',
+        {},
+        hi - lo <= 0.05
+          ? "The model's assumptions don't change this number."
+          : 'The model’s assumptions move this number: more months of data would narrow it.'
+      ),
+      ' ',
+      prov('calibrated')
+    );
   }
 
   private showPlans(r: PlanRun): void {

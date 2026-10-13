@@ -104,4 +104,22 @@ describe('earliest freedom date (FR-OPT-001, ADR 0031)', () => {
     const [a, b] = [await run(), await run()];
     expect(a.plans.map((p) => p.runId)).toEqual(b.plans.map((p) => p.runId));
   });
+
+  test('no plan spends less than the essentials cost (ADR 0033)', async () => {
+    // The floor is the plan's own lever: spending less is no plan, and the others keep it.
+    const at = await earliestFreedom(
+      { setup: setup(), target: 0.9, soonest: shifted(-24), minTierSpend: 1 },
+      { evaluate: fake().evaluate }
+    );
+    expect(at.plans.map((p) => p.id)).toEqual(['target', 'safer']);
+    // A setup below the floor is searched at the floor.
+    const low = { ...setup(), levers: { tierSpend: 0.63, currentSpend: 1 } };
+    const r = await earliestFreedom(
+      { setup: low, target: 0.9, soonest: shifted(-24), minTierSpend: 0.95 },
+      { evaluate: fake().evaluate }
+    );
+    expect(r.plans.length).toBeGreaterThan(0);
+    for (const p of r.plans) expect(p.tierSpend).toBeGreaterThanOrEqual(0.95);
+    expect(r.plans.map((p) => p.id)).not.toContain('spend-less');
+  });
 });

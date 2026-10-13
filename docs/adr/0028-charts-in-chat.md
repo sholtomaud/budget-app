@@ -63,7 +63,7 @@ words that isn't in that summary is flagged "unverified figure", as today.
 
 - **Vocabulary:** kinds `line`, `bar`, `stacked-bar`, `table`; datasets `spending`, `income`,
   `budget`; grouped by month, quarter, year, category, group or merchant; sum or count. The fan
-  kind arrives with a forecast dataset; until then it isn't in the schema. Category and merchant
+  kind came with the capital dataset (below). Category and merchant
   axes show monthly averages, biggest first, with the rest folded into "Everything else".
 - **Where it lives:** `src/viz/spec.ts` (schema and checks), `src/viz/query.ts` (queries and CSV),
   `src/viz/requests.ts` (charts asked for in words), `src/app/charts.ts` (building, the AI's
@@ -72,6 +72,9 @@ words that isn't in that summary is flagged "unverified figure", as today.
   are recognised on the device; "Where does my money go?" comes with a chart by group. A request
   that names neither spending, income nor a category goes to the AI.
 - **AI-designed charts:** the advisor's `make_chart` tool.
+- **Savings over time (added with ADR 0032):** the `capital` dataset and the `fan` kind draw the
+  latest Run my plan's capital in today's dollars, a point a year, with its bands and the floor. It
+  stands alone (one series, by year) and is the only dataset a fan accepts.
 
 ### How an AI-designed chart is validated
 

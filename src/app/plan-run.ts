@@ -20,7 +20,7 @@ import { chanceWords, dollars, percent } from '../assistant/phrases.ts';
 import { canonicalJson, sha256Hex } from '../lib/hash.ts';
 import type { DataView } from '../data/service.ts';
 import { earliestFreedom, type EarliestPlanId } from '../optimise/earliest.ts';
-import type { FreedomSetup } from '../sim/inputs.ts';
+import { minTierSpend, type FreedomSetup } from '../sim/inputs.ts';
 import {
   deterministicFreedom,
   p90Freedom,
@@ -29,7 +29,7 @@ import {
   yearsToFreedom,
 } from '../sim/metrics.ts';
 import type { Scenario, SpendingInput } from '../sim/model.ts';
-import { evaluator, inputsFor, runIdOf } from './freedom-inputs.ts';
+import { evaluator, inputsFor, ratioFor, runIdOf } from './freedom-inputs.ts';
 import { planChecks } from './insights.ts';
 import { poolRunner, runPool, type PoolResult, type RunRecord } from './sim-pool.ts';
 import { sim } from './workers.ts';
@@ -41,6 +41,7 @@ export const PLAN_STEPS = [
   'drivers',
   'freedom-number',
   'earliest',
+  'priors',
 ] as const;
 export type PlanStep = (typeof PLAN_STEPS)[number];
 
@@ -51,6 +52,7 @@ export const STEP_WORDS: Record<PlanStep, [running: string, done: string]> = {
   drivers: ['Finding what drives shortfalls', 'Found what drives shortfalls'],
   'freedom-number': ['Finding your freedom number', 'Found your freedom number'],
   earliest: ['Searching for the earliest date', 'Searched for the earliest date'],
+  priors: ["Testing the spending model's assumptions", "Tested the spending model's assumptions"],
 };
 
 export interface PlanRun {
@@ -94,6 +96,13 @@ export interface PlanRun {
     latest?: { start: string; pSuccess: number };
     simulations: number;
   };
+  /**
+   * Prior sensitivity of the chance (ADR 0032): the plan on the same 200
+   * futures with the spending model's priors as built, weakened (×0.5) and
+   * strengthened (×2). Unavailable when the Bayesian model isn't in use.
+   */
+  priors?:
+    { runs: number; baseline: number; weaker: number; stronger: number } | { unavailable: string };
   /** Capital in today's dollars, one point a year: months from the start, and quantiles. */
   capital: { months: number[]; q: Record<'p5' | 'p25' | 'p50' | 'p75' | 'p95', number[]> };
   months: number;
@@ -221,7 +230,12 @@ export async function runFullPlan(
 
   opts.onStep?.('earliest', 'running', run);
   const e = await earliestFreedom(
-    { setup, target, soonest: scenario.asOf },
+    {
+      setup,
+      target,
+      soonest: scenario.asOf,
+      minTierSpend: minTierSpend(spending, setup.levers?.tierSpend ?? 1),
+    },
     {
       evaluate: evaluator(v, 200),
       onProgress: (k) => opts.onProgress?.(`${k} start dates tried`),
@@ -243,7 +257,39 @@ export async function runFullPlan(
     simulations: e.simulations,
   };
   finish('earliest');
+  if (opts.stopped?.()) return full();
+
+  opts.onStep?.('priors', 'running', run);
+  run.priors = await priorSensitivity(v, setup, scenario, spending);
+  finish('priors');
   return full();
+}
+
+/** The chance with the spending model's priors as built, weaker and stronger, on the same futures. */
+async function priorSensitivity(
+  v: DataView,
+  setup: FreedomSetup,
+  scenario: Scenario,
+  spending: SpendingInput
+): Promise<NonNullable<PlanRun['priors']>> {
+  if (!(await ratioFor(v, scenario.goal.tier, 0.5)))
+    return {
+      unavailable:
+        "The Bayesian spending model isn't in use for this household (too little history, or it didn't converge), so its assumptions don't affect this plan.",
+    };
+  const runs = 200;
+  const chance = async (sp: SpendingInput, sc: Scenario) =>
+    (await poolRunner({ scenario: sc, spending: sp, runs, keepCapital: false })).pSuccess;
+  const at = async (power: number) => {
+    const x = await inputsFor(v, setup, scenario.goal.tier, power);
+    return chance(x.spending, x.scenario);
+  };
+  return {
+    runs,
+    baseline: await chance(spending, scenario),
+    weaker: await at(0.5),
+    stronger: await at(2),
+  };
 }
 
 /** The newest runs are kept; older ones drop off. */
@@ -321,6 +367,21 @@ export function runFacts(r: PlanRun, tierName: (id: string) => string = (id) => 
     ...(y
       ? { yearsToFreedomNumber: { typical: yrs(y.p50), range80: `${yrs(y.p10)} to ${yrs(y.p90)}` } }
       : {}),
+    ...(r.priors
+      ? {
+          spendingModelAssumptions:
+            'unavailable' in r.priors
+              ? r.priors.unavailable
+              : {
+                  chanceAsBuilt: percent(r.priors.baseline),
+                  withWeakerAssumptions: percent(r.priors.weaker),
+                  withStrongerAssumptions: percent(r.priors.stronger),
+                  futures: r.priors.runs,
+                  meaning:
+                    'How much the chance depends on the Bayesian spending model’s starting assumptions rather than the data: a small spread means the data decides.',
+                },
+        }
+      : {}),
     ...(r.earliest
       ? {
           earliest: {
@@ -379,6 +440,16 @@ export function fullRunText(r: PlanRun, tierName: (id: string) => string = (id) 
     lines.push(
       `No start date up to ${e.latest?.start ?? e.current.start} reaches the target; spending less after freedom or project income would help. Ask "what would make it work?"`
     );
+  const pr = r.priors;
+  if (pr && !('unavailable' in pr)) {
+    const lo = Math.min(pr.weaker, pr.stronger, pr.baseline);
+    const hi = Math.max(pr.weaker, pr.stronger, pr.baseline);
+    lines.push(
+      hi - lo <= 0.05
+        ? `The spending model's starting assumptions don't change this: weaker or stronger, the chance stays ${lo === hi ? `at ${percent(lo)}` : `between ${percent(lo)} and ${percent(hi)}`}.`
+        : `The spending model's starting assumptions matter here: weaker or stronger, the chance moves between ${percent(lo)} and ${percent(hi)}. More months of data would narrow that.`
+    );
+  }
   lines.push('The full results, and every earlier run, are on the Freedom screen under History.');
   return lines.join('\n\n');
 }

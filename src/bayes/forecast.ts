@@ -74,7 +74,14 @@ function pathSums(paths: Float64Array, h: number, k: number): Float64Array {
 export function bayesTotal(
   history: readonly { categoryId: string; months: string[]; values: number[] }[],
   others: Map<string, Float64Array>,
-  opts: { horizon: number; nPaths: number; seed: bigint; checks?: boolean }
+  opts: {
+    horizon: number;
+    nPaths: number;
+    seed: bigint;
+    checks?: boolean;
+    /** Power-scale the priors (prior sensitivity of the plan's chance, ADR 0032); 1 = as built. */
+    priorPower?: number;
+  }
 ): { report: BayesReport; total: Float64Array | null } {
   const data = spendingData(history);
   const none = (reason: string): { report: BayesReport; total: null } => ({
@@ -93,7 +100,7 @@ export function bayesTotal(
   if (data.values[0]!.length < 12)
     return none('Not enough history: the model needs at least 12 months.');
   const seed = deriveSeed(opts.seed, 'bayes');
-  const { post, retried } = fitted(data, seed);
+  const { post, retried } = fitted(data, seed, opts.priorPower ?? 1);
   const d = post.diagnostics;
   const report: BayesReport = {
     used: d.ok,
@@ -128,15 +135,21 @@ export function bayesTotal(
  * result is deterministic, so the second asks for nothing new.
  */
 const fitCache = new Map<string, { post: SpendingPosterior; retried: boolean }>();
-function fitted(data: SpendingData, seed: bigint): { post: SpendingPosterior; retried: boolean } {
-  const key = `${seed}|${data.firstMonth}|${data.categories.join(',')}|${data.values.map((v) => v.join(',')).join(';')}`;
+function fitted(
+  data: SpendingData,
+  seed: bigint,
+  priorPower = 1
+): { post: SpendingPosterior; retried: boolean } {
+  const key = `${seed}|${priorPower}|${data.firstMonth}|${data.categories.join(',')}|${data.values.map((v) => v.join(',')).join(';')}`;
   const hit = fitCache.get(key);
   if (hit) return hit;
-  let post = fitSpending(data, { seed, ...MAIN_FIT });
+  // A prior-sensitivity refit is a comparison, like the model checks: the lighter settings do.
+  const power = priorPower === 1 ? {} : { priorPower };
+  let post = fitSpending(data, { seed, ...(priorPower === 1 ? MAIN_FIT : CHECK_FIT), ...power });
   let retried = false;
   if (!post.diagnostics.ok) {
     retried = true;
-    post = fitSpending(data, { seed: deriveSeed(seed, 'retry'), ...RETRY_FIT });
+    post = fitSpending(data, { seed: deriveSeed(seed, 'retry'), ...RETRY_FIT, ...power });
   }
   if (fitCache.size >= 4) fitCache.delete(fitCache.keys().next().value!);
   const out = { post, retried };

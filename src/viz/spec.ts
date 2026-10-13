@@ -7,8 +7,8 @@
  */
 import { validate, formatError, type Schema } from '../lib/jsonschema.ts';
 
-export const CHART_KINDS = ['line', 'bar', 'stacked-bar', 'table'] as const;
-export const DATASETS = ['spending', 'income', 'budget'] as const;
+export const CHART_KINDS = ['line', 'bar', 'stacked-bar', 'table', 'fan'] as const;
+export const DATASETS = ['spending', 'income', 'budget', 'capital'] as const;
 export const GROUP_BY = ['month', 'quarter', 'year', 'category', 'group', 'merchant'] as const;
 export const MEASURES = ['sum', 'count'] as const;
 
@@ -56,6 +56,8 @@ export const CATALOGUE: Record<Dataset, string> = {
     'Money coming in classified as income (pay, interest, refunds of capital excluded). Dollars. Provenance: actual.',
   budget:
     "The budget lines at the plan's tier, as a monthly rate. Grouped by month it is the same each month; grouped by category or group it is the monthly budget for each. 'text' matches the line's item. Dollars. Provenance: budgeted.",
+  capital:
+    "Savings and investments in the future, in today's dollars, from the latest Run my plan: the typical future and the range across the simulated futures, one point a year from now to the end of freedom, with the plan's floor. Only grouped by year, on its own (no other series), as a fan (the range), a line (typical, bad and good case) or a table. Provenance: forecast.",
 };
 
 const str = (maxLength: number): Schema => ({ type: 'string', maxLength });
@@ -161,6 +163,17 @@ export function checkSpec(spec: unknown): string | null {
   const err = validate(CHART_SCHEMA, spec);
   if (err) return formatError(err);
   const s = spec as ChartSpec;
+  const capital = s.series.some((x) => x.dataset === 'capital');
+  if (capital) {
+    if (s.series.length > 1)
+      return 'Savings over time is a chart on its own: one series, nothing else with it.';
+    if (s.groupBy !== 'year') return 'Savings over time is a point a year: group by year.';
+    if (!['fan', 'line', 'table'].includes(s.kind))
+      return 'Savings over time is drawn as a fan, a line or a table.';
+    if (s.series[0]!.filter) return 'Savings over time takes no filter: it is the whole plan.';
+    return null;
+  }
+  if (s.kind === 'fan') return 'A fan shows a range of futures: only savings over time has one.';
   if (s.kind === 'line' && !isTime(s.groupBy))
     return 'A line chart needs a time axis: group by month, quarter or year.';
   for (const x of s.series) {

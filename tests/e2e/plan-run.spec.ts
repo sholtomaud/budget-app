@@ -36,9 +36,20 @@ test('the chat runs the whole plan on the device and keeps it in History', async
   await expect(reply.locator('.meter')).toBeVisible();
   await expect(panel.locator('.msg.activity').first()).toContainText('Ran every step');
 
+  // Savings over time, from that run: a fan with the floor.
+  await panel.getByLabel('Your message').fill('Chart my savings over time');
+  await panel.getByRole('button', { name: 'Send' }).click();
+  const fan = panel.locator('.msg.reply').nth(1);
+  await expect(fan).toHaveAttribute('data-done', 'true', { timeout: 60_000 });
+  await expect(fan.locator('.body')).toContainText('In the typical future your savings go from');
+  await expect(fan.locator('chat-chart svg polygon.band')).toHaveCount(2);
+  await expect(fan.locator('chat-chart .legend')).toContainText('9 in 10 futures');
+  await expect(fan.locator('chat-chart figcaption')).toContainText('From your run of');
+
   const runs = await freedomHistory(page);
   await expect(runs).toHaveCount(1);
   await expect(page.locator('.last-run')).toContainText('Run ');
+  await expect(page.locator('.priors-text')).not.toContainText('Worked out when');
   await expect(page.locator('table.drivers tbody tr').first()).toBeVisible();
 });
 

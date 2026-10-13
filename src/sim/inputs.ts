@@ -5,6 +5,7 @@
  * the data cannot tell us (market value of investments, gross salary) is
  * labelled `assumed` and is editable on the Freedom screen.
  */
+import ESSENTIALS from '../../data-tables/essentials.json' with { type: 'json' };
 import type { BudgetState } from '../budget/state.ts';
 import { annualisedCapexPerWeek, inTier } from '../budget/capex.ts';
 import { weeklyRate } from '../budget/model.ts';
@@ -317,6 +318,7 @@ export function spendingFrom(
     ) as Quantiles;
   }
   const assets = d.assets.filter((a) => inTier(a, tier, d.budget.tiers));
+  const essentials = essentialsFrom(d);
   return {
     current,
     tier: hasBudget ? budget : { ...current },
@@ -325,5 +327,58 @@ export function spendingFrom(
     assets,
     capexMonthly: (annualisedCapexPerWeek(d.assets, tier, d.budget.tiers) * 52) / 12 / 100,
     ...(credits.length ? { credits } : {}),
+    ...(essentials ? { essentials } : {}),
   };
+}
+
+/** Is a category one of the essentials (ADR 0033)? */
+export const isEssential = (categoryId: string, list: readonly string[] = ESSENTIALS.categories) =>
+  list.some((e) => categoryId === e || categoryId.startsWith(`${e}.`));
+
+/**
+ * What essentials cost a month: actual (last 12 months, per category, credits
+ * as no spending) or the lowest tier's budget for them, whichever is more.
+ */
+export function essentialsFrom(d: HouseholdData): SpendingInput['essentials'] | undefined {
+  const actual = new Map<string, number>();
+  for (const s of monthlySeries(d.txns)) {
+    if (!isEssential(s.categoryId)) continue;
+    const vals = lastN(s.values, 12);
+    if (!vals.length) continue;
+    const m = Math.max(0, vals.reduce((a, b) => a + b, 0) / vals.length / 100);
+    if (m > 0) actual.set(s.categoryId, m);
+  }
+  const lowest = d.budget.tiers[0]?.id;
+  const budgeted = new Map<string, number>();
+  if (lowest)
+    for (const l of d.budget.lines) {
+      if (!isEssential(l.categoryId)) continue;
+      const m = (weeklyRate(l, lowest, (c) => perWeek(c, d.budget.periods)) * 52) / 12 / 100;
+      if (m > 0) budgeted.set(l.categoryId, (budgeted.get(l.categoryId) ?? 0) + m);
+    }
+  const total = (m: Map<string, number>) => [...m.values()].reduce((a, b) => a + b, 0);
+  const a = total(actual);
+  const b = total(budgeted);
+  if (a <= 0 && b <= 0) return undefined;
+  const use = a >= b ? actual : budgeted;
+  return {
+    monthly: Math.max(a, b),
+    source: a >= b ? 'actual' : 'budgeted',
+    top: [...use.entries()]
+      .sort((x, y) => y[1] - x[1])
+      .slice(0, 4)
+      .map(([categoryId, monthly]) => ({ categoryId, monthly })),
+  };
+}
+
+/**
+ * The smallest spending-after-freedom lever that still pays for the
+ * essentials: the floor every search and proposal respects (ADR 0033).
+ * `spending` has the setup's levers applied; `lever` is the one applied.
+ */
+export function minTierSpend(spending: SpendingInput, lever: number): number {
+  const e = spending.essentials?.monthly ?? 0;
+  const tier = Object.values(spending.tier).reduce((a, b) => a + b, 0) / Math.max(1e-9, lever);
+  if (e <= 0 || tier <= 0) return 0;
+  return Math.ceil((e / tier) * 100) / 100;
 }

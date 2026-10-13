@@ -20,7 +20,7 @@ const base: PlanRun = {
   pSuccess: 0.62,
   validRuns: 500,
   invalidRuns: 0,
-  done: ['chance', 'checks', 'tiers', 'drivers', 'freedom-number', 'earliest'],
+  done: ['chance', 'checks', 'tiers', 'drivers', 'freedom-number', 'earliest', 'priors'],
   checks: [{ level: 'problem', text: 'All your savings are in cash.' }],
   tiers: [
     { id: 'independent', pSuccess: 0.62, runs: 500 },
@@ -136,5 +136,22 @@ describe('history and words', () => {
     expect(matchIntent('please run everything')).toEqual({ id: 'full-run' });
     expect(matchIntent('analyse my whole plan')).toEqual({ id: 'full-run' });
     expect(matchIntent('How likely is my plan to work?')).toEqual({ id: 'chance' });
+  });
+
+  test('the spending model’s assumptions: facts and words', () => {
+    const narrow = { ...base, priors: { runs: 200, baseline: 0.62, weaker: 0.6, stronger: 0.63 } };
+    expect(runFacts(narrow).spendingModelAssumptions).toMatchObject({
+      chanceAsBuilt: '62 %',
+      withWeakerAssumptions: '60 %',
+      withStrongerAssumptions: '63 %',
+    });
+    expect(fullRunText(narrow)).toContain("don't change this");
+    expect(
+      fullRunText({ ...base, priors: { runs: 200, baseline: 0, weaker: 0, stronger: 0 } })
+    ).toContain('stays at 0 %');
+    const wide = { ...base, priors: { runs: 200, baseline: 0.62, weaker: 0.45, stronger: 0.7 } };
+    expect(fullRunText(wide)).toContain('between 45 % and 70 %');
+    const none = { ...base, priors: { unavailable: 'not in use' } };
+    expect(runFacts(none).spendingModelAssumptions).toBe('not in use');
   });
 });

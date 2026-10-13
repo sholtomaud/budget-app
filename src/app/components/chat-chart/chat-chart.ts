@@ -75,7 +75,7 @@ export class ChatChart extends BaseComponent {
     fig.replaceChildren(el('p', { class: 'title' }, spec.title));
     if (spec.kind === 'table') fig.append(this.tableView(table));
     else fig.append(this.svg(spec, table));
-    fig.append(this.legend(table));
+    fig.append(this.legend(table, spec.kind));
     const caption = [
       spec.caption ?? '',
       ...(table.notes ?? []),
@@ -89,8 +89,22 @@ export class ChatChart extends BaseComponent {
     fig.append(this.tools(c));
   }
 
-  private legend(t: ChartTable): HTMLElement {
+  private legend(t: ChartTable, kind: ChartSpec['kind']): HTMLElement {
     const box = el('div', { class: 'legend' });
+    if (kind === 'fan') {
+      for (const [label, k] of [
+        ['Typical future', 0],
+        ['Half of futures', 0],
+        ['9 in 10 futures', 0],
+      ] as const) {
+        const key = el('span', { class: 'key' }, label);
+        key.style.setProperty('--swatch', colour(k));
+        box.append(key);
+      }
+      if (t.floor) box.append(el('span', {}, `Floor ${money.format(t.floor)} (dashed)`));
+      box.append(el('span', { class: 'prov', 'data-prov': 'forecast' }, 'forecast'));
+      return box;
+    }
     t.series.forEach((s, i) => {
       const key = el('span', { class: 'key' }, s.label);
       key.style.setProperty('--swatch', colour(i));
@@ -150,6 +164,7 @@ export class ChatChart extends BaseComponent {
     const lows = stacked
       ? t.x.map((_, i) => t.series.reduce((a, s) => a + Math.min(0, s.values[i]!), 0))
       : t.series.flatMap((s) => s.values);
+    if (t.floor !== undefined) tops.push(t.floor);
     const yt = ticks(Math.min(0, ...lows), Math.max(0, ...tops));
     const y0 = Math.min(0, yt[0] ?? 0, ...lows);
     const y1 = Math.max(yt[yt.length - 1] ?? 1, ...tops, y0 + 1);
@@ -217,7 +232,33 @@ export class ChatChart extends BaseComponent {
     svg.append(grid);
 
     const marks = svgEl('g', {});
-    if (spec.kind === 'line') {
+    const role = (r: string) => t.series.find((s) => s.role === r)?.values;
+    if (spec.kind === 'fan') {
+      // Bands between quantiles of the simulated futures, and the typical one as a line.
+      const area = (lo: number[], hi: number[], fill: string, title: string) => {
+        const top = hi.map((v, i) => `${cx(i).toFixed(1)},${sy(v).toFixed(1)}`);
+        const bottom = lo.map((v, i) => `${cx(i).toFixed(1)},${sy(v).toFixed(1)}`).reverse();
+        const poly = svgEl('polygon', {
+          points: [...top, ...bottom].join(' '),
+          fill,
+          'fill-opacity': 0.25,
+          class: 'band',
+        });
+        poly.append(svgEl('title', {}, title));
+        marks.append(poly);
+      };
+      const [p5, p25, p50, p75, p95] = ['p5', 'p25', 'p50', 'p75', 'p95'].map(role);
+      if (p5 && p95) area(p5, p95, colour(0), '9 in 10 futures fall in this range');
+      if (p25 && p75) area(p25, p75, colour(0), 'Half of the futures fall in this range');
+      if (p50) {
+        const d = p50
+          .map((v, i) => `${i ? 'L' : 'M'}${cx(i).toFixed(1)},${sy(v).toFixed(1)}`)
+          .join('');
+        const path = svgEl('path', { d, fill: 'none', stroke: colour(0), 'stroke-width': 2 });
+        path.append(svgEl('title', {}, 'Typical future'));
+        marks.append(path);
+      }
+    } else if (spec.kind === 'line') {
       t.series.forEach((s, k) => {
         const d = s.values
           .map((v, i) => `${i ? 'L' : 'M'}${cx(i).toFixed(1)},${sy(v).toFixed(1)}`)
@@ -257,6 +298,19 @@ export class ChatChart extends BaseComponent {
           marks.append(rect);
         });
       });
+    }
+    if (t.floor !== undefined && t.floor > 0) {
+      const floor = svgEl('line', {
+        x1: M.left,
+        x2: W - M.right,
+        y1: sy(t.floor),
+        y2: sy(t.floor),
+        stroke: 'var(--bad)',
+        'stroke-dasharray': '4 3',
+        class: 'floor',
+      });
+      floor.append(svgEl('title', {}, `Floor: ${money.format(t.floor)}`));
+      marks.append(floor);
     }
     svg.append(marks);
     return svg;

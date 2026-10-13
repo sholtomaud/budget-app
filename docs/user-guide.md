@@ -40,6 +40,10 @@ too. With an AI provider on, you can ask for other charts in your own words; the
 chart, and Crux works out every value itself, so the numbers are always your data's. If part of a
 chart has nothing in it (a budget you haven't set, say), it is left out and the chart says so.
 
+After you've run your plan, **Chart my savings over time** shows your savings in today's dollars a
+year at a time to the end of freedom: the typical future, the range most futures fall in, and your
+floor (dashed). It comes from your latest run and says when that run is out of date.
+
 Under each chart: **Save chart** keeps it under **Saved charts** in the menu, and **SVG**, **PNG**
 and **CSV** download it. A saved chart shows the values from when you saved it; **Show with
 today's data** redraws it from what's there now. Saved charts are encrypted with the rest of your
@@ -270,7 +274,7 @@ Then choose a withdrawal strategy:
 
 Mark super as locked until your preservation date.
 
-**Run my plan** does everything in one go, showing each result as it arrives: the chance of success first, then the plan checks, the other tiers, what drives shortfalls, the freedom number at your target and the years to reach it, and the earliest date freedom could start. **Stop** keeps what has finished. The main simulation runs 1,000 possible futures (or the number under **Runs**) on the GSSK kernel. Each future has its own investment
+**Run my plan** does everything in one go, showing each result as it arrives: the chance of success first, then the plan checks, the other tiers, what drives shortfalls, the freedom number at your target and the years to reach it, the earliest date freedom could start, and how much the chance depends on the spending model's starting assumptions (_How sure is this chance?_). **Stop** keeps what has finished. The main simulation runs 1,000 possible futures (or the number under **Runs**) on the GSSK kernel. Each future has its own investment
 returns, spending and replacement costs, all in today's dollars. Tax follows the 2025-26
 Australian resident rates, Medicare levy and capital-gains discount. That table is labelled
 _assumed_ until a maintainer has checked it against the ATO.
@@ -298,6 +302,12 @@ falls a little. That is honest, not pessimistic.
 - **Earliest freedom:** the earliest start that reaches your target, one with a safer margin, and
   one spending a little less after freedom. **Use this plan** puts one in your plan (run it again to
   see it); **Save as scenario** keeps it to compare.
+
+**Essentials come first.** Spending after freedom can never go below what your essentials cost:
+housing, utilities, phone and internet, health, groceries and transport, from the last 12 months
+(or your lowest tier's budget for them, if that's more). If your plan or a tier's budget is below
+that, a plan check says so and offers a fix, and none of the searches, or the AI, will suggest a
+plan below it. Rent has to be categorised (Housing) to count; check Transactions if it isn't.
 
 **History.** Every run is kept with its date, the newest 20, on this device and encrypted with the
 rest of your data. The screen opens on your last run and says when your data or settings have

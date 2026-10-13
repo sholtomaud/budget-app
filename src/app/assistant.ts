@@ -283,7 +283,23 @@ export class Assistant {
         const c = await step(say, 'Drawing the chart from your data…', 'Drew the chart', () =>
           buildChart(v, spec)
         );
-        if (!c.ok) return reply({ text: c.error, suggestions: ['Where does my money go?'] });
+        if (!c.ok)
+          return reply({
+            text: c.error,
+            suggestions:
+              intent.request.dataset === 'capital' ? ['Run my plan'] : ['Where does my money go?'],
+          });
+        if (intent.request.dataset === 'capital') {
+          const t = c.chart.table;
+          const typical = t.series.find((s) => s.role === 'p50')!.values;
+          const bad = t.series.find((s) => s.role === 'p5')!.values;
+          const end = t.labels[t.labels.length - 1];
+          return reply({
+            text: `In the typical future your savings go from about **${dollars(typical[0]!)}** now to about **${dollars(typical[typical.length - 1]!)}** in ${end}, in today's dollars. In a bad case (1 future in 20) they are about ${dollars(bad[bad.length - 1]!)} by then. The shaded bands show where most futures fall; the dashed line is your floor. **Save chart** keeps it under Saved charts.`,
+            charts: [c.chart],
+            suggestions: ['What would make it work?', 'Run my plan'],
+          });
+        }
         return reply({
           text: `Here is **${spec.title.toLowerCase()}**, from your own data on this device. **Save chart** keeps it under Saved charts.`,
           charts: [c.chart],

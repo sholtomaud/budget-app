@@ -319,4 +319,68 @@ describe('charts asked for in words', () => {
     expect(words.series[0]!.filter).toEqual({ text: 'bean there' });
     expect(words.caption).toMatch(/mention it/);
   });
+
+  test('savings over time: from the latest run, a point a year, with the floor', () => {
+    const capital = {
+      asOf: '2026-10',
+      months: [0, 12, 24, 36],
+      q: {
+        p5: [100, 90, 50, 0],
+        p25: [100, 110, 100, 80],
+        p50: [100, 120, 130, 140],
+        p75: [100, 130, 160, 190],
+        p95: [100, 150, 210, 280],
+      },
+      floor: 20,
+      start: '2027-07',
+    };
+    const fan = {
+      kind: 'fan' as const,
+      title: 'Savings',
+      groupBy: 'year' as const,
+      series: [{ label: 'Savings', dataset: 'capital' as const }],
+    };
+    expect(checkSpec(fan)).toBeNull();
+    const r = runChart(fan, { ...ctx, capital });
+    if (!r.ok) throw new Error(r.error);
+    expect(r.table.labels).toEqual(['2026', '2027 (freedom)', '2028', '2029']);
+    expect(r.table.series.map((s) => s.role)).toEqual(['p5', 'p25', 'p50', 'p75', 'p95']);
+    expect(r.table.series.every((s) => s.provenance === 'forecast')).toBe(true);
+    expect(r.table.floor).toBe(20);
+    const line = runChart({ ...fan, kind: 'line' }, { ...ctx, capital });
+    if (!line.ok) throw new Error(line.error);
+    expect(line.table.series.map((s) => s.role)).toEqual(['p5', 'p50', 'p95']);
+    // No run yet: an error that says how to get one.
+    const none = runChart(fan, ctx);
+    expect(none.ok).toBe(false);
+    if (!none.ok) expect(none.error).toMatch(/run my plan/i);
+  });
+
+  test('savings over time is a chart on its own, by year; a fan is only for it', () => {
+    const cap = { label: 'Savings', dataset: 'capital' as const };
+    expect(
+      checkSpec(
+        spec({ kind: 'fan', groupBy: 'year', series: [cap, { label: 's', dataset: 'spending' }] })
+      )
+    ).toMatch(/on its own/);
+    expect(checkSpec(spec({ kind: 'fan', groupBy: 'month', series: [cap] }))).toMatch(/by year/);
+    expect(checkSpec(spec({ kind: 'bar', groupBy: 'year', series: [cap] }))).toMatch(
+      /fan, a line or a table/
+    );
+    expect(checkSpec(spec({ kind: 'fan', groupBy: 'year' }))).toMatch(/only savings/);
+  });
+
+  test('"chart my savings over time" asks for the fan', () => {
+    expect(matchChart('chart my savings over time')).toEqual({
+      dataset: 'capital',
+      groupBy: 'year',
+      vsBudget: false,
+    });
+    expect(matchChart('show my savings balance in the freedom scenario')).toMatchObject({
+      dataset: 'capital',
+    });
+    expect(
+      specFromRequest({ dataset: 'capital', groupBy: 'year', vsBudget: false }, categories).kind
+    ).toBe('fan');
+  });
 });
