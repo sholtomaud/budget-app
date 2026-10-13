@@ -26,12 +26,17 @@ import {
   data,
   ensureLoaded,
   filesToInputs,
+  importCsv,
   importFiles,
   loadSynthetic,
   previewWorkbook,
+  suggestCsv,
 } from './data.ts';
+import type { InputFile } from '../ingest/service.ts';
+import type { BankCsvSpec } from '../ingest/csv/read.ts';
+import { UNSURE } from '../ingest/csv/fields.ts';
 import { activeProvider, send } from './egress.ts';
-import { count, el } from './format.ts';
+import { count, day, el } from './format.ts';
 import { planChance } from './insights.ts';
 import { suggestMapping } from './llm-actions.ts';
 import { DEFAULT_SEED, PERSONA_LABEL } from './personas.ts';
@@ -48,6 +53,11 @@ interface Sheet {
   rows: number;
 }
 
+interface BankCsv {
+  input: InputFile;
+  spec: BankCsvSpec;
+}
+
 const rowsIn = (p: WorkbookPreview) =>
   p.lines.length + p.assets.length + p.renewals.length + Object.keys(p.goal).length;
 
@@ -59,6 +69,7 @@ export class SetupRunner {
   private personas: Choice[] = [];
   private persona = '';
   private sheets: Sheet[] = [];
+  private bankCsvs: BankCsv[] = [];
 
   constructor(flow: Flow, chat: Conversation, onState: (id: string) => void = () => {}) {
     this.flow = flow;
@@ -266,6 +277,10 @@ export class SetupRunner {
       switch (s.effect) {
         case 'import-transactions':
           return await this.importTransactions(files);
+        case 'preview-bank-csv':
+          return await this.previewBankCsv(files);
+        case 'commit-bank-csv':
+          return await this.commitBankCsv();
         case 'load-sample':
           return await this.loadSample();
         case 'preview-budget':
@@ -311,6 +326,60 @@ export class SetupRunner {
       })
     );
     return rec.counts.new > 0 || rec.counts.duplicate > 0 ? 'done' : 'failed';
+  }
+
+  /** Map each transaction CSV's columns and say what it holds (ADR 0030). */
+  private async previewBankCsv(files: File[]): Promise<string> {
+    this.bankCsvs = [];
+    const found: string[] = [];
+    await this.chat.work(async (say) => {
+      for (const input of await filesToInputs(files)) {
+        const text = new TextDecoder().decode(input.bytes);
+        const { suggestion, preview } = await step(
+          say,
+          `Reading ${input.name}…`,
+          `Read ${input.name}`,
+          () => suggestCsv(input.name, text)
+        );
+        const s = preview.summary;
+        if (s.invalid || !s.transactions) {
+          found.push(`- **${input.name}**: I couldn’t find dates and amounts`);
+          continue;
+        }
+        const unsure = suggestion.columns.some((c) => c.by === 'model' && c.confidence < UNSURE);
+        found.push(
+          `- **${input.name}**: ${count(s.transactions)} transactions in ${s.accounts.join(', ')}, ${day(s.from!)} to ${day(s.to!)} (columns from ${suggestion.source})` +
+            (s.skipped ? `; ${count(s.skipped)} rows can’t be read` : '') +
+            (unsure ? '. I’m unsure about some columns: worth checking them' : '')
+        );
+        this.bankCsvs.push({ input, spec: suggestion.spec });
+      }
+    });
+    await this.chat.say(cruxReply({ text: `Here is what I found:\n\n${found.join('\n')}` }));
+    return this.bankCsvs.length ? 'ready' : 'failed';
+  }
+
+  private async commitBankCsv(): Promise<string> {
+    const csvs = this.bankCsvs;
+    if (!csvs.length) return 'failed';
+    let added = 0;
+    await this.chat.work(async (say) => {
+      for (const c of csvs) {
+        const rec = await step(say, `Importing ${c.input.name}…`, `Imported ${c.input.name}`, () =>
+          importCsv(c.input, c.spec)
+        );
+        added += rec.counts.new;
+      }
+    });
+    this.bankCsvs = [];
+    const v = data.getState().view;
+    await this.chat.say(
+      cruxReply({
+        text: `Imported **${count(added)}** new transactions. You now have ${count(v?.txns.length ?? 0)} transactions in ${count(v?.accounts.length ?? 0)} account${v?.accounts.length === 1 ? '' : 's'}.`,
+        links: [{ label: 'Open Import', path: '/import' }],
+      })
+    );
+    return 'done';
   }
 
   private async loadSample(): Promise<string> {

@@ -55,11 +55,22 @@ describe('the setup flow', () => {
     expect(nextState(SETUP, id, 'done')).toBe('plan.done');
   });
 
-  test('CSV exports Crux cannot read yet say so, and offer a way on', () => {
-    expect(nextState(SETUP, SETUP.start, 'bank-csv')).toBe('data.csv-later');
-    expect(nextState(SETUP, SETUP.start, 'accounting')).toBe('data.csv-later');
+  test('FR-SETUP-004: bank and accounting CSVs are mapped, previewed, then imported', () => {
+    expect(nextState(SETUP, SETUP.start, 'bank-csv')).toBe('data.bank-csv');
+    expect(nextState(SETUP, SETUP.start, 'accounting')).toBe('data.accounting');
+    expect(nextState(SETUP, 'data.csvs', 'bank')).toBe('data.bank-csv');
     expect(nextState(SETUP, 'data.csvs', 'budget')).toBe('budget.file');
-    expect(s('data.csv-later').choices!.map((c) => c.value)).toContain('sample');
+    for (const id of ['data.bank-csv', 'data.accounting']) {
+      expect(s(id).effect).toBe('preview-bank-csv');
+      expect(s(id).files?.accept).toContain('.csv');
+      expect(nextState(SETUP, id, 'ready')).toBe('data.bank-confirm');
+      expect(nextState(SETUP, id, 'failed')).toBe('data.bank-failed');
+    }
+    expect(nextState(SETUP, 'data.bank-confirm', 'import')).toBe('data.bank-commit');
+    expect(nextState(SETUP, 'data.bank-confirm', 'check')).toBe('data.bank-check');
+    expect(s('data.bank-confirm').resume).toBe('data.bank-csv');
+    expect(nextState(SETUP, 'data.bank-commit', 'done')).toBe('budget.start');
+    expect(s('data.bank-failed').choices!.map((c) => c.value)).toContain('sample');
   });
 });
 

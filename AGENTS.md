@@ -32,7 +32,7 @@ and tests.
 | `src/app/`                   | UI shell. `core/` holds the Boba-style `BaseComponent`, `Store` and `Router`. `components/<tag>/` holds one folder per custom element (`.html` + `.css` + `.ts`). |
 | `src/lib/`                   | Shared primitives: SplitMix64 PRNG, money (bigint minor units), dates and time zones, hashing, JSON Schema subset, CSV, ZIP.                                      |
 | `src/domain/`                | Canonical types (SPEC §5).                                                                                                                                        |
-| `src/ingest/`                | CDR parsing and validation, the ledger (dedupe, pending→posted, transfers, reconciliation), the import service.                                                   |
+| `src/ingest/`                | CDR parsing and validation, bank and accounting CSVs (`csv/`), the ledger (dedupe, pending→posted, transfers, reconciliation), the import service.                |
 | `src/synth/`                 | Persona validation, the seeded generator, the CLI.                                                                                                                |
 | `src/budget/`                | Periods, tiers, budget lines, workbook CSV import, actual vs budget, CAPEX timing and sinking fund.                                                               |
 | `src/forecast/`              | Monthly series, OPEX and CAPEX forecasts, evaluation; `ref/` holds the TypeScript reference kernels, `kernels.ts` switches to ml-core.                            |

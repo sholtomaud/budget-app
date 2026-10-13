@@ -9,6 +9,8 @@ import type { ImportCounts, ImportFileResult, ImportRecord } from '../domain/typ
 import { sha256Hex } from '../lib/hash.ts';
 import { isZip, readZip } from '../lib/zip.ts';
 import { parseCdrText } from './cdr/parse.ts';
+import { csvParsedFiles } from './csv/preview.ts';
+import type { BankCsvSpec } from './csv/read.ts';
 import { applyImport, emptyLedger, reconcile, type Ledger, type ParsedFile } from './ledger.ts';
 import type { LedgerView } from './view.ts';
 
@@ -26,6 +28,8 @@ export interface StoredFile {
   sha256: string;
   text: string;
   lastModified?: string;
+  /** Set for a transaction CSV: how its columns were mapped (ADR 0030). */
+  csv?: BankCsvSpec;
 }
 
 export interface StoredImport {
@@ -144,6 +148,10 @@ export class IngestService {
     for (const s of stored) {
       const parsed: ParsedFile[] = [];
       for (const f of s.files) {
+        if (f.csv) {
+          parsed.push(...csvParsedFiles(f.name, f.sha256, f.text, f.csv, this.timezone).files);
+          continue;
+        }
         const r = parseCdrText(f.text);
         if (r.ok)
           parsed.push({
@@ -178,7 +186,7 @@ export class IngestService {
           rejectResult(
             f.name,
             sha256,
-            'Budget CSV files are imported from the Budget screen (milestone M3)',
+            'CSV files are read column by column: transactions on the Import screen, budget sheets on the Budget screen',
             true
           )
         );
@@ -223,6 +231,61 @@ export class IngestService {
     const keptFiles = stored.filter((s) => kept.has(s.sha256));
     if (keptFiles.length) {
       await this.store.put({ record, files: keptFiles });
+      this.imports.push(record);
+    }
+    return record;
+  }
+
+  /**
+   * Import one bank or accounting CSV with a confirmed mapping spec (ADR
+   * 0030). It goes through the same ledger as CDR files (FR-ING-004…008).
+   */
+  async importCsv(
+    input: InputFile,
+    spec: BankCsvSpec,
+    opts: { label?: string; now?: Date } = {}
+  ): Promise<ImportRecord> {
+    const now = opts.now ?? new Date();
+    const id = newImportId(now);
+    const sha256 = await sha256Hex(input.bytes as BufferSource);
+    let text: string;
+    try {
+      text = new TextDecoder('utf-8', { fatal: true }).decode(input.bytes);
+    } catch {
+      throw new Error(`${input.name} is not UTF-8 text`);
+    }
+    const { files, rejected, message } = csvParsedFiles(
+      input.name,
+      sha256,
+      text,
+      spec,
+      this.timezone
+    );
+    const applied = await applyImport(this.ledger, id, files);
+    const main = applied.find((r) => r.sha256 === sha256)!;
+    if (main.status === 'imported') {
+      main.counts.rejected += rejected;
+      if (message) main.message = message;
+    }
+    const synthetic = files[1]!.payload.synthetic;
+    const record: ImportRecord = {
+      id,
+      at: now.toISOString(),
+      label: opts.label ?? input.name,
+      synthetic,
+      files: [main],
+      counts: sumCounts([main]),
+    };
+    if (main.status === 'imported') {
+      const lastModified = input.lastModified
+        ? new Date(input.lastModified).toISOString()
+        : undefined;
+      await this.store.put({
+        record,
+        files: [
+          { name: input.name, sha256, text, csv: spec, ...(lastModified ? { lastModified } : {}) },
+        ],
+      });
       this.imports.push(record);
     }
     return record;

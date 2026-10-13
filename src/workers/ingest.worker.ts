@@ -7,7 +7,8 @@ import type { Rule } from '../classify/rules.ts';
 import { DataService, type DataView } from '../data/service.ts';
 import type { InputFile } from '../ingest/service.ts';
 import { IdbImportStore } from '../store/import-store.ts';
-import { IdbBudgetStore, IdbClassifyStore } from '../store/kv.ts';
+import { IdbBudgetStore, IdbClassifyStore, IdbMapperStore } from '../store/kv.ts';
+import type { BankCsvSpec } from '../ingest/csv/read.ts';
 import type { BudgetLine, BudgetSettings } from '../budget/model.ts';
 import type { WorkbookOptions } from '../data/service.ts';
 import { expose, type Endpoint } from './rpc.ts';
@@ -27,7 +28,13 @@ let currentKey: CryptoKey | null = null;
 
 function svc(): Promise<DataService> {
   service ??= (async () => {
-    const s = new DataService(new IdbImportStore(), new IdbClassifyStore(), new IdbBudgetStore());
+    const s = new DataService(
+      new IdbImportStore(),
+      new IdbClassifyStore(),
+      new IdbBudgetStore(),
+      undefined,
+      new IdbMapperStore()
+    );
     await s.load();
     return s;
   })();
@@ -89,6 +96,15 @@ const api = {
   },
   async importFiles(files: InputFile[], label?: string): Promise<ImportRecord> {
     return (await svc()).importFiles(files, label);
+  },
+  async suggestCsv(file: string, text: string) {
+    return (await svc()).suggestCsv(file, text);
+  },
+  async previewCsv(text: string, spec: BankCsvSpec) {
+    return (await svc()).previewCsv(text, spec);
+  },
+  async importCsv(file: InputFile, spec: BankCsvSpec, label?: string): Promise<ImportRecord> {
+    return (await svc()).importCsv(file, spec, label);
   },
   async undo(importId: string) {
     await (await svc()).undo(importId);

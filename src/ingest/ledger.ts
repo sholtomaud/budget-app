@@ -74,6 +74,7 @@ const KNOWN_TXN_FIELDS = new Set([
   'merchantCategoryCode',
   'billerCode',
   'billerName',
+  'x-id-synthetic',
 ]);
 
 function accountFrom(a: CdrAccount, synthetic: boolean, fileHash: string): Account {
@@ -86,7 +87,10 @@ function accountFrom(a: CdrAccount, synthetic: boolean, fileHash: string): Accou
     maskedNumber: a.maskedNumber,
     role: inferRole(a.productCategory, names),
     currency: 'AUD',
-    source: { kind: synthetic ? 'synthetic' : 'cdr-file', fileHash },
+    source: {
+      kind: synthetic ? 'synthetic' : a['x-source'] === 'csv' ? 'csv-file' : 'cdr-file',
+      fileHash,
+    },
     provenance: synthetic ? 'illustrative' : 'actual',
   };
 }
@@ -127,7 +131,8 @@ async function txnFrom(
   const txn: Txn = {
     id,
     accountId: t.accountId,
-    idSynthetic: t.transactionId === undefined,
+    // CSV rows carry an id hashed from their fields (ADR 0030).
+    idSynthetic: t.transactionId === undefined || t['x-id-synthetic'] === true,
     status: t.status,
     cdrType: t.type,
     date: localDateOf(when, tz),

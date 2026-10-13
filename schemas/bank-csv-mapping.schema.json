@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Bank and accounting CSV mapping spec (ADR 0030)",
+  "description": "How one transaction CSV's columns map to the app's transactions. Every proposer (preset, remembered layout, learned mapper) writes this; deterministic code applies it. It never carries a figure.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "kind",
+    "version",
+    "headerRow",
+    "columns",
+    "dateOrder",
+    "invert",
+    "account",
+    "currency"
+  ],
+  "properties": {
+    "kind": { "const": "bank-csv" },
+    "version": { "const": 1 },
+    "headerRow": {
+      "description": "0-based row index of the header in the parsed file, or null when it has none.",
+      "anyOf": [{ "type": "integer", "minimum": 0 }, { "type": "null" }]
+    },
+    "columns": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 64,
+      "items": {
+        "type": "string",
+        "enum": [
+          "date",
+          "amount",
+          "debit",
+          "credit",
+          "description",
+          "payee",
+          "balance",
+          "reference",
+          "account",
+          "category",
+          "type",
+          "ignore"
+        ]
+      }
+    },
+    "dateOrder": { "type": "string", "enum": ["dmy", "mdy", "ymd"] },
+    "invert": { "type": "boolean" },
+    "account": { "type": "string", "minLength": 1, "maxLength": 80 },
+    "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
+    "preset": { "type": "string", "maxLength": 40 }
+  }
+}

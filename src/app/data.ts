@@ -7,6 +7,7 @@ import type { Rule } from '../classify/rules.ts';
 import type { BudgetLine, BudgetSettings } from '../budget/model.ts';
 import type { WorkbookOptions } from '../data/service.ts';
 import type { InputFile } from '../ingest/service.ts';
+import type { BankCsvSpec } from '../ingest/csv/read.ts';
 import type { DataView } from '../data/service.ts';
 import { Store } from './core/store.ts';
 import { ingest, synth } from './workers.ts';
@@ -63,6 +64,19 @@ export async function filesToInputs(files: Iterable<File>): Promise<InputFile[]>
 export function importFiles(inputs: InputFile[], label?: string): Promise<ImportRecord> {
   return run(`Importing ${inputs.length} file${inputs.length === 1 ? '' : 's'}…`, async () => {
     const rec = await ingest().importFiles(inputs, label);
+    data.setState({ lastImport: rec });
+    await refresh();
+    return rec;
+  });
+}
+
+/** Propose a column mapping for a transaction CSV, with a preview (ADR 0030). */
+export const suggestCsv = (file: string, text: string) => ingest().suggestCsv(file, text);
+export const previewCsv = (text: string, spec: BankCsvSpec) => ingest().previewCsv(text, spec);
+
+export function importCsv(input: InputFile, spec: BankCsvSpec): Promise<ImportRecord> {
+  return run(`Importing ${input.name}…`, async () => {
+    const rec = await ingest().importCsv(input, spec);
     data.setState({ lastImport: rec });
     await refresh();
     return rec;
