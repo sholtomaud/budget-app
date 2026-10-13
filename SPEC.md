@@ -5,8 +5,8 @@
 
 | | |
 |---|---|
-| Status | Draft 16: M0–M9, the chat panel and plan guidance built (ADRs 0001–0013, 0019–0026); M10–M14 planned, with proposed directions in ADRs 0014, 0016–0018 |
-| Date | 2026-10-12 |
+| Status | Draft 17: M0–M9, the chat panel and plan guidance built (ADRs 0001–0013, 0019–0026); M10–M15 planned, with proposed directions in ADRs 0014, 0016–0018, 0027–0029 |
+| Date | 2026-10-13 |
 | Kernel | [GSSK](https://github.com/energese-project/GSSK-Giannantoni), consumed as a pinned WebAssembly artefact |
 | Runtime | Browser only. Static site, no backend |
 
@@ -50,10 +50,10 @@ whatever it would earn.
 - **No direct bank connection in v1.** Becoming an accredited CDR data recipient is out of scope.
   The app ingests files in the CDR (Open Banking) format that the user obtains elsewhere, plus
   synthetic data (§6, §7). Live connections are planned as an optional production milestone
-  (§6.4, M11).
+  (§6.4, M14).
 - **No financial advice.** The app simulates consequences of the user's own assumptions. Every output
   states its assumptions (NFR-HON-001). Tax rules are user-verifiable data files, not authority.
-- **No trading and no write access to any account.** Purchases made by the user's agent (§22, M14)
+- **No trading and no write access to any account.** Purchases made by the user's agent (§22, M15)
   go through a merchant's own checkout under a mandate the user approved, never through bank
   access.
 - **No sale or sharing of users' personal, transaction or CDR data** (NFR-MON-001). Commerce
@@ -322,7 +322,7 @@ Bank transaction CSV adapters (column-mapping presets per bank), OFX/QFX, QIF. E
 
 ---
 
-### 6.4 Live bank connections (M11, production; not v1)
+### 6.4 Live bank connections (M14, production; not v1)
 
 Fetching transactions directly from banks would remove the manual export step. Constraints:
 
@@ -691,6 +691,15 @@ Method:
 Results are scenarios the user can keep, open and compare (up to four side by side, decisions that
 differ highlighted). Every result cites its runs (inputs hash, seed, run range). ADR 0013.
 
+#### One-click plans (M11, ADR 0029)
+
+| ID | Requirement |
+|---|---|
+| FR-OPT-002 | **One step.** "Run my plan" (Freedom screen and chat) runs the plan, the plan checks (ADR 0026), the search when the chance is below target, and the explanation, with no further clicks. A fast first chance appears within about a second and is labelled as such until confirmed. |
+| FR-OPT-003 | **Three different plans.** A multi-objective genetic algorithm (NSGA-II in `ml-core`, TypeScript twin, parity test) searches the unlocked levers over pSuccess, freedom start, spending after freedom and distance from today. From the feasible trade-off front, the three plans farthest apart in lever space are offered as scenario cards. "Smallest change" (FR-OPT-001) remains. |
+| FR-OPT-004 | **Screen, then confirm.** Candidates are screened with 64 runs on common random numbers; only finalists (≤ about 12) get the full 1,000 runs, stopping early when the 95 % interval is clearly above or below the target. Only confirmed runs are reported. Gate: on the synthetic personas, the confirmed plans reach the target and total simulated futures fall by ≥ 10× against evaluating every candidate at 1,000. |
+| FR-OPT-005 | **WebGPU screening (optional).** When WebGPU is available, screening may run in a compute-shader batch simulator with the same seeds (NFR-DET-001). GSSK in the workers stays the reference for every reported figure (NFR-KER-001). CI checks the GPU screen and GSSK rank a fixed set of plans the same way and agree on pSuccess within a stated tolerance; without WebGPU, screening runs on the workers. |
+
 ---
 
 ## 12. User interface
@@ -701,17 +710,41 @@ uncertain.
 
 | Screen | Contents |
 |---|---|
-| **Start** | Landing page: what Crux does in plain words, how it works in four steps, "Try it with a sample household" or "Use my own data", the privacy promise. When data exists, "Welcome back" with the next step. A getting-started guide under the menu walks through the screens in order (ADR 0020). |
+| **Start** | The default landing page: what Crux does in plain words, how it works in four steps, "Try it with a sample household" or "Use my own data", the privacy promise. When data exists, "Welcome back" with the next step. A getting-started guide under the menu walks through the screens in order (ADR 0020). |
 | **Import** | Drop zone for CDR JSON/ZIP and budget CSV files. Per-file results (FR-ING-006). Mapping wizard for CSV sheets. Undo import. |
 | **Transactions** (route `/ledger`) | Transactions table: filter, search, bulk re-categorise, review queue, CAPEX proposals, transfer pairs. |
 | **Budget** | Lines by category with tier columns; actual vs budget; run-rate; period switch (wk/mth/yr). |
 | **Big purchases** (route `/capex`; the CAPEX register) | Asset register; replacement timeline (P10–P90 bars); sinking fund; wish-list decisions. |
 | **Forecast** | Per-category fan charts; method and backtest score per series; CAPEX fan; totals. |
-| **Freedom** | Goal editor; pSuccess gauge per tier; capital fan chart in real terms with floor line; example paths; years to freedom; project runway; shortfall drivers. |
+| **Freedom** | Goal editor; one **Run my plan** button (FR-OPT-002); pSuccess gauge per tier; capital fan chart in real terms with floor line; example paths; years to freedom; project runway; shortfall drivers. |
 | **Scenarios** | Side-by-side comparison (up to 4); optimiser; diff of decisions. |
 | **Chat panel** (was Advisor) | Docked on the right of every screen, open by default on wide screens, a sheet on phones. Common questions and requests are answered on the device from the app's own results; others go to the optional AI provider (§13). Every reply says which. Changes are proposed as cards to Apply or Undo. ADR 0023. |
+| **Chat** (route `/chat`; M10) | A full-width chat beside Start, offered from Start and the menu; the menu on the left, a hamburger on phones. Guided setup, goals in words, charts and cards in the conversation. Start stays the default landing page until the chat setup proves itself (ADR 0027). |
+| **Saved charts** (M10) | Charts saved from the chat: as they were, or with today's data; download as SVG, PNG or CSV (ADR 0028). |
 | **Engine check** (route `/kernel`; linked from Settings and Start, not in the menu) | Pinned GSSK version, commit and SHA-256 verification status. Runs GSSK's household example model in the `sim` worker as a smoke test (M0). |
 | **Settings** | Timezone, currency, CPI, period table, categories, rules, tax tables, return models, API providers and keys, encryption, export/import, delete all data. |
+
+---
+
+### 12.1 Chat-first setup, goals in words and charts in the chat (M10–M11)
+
+| ID | Requirement |
+|---|---|
+| FR-SETUP-001 | Setup flows (your data, your budget, your goals, your plan) are state machines: each state has a prompt, the answers it accepts (buttons, a typed pattern, or a JSON Schema) and the next state per answer. Flows are pure functions, unit-tested without a DOM. ADR 0027. |
+| FR-SETUP-002 | Every flow can be finished with buttons alone, with no AI provider and no network. |
+| FR-SETUP-003 | Text no button or built-in pattern recognises goes, if a provider is set up, to the cloud provider (§13) with the state's JSON Schema as a structured output. The reply is validated locally; an invalid reply is rejected and the question asked again. There is no local model. |
+| FR-SETUP-004 | "Your data" covers a bank export (CDR JSON or CSV), an accounting export (MYOB, Xero), a personal spreadsheet, several CSV files, or a sample household. Each path runs the existing import pipeline and mapping (FR-ING-015…018). |
+| FR-SETUP-005 | Setup is resumable: the current state is saved with the household and cleared by delete-all. |
+| FR-SETUP-006 | Every change a flow makes is a card with Apply and Undo (ADR 0023). |
+| FR-GOAL-010 | **Goals from words** (M11). Free text ("stop working as soon as possible, a house, a nice car") becomes a goals draft (`schemas/goals-draft.schema.json`): freedom start, purchases with rough timing, tier hints, non-negotiables, and unknowns. Goal chips produce the same draft without AI. |
+| FR-GOAL-011 | The AI never supplies a cost or price (NFR-HON-002). Missing amounts become follow-up questions; a skipped one may take a default from a shipped table, labelled `assumed`. |
+| FR-GOAL-012 | **Spending insights as scenarios** (M11). A category is compared with the household's history and with published household spending (labelled `assumed`), expressed in freedom time. A suggested change (including a shopping list) is a scenario card showing the savings and the new freedom date. No named stores or products until §22's rules apply; suggestions describe outcomes, not instructions. |
+| FR-VIZ-001 | Every chart in the chat is a chart spec (`schemas/chart-spec.schema.json`): a kind (line, fan, bar, stacked bar, table) and series that are queries over named datasets, from a fixed vocabulary. A spec never carries values. ADR 0028. |
+| FR-VIZ-002 | The app validates the spec, runs its queries on the device and draws it with in-house SVG components, with provenance labels (NFR-HON-001). The AI never sends code, HTML or SVG. |
+| FR-VIZ-003 | To design a chart, the AI sees the dataset catalogue (names, fields, units) only, never household values. |
+| FR-VIZ-004 | Chart commentary: templated for built-in charts; for AI-designed charts, written from the app's redacted summary, with figures not in that summary flagged "unverified figure". |
+| FR-VIZ-005 | Any chart can be saved: spec, title, caption and a snapshot of the values with its run reference, in the encrypted vault, included in export and removed by delete-all. A saved chart shows the snapshot or re-runs on today's data. |
+| FR-VIZ-006 | Saved charts download as SVG, PNG and CSV. |
 
 ---
 
@@ -765,7 +798,7 @@ Tools exposed to the model (M8, ADR 0021; ADR 0023): `get_plan`, `get_spending_s
   conversation is flagged "unverified figure" in the UI.
 - The advisor elicits goals in conversation ("what would you do with free time?", "what standard of
   living is non-negotiable?"). Writing them as `Goal`/`Tier` drafts the user accepts or edits is
-  later work.
+  FR-GOAL-010…011 (M11, ADR 0027).
 - System prompt states: not financial advice; assumptions are the user's; recommend professional
   advice for tax/legal structure decisions.
 
@@ -1002,11 +1035,12 @@ data.
 | **M7 Storage, encryption, export** | Encryption at rest, export/import, delete-all, migrations | NFR-STO-001…005 |
 | **M8 Optional APIs + advisor** | Provider settings, consent + redaction, price-history import (fetch deferred, ADR 0021), LLM classification, LLM mapping assistant (structured outputs), advisor with tools | FR-API-001…005; FR-ING-017 (proposes the wizard's mapping; the full mapping spec of FR-ING-015 and per-column provenance of FR-ING-018 move to M10); §13.3; privacy tests |
 | **M9 Bayesian workflow** | Bayesian structural time series with pooling and a shared spending factor, return-parameter uncertainty, ml-core samplers with parity, model checks (ADRs 0015, 0022) | FR-BAY-001…008; calibration gates in CI |
-| **M10 Real data** | User loads own exports locally; bank-specific CSV adapters as needed; learned in-browser CSV mapper | Reconciliation clean on real exports (verified locally, nothing committed); FR-ING-016 accuracy gate |
-| **M11 Live connections (production)** | Optional connector (§6.4): CDR consent via an accredited partner, or bank personal-API plugins; sync into the existing import pipeline; consent management in Settings | FR-LIVE-001…006; a sync from a CDR sandbox passes the same validation, dedupe and reconciliation tests as file import; the privacy e2e shows egress only to the configured connector origin |
+| **M10 Chat-first setup + real data** | Chat screen beside Start; setup flows as state machines with buttons, AI structured outputs for unrecognised text; charts in the chat, AI-specified chart specs, saved charts; user loads own exports locally; bank-specific and accounting-export (MYOB, Xero) CSV adapters as needed; learned in-browser CSV mapper (ADRs 0014, 0027, 0028) | FR-SETUP-001…006; FR-VIZ-001…006; reconciliation clean on real exports (verified locally, nothing committed); FR-ING-016 accuracy gate; every flow passes e2e with buttons only and no network |
+| **M11 Goals and one-click plans** | Goals from words, spending insights as scenarios, one-click Freedom, three different plans (NSGA-II), screen-then-confirm runs, optional WebGPU screening (ADRs 0027, 0029) | FR-GOAL-010…012; FR-OPT-002…005 |
 | **M12 Sync** | Local-first sync to user-owned storage, Google Drive first, end-to-end encrypted (ADR 0016) | FR-SYNC-001…008; two-device merge property tests; privacy e2e shows ciphertext only |
 | **M13 Receipts** | iOS companion app (separate repository), receipt contract, reconciliation of line items to bank transactions (ADR 0017) | FR-RCPT-001…007 on synthetic receipts |
-| **M14 Offers and agents** | On-device offer matching, intent marketplace, mandated agent actions; only after the legal review gate (ADR 0018) | FR-OFR-…, FR-AGT-…; NFR-MON-001…007; privacy e2e shows offer matching sends nothing |
+| **M14 Live connections (production)** | Optional connector (§6.4): CDR consent via an accredited partner, or bank personal-API plugins; sync into the existing import pipeline; consent management in Settings | FR-LIVE-001…006; a sync from a CDR sandbox passes the same validation, dedupe and reconciliation tests as file import; the privacy e2e shows egress only to the configured connector origin |
+| **M15 Offers and agents** | On-device offer matching, intent marketplace, mandated agent actions; only after the legal review gate (ADR 0018) | FR-OFR-…, FR-AGT-…; NFR-MON-001…007; privacy e2e shows offer matching sends nothing |
 
 ---
 
@@ -1023,8 +1057,10 @@ data.
    source with its own distribution?
 6. **Time as a carrier**: track hours (paid work vs chosen work) as a second GSSK carrier so the
    freedom goal is expressed in time as well as money?
-7. **In-browser LLM**: which model size is acceptable on the target devices (WebGPU availability)?
-8. **Live connections (M11)**: which route — a sponsor or CDR-representative arrangement with an
+7. ~~**In-browser LLM**: which model size is acceptable on the target devices (WebGPU availability)?~~
+   Parked: the download is too large. AI stays with the optional cloud providers (§13); WebGPU is
+   used for simulation screening instead (FR-OPT-005). See §23.
+8. **Live connections (M14)**: which route — a sponsor or CDR-representative arrangement with an
    accredited intermediary, a self-hosted connector for users who hold their own accreditation
    arrangement, or bank-specific personal APIs? Who operates the connector, and at what cost?
 9. **Learned CSV mapper**: is a kilobyte-scale classifier enough, or is a small embedding model for
@@ -1034,7 +1070,7 @@ data.
     statistics (labelled `assumed`)?
 11. **Sync providers after Google Drive**: iCloud (best for the iOS app) or Dropbox/OneDrive first?
 12. **Receipts on Android**: needed, or is the receipt contract plus file import enough?
-13. **Monetisation and licensing** (gate for M14): which legal advice, and for which markets? Is
+13. **Monetisation and licensing** (gate for M15): which legal advice, and for which markets? Is
     the app an information service, or does any feature amount to financial product or credit
     advice? Do CDR-derived signals ever enter offer matching on the device, given the CDR Rules on
     use and direct marketing?
@@ -1060,7 +1096,7 @@ data.
 
 ---
 
-## 22. Monetisation and the agentic layer (proposed, M14)
+## 22. Monetisation and the agentic layer (proposed, M15)
 
 The app knows things about a household that are valuable to sellers, and calibrated:
 - when a replacement is due (§9.3);
@@ -1142,6 +1178,23 @@ the offers feed or answer intents.
 | FR-AGT-006 | Revenue is affiliate commission or a success fee on purchases the user approved, stated in the mandate. |
 | FR-AGT-007 | The advisor (§13.3) cannot see bids or fees. Its figures come only from tool results (NFR-HON-002). It is never paid to recommend. |
 | FR-AGT-008 | Mandates are revocable at any time, and expire by default. |
+
+---
+
+## 23. Backlog (unscheduled)
+
+Agreed directions without a milestone yet. Each gets requirement IDs and, where it deviates from
+the spec, an ADR when it is scheduled.
+
+| Item | Notes |
+|---|---|
+| **Tax-time pack** | Deductible spending, receipts (M13) and income summarised for the tax year, as an export ready to transfer into the tax office's own service or hand to an accountant. Per-country tax tables. |
+| **Lodging with tax offices** | Direct lodgement with the main tax authorities (ATO first, then others). Needs registration as a software provider and each authority's security requirements, so it waits for a business behind the app. |
+| **Recurring-charge detection** | Find subscriptions and regular bills ("you pay for 3 streaming services") and flag price rises. |
+| **Life-event scenarios** | Ready-made scenarios (a child, a sabbatical, a move, study) instead of editing budget lines by hand. |
+| **Prior sensitivity of pSuccess** | Deferred in ADR 0022: re-run the simulation with the spending priors power-scaled ×0.5 and ×2 and show how much the chance moves. |
+| **In-browser LLM** | Parked (§20 question 7). |
+| **Monthly check-in** | "You're 3 weeks ahead of plan, and here's why": a short chat summary when new data arrives. |
 
 ---
 

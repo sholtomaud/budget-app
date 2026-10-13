@@ -25,7 +25,7 @@ and the documentation site (`npm run docs:dev`, published at `/<repo>/docs/` on 
 | **M7–M8**                 | Done: encryption at rest, export and delete-all; optional AI providers (session-only keys, consent, a log), AI suggestions and the advisor                                    |
 | **M9 Bayesian workflow**  | Done: a checked Bayesian model of spending (categories move together), uncertainty about average returns, model checks on screen and in CI                                    |
 | **Chat panel**            | Done: "Ask Crux" on every screen; common questions answered on the device, optional AI for the rest, changes as cards to apply or undo                                        |
-| M10–M14                   | Planned, one PR each (SPEC §19): real data, live connections, sync, receipts, offers and agents                                                                               |
+| M10–M15                   | Planned (SPEC §19): chat-first setup and real data, goals and one-click plans, sync, receipts, live connections, offers and agents                                            |
 
 Try it: **Start → Try synthetic data → Generate and load**, then see the **Import** screen. Or import
 a folder from `fixtures/syn-*-42/`.

@@ -31,3 +31,6 @@ Every deviation from the [specification](../spec.md) gets one.
 | [0024](./0024-streaming-and-activity-log.md)               | Streamed AI replies and an activity log in the chat panel                                      | Accepted            |
 | [0025](./0025-negative-spending-and-invalid-runs.md)       | Negative spending is no spending; no valid runs is an error, never 0 %                         | Accepted            |
 | [0026](./0026-plan-guidance.md)                            | Plan guidance: checks that find the settings behind a bad result                               | Accepted            |
+| [0027](./0027-chat-first-setup.md)                         | Chat-first setup: guided steps as state machines, AI for unrecognised text, goals from words   | Proposed            |
+| [0028](./0028-charts-in-chat.md)                           | Charts in the chat: specs the app fills with its own data, AI-designed charts, saved charts    | Proposed            |
+| [0029](./0029-one-click-plans-and-compute.md)              | One-click plans: three different plans (NSGA-II), screen-then-confirm runs, WebGPU screening   | Proposed            |

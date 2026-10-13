@@ -44,8 +44,8 @@ the static app otherwise doesn't need.
 5. **Egress rules apply** (FR-API-001…005): provider origins go in the CSP `connect-src`, sync is
    opt-in per device, and every sync is logged. Payloads are already encrypted, so redaction is
    moot. The privacy e2e test is extended to assert that only ciphertext leaves.
-6. **Our own cloud is not built.** If a hosted service is needed later (the M11 bank connector, or
-   the M14 offers feed), it stores no household data at rest. The connector already follows this
+6. **Our own cloud is not built.** If a hosted service is needed later (the M14 bank connector, or
+   the M15 offers feed), it stores no household data at rest. The connector already follows this
    (FR-LIVE-003).
 
 ## Consequences
