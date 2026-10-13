@@ -44,6 +44,7 @@ and tests.
 | `fixtures/`                  | Personas and generated synthetic exports; `npm run fixtures` regenerates them.                                                                                    |
 | `schemas/`                   | Persona schema; CDR schemas derived by `scripts/cdr-schemas.ts`.                                                                                                  |
 | `src/assistant/`             | The chat's words: built-in intents, phrases, safe markdown; `flows/` holds the setup state machines (ADR 0027).                                                   |
+| `src/viz/`                   | Chart specs, their schema and checks, the queries that fill them on the device, CSV (ADR 0028).                                                                   |
 | `src/sim/`                   | The freedom model: `modelgen`, the policy `controller`, tax, return samplers, Monte-Carlo and metrics. `gssk.ts` is the only code that touches WASM memory.       |
 | `src/workers/`               | One entry per worker, exposed with the in-house RPC in `rpc.ts`. The UI never touches WASM directly.                                                              |
 | `src/sw/sw.js`               | Service-worker template. The build fills in the precache list (`vite.config.ts`).                                                                                 |

@@ -17,7 +17,63 @@ export type Intent =
   | { id: 'navigate'; path: string; label: string }
   | { id: 'budget-line'; item: string; amount: number; period: string }
   | { id: 'asset'; name: string; ageYears?: number; cost?: number }
-  | { id: 'categorise'; match: string; category: string };
+  | { id: 'categorise'; match: string; category: string }
+  | { id: 'chart'; request: ChartRequest };
+
+/** A chart asked for in words (ADR 0028): turned into a spec by src/viz/requests.ts. */
+export interface ChartRequest {
+  dataset: 'spending' | 'income';
+  groupBy: 'month' | 'quarter' | 'year' | 'category' | 'group' | 'merchant';
+  /** "on groceries": a category, group or words to look for. */
+  topic?: string;
+  months?: number;
+  vsBudget: boolean;
+}
+
+/** "Chart my spending on groceries by month against the budget", and the like. */
+export function matchChart(t: string): ChartRequest | null {
+  const chartWord = /\b(chart|graph|plot|visuali[sz]e|draw)\b/.test(t);
+  const income = /\b(income|earnings|salary|wages)\b/.test(t);
+  const spending = /\b(spend|spending|spent|expenses?|costs?|outgoings)\b/.test(t);
+  const by =
+    /\bby (month|quarter|year|category|categories|group|merchant|shop|store|payee)s?\b/.exec(
+      t
+    )?.[1];
+  const time = /\b(monthly|per month|each month|over time|trend|month by month)\b/.test(t)
+    ? 'month'
+    : /\b(yearly|per year|each year|year by year)\b/.test(t)
+      ? 'year'
+      : /\bquarterly\b/.test(t)
+        ? 'quarter'
+        : undefined;
+  if (!chartWord && !(/\bshow\b/.test(t) && (by || time) && (income || spending))) return null;
+  const groupBy: ChartRequest['groupBy'] =
+    by === 'categories' || by === 'category'
+      ? 'category'
+      : by === 'shop' || by === 'store' || by === 'payee' || by === 'merchant'
+        ? 'merchant'
+        : ((by as ChartRequest['groupBy'] | undefined) ?? time ?? 'month');
+  const topic =
+    /\b(?:on|for|at)\s+([a-z][a-z &'-]{1,30}?)(?=\s+(?:by|over|per|each|in|for|during|last|past|this|against|vs|versus|compared|month|monthly|quarterly|yearly)\b|[.?!]|$)/.exec(
+      t
+    )?.[1];
+  // A chart of something Crux can't name ("my coffee habit") is left for the AI.
+  const named = topic && !/^(my|the|me|it|this|that|time)$/.test(topic) ? topic.trim() : undefined;
+  if (!income && !spending && !named) return null;
+  const n = /\b(?:last|past)\s+(\d+)\s+(months?|years?)\b/.exec(t);
+  const months = n
+    ? Number(n[1]) * (n[2]!.startsWith('year') ? 12 : 1)
+    : /\b(?:last|past|this)\s+year\b/.test(t)
+      ? 12
+      : undefined;
+  return {
+    dataset: income && !spending ? 'income' : 'spending',
+    groupBy,
+    ...(named ? { topic: named } : {}),
+    ...(months ? { months: Math.min(120, months) } : {}),
+    vsBudget: /\b(against|vs\.?|versus|compared (to|with))\s+(my |the |our )?budget/.test(t),
+  };
+}
 
 /** Screens by the words people use for them. */
 export const SCREEN_WORDS: { words: RegExp; path: string; label: string }[] = [
@@ -29,6 +85,7 @@ export const SCREEN_WORDS: { words: RegExp; path: string; label: string }[] = [
   { words: /^forecasts?$/, path: '/forecast', label: 'Forecast' },
   { words: /^(freedom|freedom number|my plan|plan)$/, path: '/freedom', label: 'Freedom' },
   { words: /^(scenarios|compare plans)$/, path: '/scenarios', label: 'Scenarios' },
+  { words: /^(saved charts|my charts|charts)$/, path: '/charts', label: 'Saved charts' },
   { words: /^settings$/, path: '/settings', label: 'Settings' },
 ];
 
@@ -100,6 +157,9 @@ export function matchIntent(raw: string): Intent | null {
       text
     );
   if (cat) return { id: 'categorise', match: clean(cat[1]!), category: clean(cat[2]!) };
+
+  const chart = matchChart(t);
+  if (chart) return { id: 'chart', request: chart };
 
   const go =
     /\b(?:go to|open|show me|take me to|show)\s+(?:the\s+|my\s+)?([a-z ]+?)(?:\s+(?:screen|page|tab))?[.!?]*$/i.exec(

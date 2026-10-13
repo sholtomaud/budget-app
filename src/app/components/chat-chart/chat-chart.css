@@ -1,0 +1,58 @@
+:host {
+  display: block;
+  margin: var(--space-2) 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface);
+}
+:host figure {
+  margin: 0;
+}
+:host .title {
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin: 0 0 var(--space-1);
+}
+:host svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+:host .legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-3);
+  font-size: 0.8125rem;
+  margin-top: var(--space-1);
+  align-items: center;
+}
+:host .legend .key::before {
+  content: '';
+  display: inline-block;
+  width: 0.8em;
+  height: 0.8em;
+  margin-right: 0.35em;
+  vertical-align: -0.05em;
+  border-radius: 2px;
+  background: var(--swatch);
+}
+:host figcaption {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  margin-top: var(--space-1);
+}
+:host table {
+  font-size: 0.8125rem;
+}
+:host .tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  align-items: center;
+  margin-top: var(--space-2);
+}
+:host .tools .note {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}

@@ -18,6 +18,8 @@ import type { DataView } from '../data/service.ts';
 import { canonicalJson } from '../lib/hash.ts';
 import { fnv1a64 } from '../lib/prng.ts';
 import { step, type ActivitySink } from './activity.ts';
+import { buildChart, type BuiltChart } from './charts.ts';
+import { SPENDING_BY_GROUP, specFromRequest } from '../viz/requests.ts';
 import { AdvisorSession } from './advisor.ts';
 import { navigate } from './core/router.ts';
 import { activeProvider } from './egress.ts';
@@ -57,6 +59,8 @@ export interface ChatReply {
   runIds: string[];
   unverified: string[];
   chart?: Insight['chart'];
+  /** Charts built from the app's data (ADR 0028). */
+  charts?: BuiltChart[];
   proposals: Proposal[];
   links: { label: string; path: string }[];
   suggestions: string[];
@@ -160,6 +164,7 @@ export class Assistant {
       runIds: [...new Set(m.runIds)],
       unverified: m.unverified,
       ...(m.chart ? { chart: m.chart } : {}),
+      ...(m.charts.length ? { charts: m.charts } : {}),
       proposals: m.proposals,
       links: m.links,
       suggestions: [],
@@ -219,12 +224,27 @@ export class Assistant {
             () => forecastConfidence(v)
           )
         );
-      case 'spending':
-        return fromInsight(
+      case 'spending': {
+        const r = fromInsight(
           await step(say, 'Adding up the last 12 months…', 'Added up the last 12 months', () =>
             spendingSummary(v)
           )
         );
+        const c = await buildChart(v, SPENDING_BY_GROUP);
+        return c.ok ? { ...r, charts: [c.chart] } : r;
+      }
+      case 'chart': {
+        const spec = specFromRequest(intent.request, v.categories);
+        const c = await step(say, 'Drawing the chart from your data…', 'Drew the chart', () =>
+          buildChart(v, spec)
+        );
+        if (!c.ok) return reply({ text: c.error, suggestions: ['Where does my money go?'] });
+        return reply({
+          text: `Here is **${spec.title.toLowerCase()}**, from your own data on this device. **Save chart** keeps it under Saved charts.`,
+          charts: [c.chart],
+          suggestions: ['Chart my spending by group', 'Chart my income by month'],
+        });
+      }
       case 'define': {
         const e = glossaryEntry(intent.text);
         return reply({

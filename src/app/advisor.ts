@@ -37,6 +37,9 @@ import {
   describe,
   type Proposal,
 } from './proposals.ts';
+import { buildChart, chartFacts, type BuiltChart } from './charts.ts';
+import { withoutNulls } from '../viz/spec.ts';
+import { topicCategories } from '../viz/requests.ts';
 import { SCREEN_WORDS } from '../assistant/intents.ts';
 import { sim } from './workers.ts';
 
@@ -74,6 +77,7 @@ export interface ToolSink {
   proposals: Proposal[];
   links: { label: string; path: string }[];
   chart?: Insight['chart'];
+  charts: BuiltChart[];
   onProgress?: (text: string) => void;
 }
 
@@ -93,6 +97,28 @@ export async function runTool(
     });
   };
   switch (name) {
+    case 'make_chart': {
+      const spec = withoutNulls(input) as { series?: { filter?: { categories?: string[] } }[] };
+      // Plain names become category ids (the AI sees names, not every id).
+      for (const s of spec.series ?? []) {
+        const f = s.filter;
+        if (!f?.categories) continue;
+        f.categories = [
+          ...new Set(
+            f.categories.flatMap((c) =>
+              v.categories.some((x) => x.id === c || x.id.startsWith(`${c}.`))
+                ? [c]
+                : topicCategories(c, v.categories)
+            )
+          ),
+        ];
+        if (!f.categories.length) delete f.categories;
+      }
+      const r = await buildChart(v, spec);
+      if (!r.ok) return JSON.stringify({ error: r.error });
+      sink?.charts.push(r.chart);
+      return JSON.stringify(chartFacts(r.chart));
+    }
     case 'check_plan': {
       const checks = await planChecks(v, setup);
       for (const p of checkProposals(checks, setup)) sink?.proposals.push(p);
@@ -284,6 +310,7 @@ export interface AdvisorMessage {
   proposals: Proposal[];
   links: { label: string; path: string }[];
   chart?: Insight['chart'];
+  charts: BuiltChart[];
   /** The provider's label, e.g. "Google Gemini". */
   provider: string;
 }
@@ -323,6 +350,8 @@ export function toolActivity(name: string, input: Record<string, unknown>): [str
       return ['Preparing category changes…', 'Prepared category changes for you to check'];
     case 'go_to_screen':
       return ['Finding that screen…', 'Offered a button to open it'];
+    case 'make_chart':
+      return ['Drawing the chart from your data…', 'Drew the chart'];
     default:
       return [`Running ${name}…`, `Ran ${name}`];
   }
@@ -356,7 +385,7 @@ export class AdvisorSession {
       role: 'user',
       text: opts.context ? `[Screen: ${opts.context}]\n${question}` : question,
     });
-    const sink: ToolSink = { proposals: [], links: [] };
+    const sink: ToolSink = { proposals: [], links: [], charts: [] };
     const runIds: string[] = [];
     const tools: string[] = [];
     let text = '';
@@ -482,6 +511,7 @@ export class AdvisorSession {
       proposals: sink.proposals,
       links: sink.links,
       ...(sink.chart ? { chart: sink.chart } : {}),
+      charts: sink.charts,
       provider: label,
     };
   }

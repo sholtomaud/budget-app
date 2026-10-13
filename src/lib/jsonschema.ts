@@ -1,7 +1,7 @@
 /**
  * A small JSON Schema validator for the subset the pinned schemas use (ADR
  * 0007, FR-ING-002): type, required, properties, items, enum, const, pattern,
- * minimum/maximum, minItems, additionalProperties: false, oneOf, anyOf,
+ * minimum/maximum, minItems/maxItems, minLength/maxLength, additionalProperties: false, oneOf, anyOf,
  * allOf, $ref to #/$defs, and the CDR standard's `x-cds-type` string formats.
  * It reports the first failure with its JSON path.
  */
@@ -18,7 +18,9 @@ export interface Schema {
   maximum?: number;
   exclusiveMinimum?: number;
   minItems?: number;
+  maxItems?: number;
   minLength?: number;
+  maxLength?: number;
   oneOf?: Schema[];
   anyOf?: Schema[];
   allOf?: Schema[];
@@ -111,6 +113,8 @@ function check(s: Schema, v: unknown, path: string, root: Schema): ValidationErr
   if (typeof v === 'string') {
     if (s.minLength !== undefined && v.length < s.minLength)
       return { path, message: `shorter than ${s.minLength}` };
+    if (s.maxLength !== undefined && v.length > s.maxLength)
+      return { path, message: `longer than ${s.maxLength}` };
     if (s.pattern && !new RegExp(s.pattern, 'u').test(v))
       return { path, message: `does not match ${s.pattern}` };
     const cds = s['x-cds-type'];
@@ -128,6 +132,8 @@ function check(s: Schema, v: unknown, path: string, root: Schema): ValidationErr
   if (Array.isArray(v)) {
     if (s.minItems !== undefined && v.length < s.minItems)
       return { path, message: `needs at least ${s.minItems} item(s)` };
+    if (s.maxItems !== undefined && v.length > s.maxItems)
+      return { path, message: `allows at most ${s.maxItems} item(s)` };
     if (s.items) {
       for (let i = 0; i < v.length; i++) {
         const e = check(s.items, v[i], pathJoin(path, i), root);
