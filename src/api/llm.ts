@@ -123,6 +123,8 @@ export function chatRequest(
     system: string;
     turns: readonly Turn[];
     tools: readonly ToolDef[];
+    /** 'none': the tools stay defined (the history uses them) but the model must answer in words. */
+    toolChoice?: 'none';
     maxTokens?: number;
     stream?: boolean;
   }
@@ -133,6 +135,7 @@ export function chatRequest(
     r.body.system = opts.system;
     r.body.messages = anthropicMessages(opts.turns);
     r.body.tools = opts.tools.map((t) => ({ ...t, strict: true }));
+    if (opts.toolChoice) r.body.tool_choice = { type: opts.toolChoice };
     if (opts.stream) {
       r.body.stream = true;
       if (showsUpdates(cfg.model)) {
@@ -157,6 +160,7 @@ export function chatRequest(
       strict: true,
     },
   }));
+  if (opts.toolChoice) r.body.tool_choice = opts.toolChoice;
   return r;
 }
 

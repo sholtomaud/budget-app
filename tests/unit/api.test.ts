@@ -189,6 +189,17 @@ describe('LLM adapters', () => {
     });
     const msgs = r.body.messages as { role: string }[];
     expect(msgs.map((m) => m.role)).toEqual(['system', 'user', 'assistant', 'tool']);
+    expect(r.body.tool_choice).toBeUndefined();
+  });
+
+  test('the last request of a tool loop asks for words, keeping the tools defined', () => {
+    const turns = [{ role: 'user' as const, text: 'q' }];
+    const a = chatRequest(anthropic, { system: 's', turns, tools: [tool], toolChoice: 'none' });
+    expect(a.body.tool_choice).toEqual({ type: 'none' });
+    expect(a.body.tools).toHaveLength(1);
+    const o = chatRequest(gemini, { system: 's', turns, tools: [tool], toolChoice: 'none' });
+    expect(o.body.tool_choice).toBe('none');
+    expect(o.body.tools).toHaveLength(1);
   });
 
   test('tool inputs are validated', () => {

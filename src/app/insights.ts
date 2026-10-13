@@ -21,6 +21,7 @@ import { monthlySeries } from '../forecast/series.ts';
 import { optimise, type OptimiseResult } from '../optimise/optimiser.ts';
 import type { AsyncCma } from '../optimise/optimiser.ts';
 import { baseValues } from '../optimise/levers.ts';
+import { earliestFreedom, type EarliestPlan } from '../optimise/earliest.ts';
 import { defaultSetup, type FreedomSetup } from '../sim/inputs.ts';
 import { checkPlan, type PlanCheck } from '../sim/checks.ts';
 import { deterministicFreedom, shortfallDrivers } from '../sim/metrics.ts';
@@ -286,6 +287,114 @@ export async function findChanges(
       },
     ],
     link: { label: 'Open Scenarios', path: '/scenarios' },
+  };
+}
+
+/**
+ * The earliest freedom can start and still reach the target, with two
+ * alternatives (a safer margin, spending a little less after freedom), found
+ * by a bisection over start dates on the same simulated futures (ADR 0031).
+ */
+export async function earliestDate(
+  v: DataView,
+  onProgress?: (done: number) => void
+): Promise<Insight> {
+  const setup = await currentSetup(v);
+  const target = setup.goal.targetProbability;
+  const { scenario, spending } = await inputsFor(v, setup);
+  const r = await earliestFreedom(
+    { setup, target, soonest: scenario.asOf },
+    { evaluate: evaluator(v, 200), onProgress: (d) => onProgress?.(d) }
+  );
+  const problems = (await planChecks(v, setup)).filter((c) => c.level === 'problem');
+  const first = problems.length
+    ? `${problems.map((c) => `**Check this:** ${c.text}`).join('\n\n')}\n\n`
+    : '';
+  const tried = `I searched ${r.simulations} plans on the same simulated futures, so the comparison is fair.`;
+  if (!r.plans.length) {
+    const l = r.latest ?? r.current;
+    return {
+      text: `${first}Even starting freedom in ${monthName(l.start)}, your plan works ${chanceWords(l.pSuccess)} (${percent(l.pSuccess)}), short of your ${percent(target)} target. ${tried} Run \`${l.runId}\`\n\nSpending less after freedom, project income or a lower spending tier could close the gap: ask "what would make it work?"`,
+      facts: {
+        reachedTarget: false,
+        target: percent(target),
+        latestStartTried: l.start,
+        chanceThen: percent(l.pSuccess),
+        runId: l.runId,
+        plansTried: r.simulations,
+      },
+      runIds: [l.runId],
+      proposals: checkProposals(problems, setup),
+      suggestions: ['What would make it work?', 'Why is it low?'],
+    };
+  }
+  const perMonth = sum(spending.tier) / Math.max(1e-9, baseValues(setup).tierSpend);
+  const sooner = (p: EarliestPlan) =>
+    p.months < 0
+      ? `${years(-p.months / 12)} sooner than your current ${monthName(r.current.start)}`
+      : p.months > 0
+        ? `${years(p.months / 12)} later than your current ${monthName(r.current.start)}`
+        : 'your current date';
+  const what = (p: EarliestPlan) =>
+    p.id === 'target'
+      ? `Earliest at your ${percent(p.target)} target`
+      : p.id === 'safer'
+        ? `A safer margin (${percent(p.target)})`
+        : `Spend ${percent(1 - p.tierSpend / baseValues(setup).tierSpend)} less after freedom`;
+  const line = (p: EarliestPlan) =>
+    `**${what(p)}:** start **${monthName(p.start)}**${p.id === 'spend-less' ? `, spending about ${dollars(perMonth * p.tierSpend)} a month instead of ${dollars(perMonth * baseValues(setup).tierSpend)}` : ''}. It works ${chanceWords(p.pSuccess)} (${percent(p.pSuccess)}). Run \`${p.runId}\``;
+  const [best, ...others] = r.plans;
+  const intro =
+    best!.id === 'target'
+      ? `The earliest your plan reaches your ${percent(target)} target is **${monthName(best!.start)}**, ${sooner(best!)}. It works ${chanceWords(best!.pSuccess)} (${percent(best!.pSuccess)}). Run \`${best!.runId}\``
+      : `${line(best!)}`;
+  const text = [
+    `${first}${intro}`,
+    ...(others.length ? ['Other choices:', others.map((p) => `- ${line(p)}`).join('\n')] : []),
+    `${tried} Save any of them as a scenario to compare, or use the first in your plan (you can undo it).`,
+  ].join('\n\n');
+  const summary = (p: EarliestPlan) =>
+    `start freedom in ${monthName(p.start)}${p.id === 'spend-less' ? ` and spend ${percent(p.tierSpend / baseValues(setup).tierSpend)} of what you've planned after it` : ''}; works ${chanceWords(p.pSuccess)} (${percent(p.pSuccess)})`;
+  return {
+    text,
+    facts: {
+      reachedTarget: true,
+      target: percent(target),
+      currentStart: r.current.start,
+      currentChance: percent(r.current.pSuccess),
+      plans: r.plans.map((p) => ({
+        plan: what(p),
+        freedomStarts: p.start,
+        chance: percent(p.pSuccess),
+        ...(p.id === 'spend-less'
+          ? { spendingAfterFreedomPerMonth: roughAmount(perMonth * p.tierSpend) }
+          : {}),
+        runId: p.runId,
+      })),
+      plansTried: r.simulations,
+      offered:
+        'Shown to the user as cards: one per plan to save as a scenario, and one to use the first in their plan.',
+    },
+    runIds: r.plans.map((p) => p.runId),
+    chart: { kind: 'chance', p: best!.pSuccess, target },
+    proposals: [
+      ...checkProposals(problems, setup),
+      {
+        kind: 'setup',
+        label: 'Use in my plan',
+        summary: summary(best!),
+        setup: best!.setup,
+        from: setup,
+      },
+      ...r.plans.map((p): Proposal => ({
+        kind: 'scenario',
+        name: `Crux: ${what(p)}, ${monthName(p.start)}`.slice(0, 80),
+        setup: p.setup,
+        summary: `${summary(p)}.`,
+      })),
+    ],
+    link: { label: 'Open Scenarios', path: '/scenarios' },
+    suggestions: ['What could go wrong?', 'How sure is the forecast?'],
   };
 }
 

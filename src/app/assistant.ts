@@ -26,6 +26,7 @@ import { activeProvider } from './egress.ts';
 import { GUIDE } from './guide.ts';
 import {
   currentSetup,
+  earliestDate,
   findChanges,
   forecastConfidence,
   planChance,
@@ -213,6 +214,15 @@ export class Assistant {
             'Trying changes to when freedom starts and spending after it…',
             'Tried changes to your plan',
             (update) => findChanges(v, (d, t) => update(`Trying plans: ${d} of up to ${t}…`))
+          )
+        );
+      case 'earliest':
+        return fromInsight(
+          await step(
+            say,
+            'Searching for the earliest date your plan reaches its target…',
+            'Searched for the earliest date',
+            (update) => earliestDate(v, (d) => update(`Searching start dates: ${d} plans tried…`))
           )
         );
       case 'sure':

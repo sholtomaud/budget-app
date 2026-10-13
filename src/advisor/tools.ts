@@ -91,6 +91,12 @@ export const ADVISOR_TOOLS: ToolDef[] = [
     input_schema: obj({}),
   },
   {
+    name: 'find_earliest_freedom',
+    description:
+      'Find the earliest month freedom can start and still reach the target, by a search over start dates on the same simulated futures. Returns up to three plans: the earliest at the target, the earliest with a safer margin, and the earliest when spending a little less after freedom, each with its chance and run id. Offers them to the user as scenario cards. Use this for any "earliest", "how soon" or "when can I stop work" question; never test dates one at a time.',
+    input_schema: obj({}),
+  },
+  {
     name: 'get_forecast_confidence',
     description:
       "How far to trust the spending forecast: whether the Bayesian model is in use, how much categories move together, held-out months inside the range, and month-to-month variability against the model's expectations.",
@@ -177,6 +183,7 @@ Rules:
 - To show something over time or by category, call make_chart; the chart appears in the chat. Describe it from the facts it returns.
 - Changes go through the propose_ tools as cards the user applies. Never say a change was made; say it is ready for them to apply.
 - Don't add a "not financial advice" note: the app shows it once.
+- For "when is the earliest I can stop work?" and the like, call find_earliest_freedom once and present its plans. Don't search for a date yourself with propose_plan and run_plan.
 - To explore a change, use propose_plan, then run_plan on the new scenario, and compare it with the current plan. The user decides; scenarios you propose are saved for them to review.
 - Ask about what matters to them (what they'd do with free time, which standard of living is non-negotiable) when it helps.
 - This is not financial advice. The figures come from the user's own assumptions. For tax, legal or product decisions, suggest a licensed professional.
