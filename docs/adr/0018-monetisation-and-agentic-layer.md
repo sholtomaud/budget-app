@@ -1,6 +1,6 @@
 # ADR 0018 — Monetisation, offers and the agentic layer
 
-- Status: proposed (milestone M14, behind a legal review gate)
+- Status: proposed (milestone M15, behind a legal review gate)
 - Date: 2026-10-11
 - SPEC: §1.1, §2 (NFR-MON-001…007), §22 (FR-OFR-…, FR-AGT-…), §20
 
@@ -38,11 +38,11 @@ user's agent is the user's. Paths, in the order we would build them:
 1. **User-paid (first; no data use).**
    - The core stays free and open.
    - A subscription covers hosted conveniences: sync relay and storage options (ADR 0016), the
-     receipts app (ADR 0017), the live bank connector pass-through (M11), and hosted advisor
+     receipts app (ADR 0017), the live bank connector pass-through (M14), and hosted advisor
      credits (users can still bring their own key).
    - B2B: licensed financial planners running client scenarios, and employers offering it as a
      financial-wellbeing benefit.
-2. **Private offers: relevance computed on the device** (M14, FR-OFR-001…008).
+2. **Private offers: relevance computed on the device** (M15, FR-OFR-001…008).
    - Retailers publish offers to a public, signed **offers feed**: product, price, validity,
      category and "intent" tags such as `capex.computing`, `replacement`, `wish:watch`, plus their
      bid per conversion.
@@ -119,7 +119,7 @@ Accepted direction from the project owner:
    general vs personal advice; conflicted remuneration) has been reviewed and resolved.
 6. **Off by default.** The app is complete without monetisation features. The privacy e2e test
    asserts that offer matching sends nothing.
-7. **Legal review gate before M14**:
+7. **Legal review gate before M15**:
    - Privacy Act and the APPs;
    - CDR Rules (use, disclosure, de-identification, direct marketing);
    - the Spam Act;

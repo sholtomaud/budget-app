@@ -1,0 +1,189 @@
+/* The conversation's messages, cards and buttons: shared by the chat panel and the chat screen. `:host` becomes each component's tag. */
+:host .log {
+  flex: 1;
+  overflow-y: auto;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+:host .msg.user {
+  align-self: flex-end;
+  background: var(--surface-2);
+  border-radius: var(--radius);
+  padding: var(--space-2) var(--space-3);
+  max-width: 90%;
+  white-space: pre-wrap;
+}
+:host .msg.reply .who {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: var(--space-1);
+}
+:host .msg.reply .who .ai {
+  color: var(--accent);
+}
+:host .msg.reply p,
+:host .msg.reply ul,
+:host .msg.reply ol {
+  margin: 0 0 var(--space-2);
+}
+:host .msg.reply ul,
+:host .msg.reply ol {
+  padding-left: 1.25rem;
+}
+:host .msg.reply sup a {
+  text-decoration: none;
+}
+:host .msg.reply .body:empty::after {
+  content: '…';
+  color: var(--text-muted);
+}
+/* The activity log (ADR 0024): Crux's steps and the AI's asides, small and quiet. */
+:host .msg.activity,
+:host .msg.ai-note {
+  display: flex;
+  gap: var(--space-2);
+  align-items: baseline;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  margin: calc(-1 * var(--space-2)) 0 0;
+}
+:host .msg .src {
+  flex: none;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-radius: 999px;
+  padding: 0 var(--space-2);
+  background: var(--surface-2);
+}
+:host .msg.ai-note .src,
+:host .msg.aside .who .ai {
+  color: var(--accent);
+}
+:host .msg.activity::before {
+  flex: none;
+  content: '✓';
+  width: 1ch;
+  color: var(--ok);
+}
+:host .msg.activity[data-state='running']::before {
+  content: '●';
+  color: var(--accent);
+  animation: chat-pulse 1s ease-in-out infinite alternate;
+}
+:host .msg.activity[data-state='error']::before {
+  content: '!';
+  color: var(--bad);
+}
+:host .msg.ai-note .text {
+  font-style: italic;
+}
+:host .msg.aside {
+  font-size: 0.875rem;
+  border-left: 2px solid var(--border);
+  padding-left: var(--space-2);
+}
+:host .msg.aside .who {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+:host .msg.aside p {
+  margin: 0;
+}
+@keyframes chat-pulse {
+  from {
+    opacity: 0.3;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  :host .msg.activity[data-state='running']::before {
+    animation: none;
+  }
+}
+:host .footnotes {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin: 0;
+  padding-left: 1.25rem;
+  font-family: var(--mono);
+  word-break: break-all;
+}
+:host .unverified {
+  font-size: 0.8125rem;
+  color: var(--bad);
+}
+:host .meter {
+  margin: var(--space-2) 0;
+}
+:host .meter .bar {
+  position: relative;
+  height: 0.75rem;
+  border-radius: 999px;
+  background: var(--surface-2);
+  overflow: visible;
+}
+:host .meter .fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 999px;
+  background: var(--accent);
+}
+:host .meter .target {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 2px;
+  background: var(--text);
+}
+:host .meter .legend {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+:host .proposal {
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  padding: var(--space-2) var(--space-3);
+  margin: var(--space-2) 0;
+  display: grid;
+  gap: var(--space-2);
+}
+:host .proposal .fields {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--space-1) var(--space-2);
+  align-items: center;
+  font-size: 0.8125rem;
+}
+:host .proposal input,
+:host .proposal select {
+  min-width: 0;
+  width: 100%;
+}
+:host .proposal .buttons {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+:host .links,
+:host .suggestions,
+:host .msg .chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+:host .suggestions .pick:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}

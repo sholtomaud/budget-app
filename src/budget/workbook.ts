@@ -108,6 +108,15 @@ export const ERROR_LITERALS = [
   '#CALC!',
 ];
 
+/** Sheet types in plain words. */
+export const SHEET_LABEL: Record<SheetType, string> = {
+  opex: 'OPEX budget',
+  capex: 'CAPEX register',
+  wishlist: 'Wish list',
+  renewals: 'Renewals',
+  goal: 'Goal / retirement',
+};
+
 export interface Mapping {
   type: SheetType;
   headerRow: number;

@@ -84,7 +84,7 @@ const reply = (r: Partial<ChatReply> & { text: string }): ChatReply => ({
   ...r,
 });
 
-const fromInsight = (i: Insight): ChatReply =>
+export const fromInsight = (i: Insight): ChatReply =>
   reply({
     text: i.text,
     runIds: i.runIds,

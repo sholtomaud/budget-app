@@ -13,7 +13,9 @@ test('no request goes outside the app origin', async ({ page, baseURL }) => {
   await page.goto('./');
   await expect(page.locator('.kstate')).toHaveText(/verified/);
   const nav = page.getByRole('navigation', { name: 'Screens' });
-  for (const link of await nav.getByRole('link').all()) await link.click();
+  // The chat screen swaps the top bar for its own menu (ADR 0027): use whichever is showing.
+  for (const name of await nav.getByRole('link').allTextContents())
+    await page.getByRole('link', { name, exact: true }).filter({ visible: true }).first().click();
   // The engine check is linked from Settings, not the nav.
   await page.getByRole('link', { name: 'Simulation engine check' }).click();
   await page.getByRole('button', { name: 'Run example' }).click();

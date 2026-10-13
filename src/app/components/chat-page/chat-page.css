@@ -1,0 +1,136 @@
+:host {
+  display: block;
+  font-size: 0.9375rem;
+}
+:host .layout {
+  display: grid;
+  grid-template-columns: 15rem 1fr;
+  height: 100dvh;
+}
+:host .side {
+  border-right: 1px solid var(--border);
+  background: var(--surface);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  overflow-y: auto;
+}
+:host .brand {
+  font-weight: 700;
+  font-size: 1.125rem;
+  color: var(--text);
+  text-decoration: none;
+  margin-bottom: var(--space-2);
+}
+:host .side h2 {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  margin: var(--space-3) 0 0;
+}
+:host .steps,
+:host .side .links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-1);
+}
+:host .steps li {
+  color: var(--text-muted);
+}
+:host .steps li::before {
+  content: '○ ';
+}
+:host .steps li[data-state='current'] {
+  color: var(--text);
+  font-weight: 600;
+}
+:host .steps li[data-state='current']::before {
+  content: '● ';
+  color: var(--accent);
+}
+:host .steps li[data-state='done']::before {
+  content: '✓ ';
+  color: var(--ok);
+}
+:host .side .links a {
+  color: var(--text);
+  text-decoration: none;
+}
+:host .side .links a:hover {
+  text-decoration: underline;
+}
+:host .side .restart,
+:host .side .theme {
+  align-self: flex-start;
+}
+:host .side .theme {
+  margin-top: auto;
+}
+:host .main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-height: 0;
+  max-width: 48rem;
+  width: 100%;
+  margin: 0 auto;
+  padding: var(--space-4);
+}
+:host .main header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+:host .main h1 {
+  font-size: 1.25rem;
+  margin: 0;
+  flex: 1;
+}
+:host .menu {
+  display: none;
+}
+:host .note {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+:host textarea {
+  width: 100%;
+  resize: vertical;
+}
+:host .actions {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  margin: var(--space-1) 0 0;
+}
+:host .suggestions .choice,
+:host .suggestions .pick {
+  font-size: 0.875rem;
+  padding: var(--space-1) var(--space-3);
+}
+@media (max-width: 56rem) {
+  :host .layout {
+    grid-template-columns: 1fr;
+  }
+  :host .side {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: min(18rem, 85vw);
+    z-index: 30;
+    box-shadow: 0 0 16px rgb(0 0 0 / 0.25);
+  }
+  :host .side:not(.open) {
+    display: none;
+  }
+  :host .menu {
+    display: inline-block;
+  }
+  :host .main {
+    height: 100dvh;
+  }
+}

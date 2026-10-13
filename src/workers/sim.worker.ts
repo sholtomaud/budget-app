@@ -55,10 +55,10 @@ const api = {
     return setupStore.set(setup);
   },
   /** Small settings records (provider configuration; never API keys). */
-  async loadKv(name: 'providers' | 'histories'): Promise<unknown> {
+  async loadKv(name: 'providers' | 'histories' | 'setup'): Promise<unknown> {
     return new IdbValue<unknown>(name).get();
   },
-  async saveKv(name: 'providers' | 'histories', value: unknown): Promise<void> {
+  async saveKv(name: 'providers' | 'histories' | 'setup', value: unknown): Promise<void> {
     await new IdbValue<unknown>(name).set(value);
   },
   /** The local log of every external call (FR-API-004); the last 500 are kept. */

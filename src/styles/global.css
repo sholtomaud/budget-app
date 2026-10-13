@@ -134,6 +134,15 @@ h2 {
 body.chat-open {
   padding-right: var(--chat-w, 24rem);
 }
+/* The chat screen (ADR 0027) has its own menu and conversation. */
+body.chat-home {
+  padding-right: 0;
+}
+body.chat-home app-nav,
+body.chat-home guide-bar,
+body.chat-home chat-panel {
+  display: none;
+}
 #router-outlet {
   outline: none;
 }
@@ -231,7 +240,8 @@ button.secondary,
   background: transparent;
   color: var(--accent);
 }
-button.small {
+button.small,
+.button.small {
   font-size: 0.8125rem;
   padding: 0 var(--space-2);
 }

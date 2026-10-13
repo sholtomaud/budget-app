@@ -17,6 +17,7 @@ import { annualisedCapexPerWeek } from '../../../budget/capex.ts';
 import { weeklyRate } from '../../../budget/model.ts';
 import { perWeek, WEEKS_IN, type Span } from '../../../budget/periods.ts';
 import {
+  SHEET_LABEL,
   FIELDS,
   mappingFor,
   parseMoney,
@@ -29,14 +30,6 @@ import type { DataView } from '../../../data/service.ts';
 import { parseCsv } from '../../../lib/csv.ts';
 import template from './budget-page.html?raw';
 import style from './budget-page.css?raw';
-
-const SHEET_LABEL: Record<SheetType, string> = {
-  opex: 'OPEX budget',
-  capex: 'CAPEX register',
-  wishlist: 'Wish list',
-  renewals: 'Renewals',
-  goal: 'Goal / retirement',
-};
 
 const minor = (x: number) => BigInt(Math.round(x));
 
