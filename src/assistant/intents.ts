@@ -8,6 +8,7 @@ import { GLOSSARY } from './phrases.ts';
 
 export type Intent =
   | { id: 'chance' }
+  | { id: 'full-run' }
   | { id: 'why' }
   | { id: 'fix' }
   | { id: 'earliest' }
@@ -172,6 +173,12 @@ export function matchIntent(raw: string): Intent | null {
   }
 
   // Questions the app answers from its own results.
+  if (
+    /\b(run (my|the) (whole |full |entire )?(plan|freedom)( in full)?|run everything|full (analysis|run|check)|analy[sz]e (my|the) (whole |full )?plan|check everything)\b/.test(
+      t
+    )
+  )
+    return { id: 'full-run' };
   if (
     /\b(earliest|soonest|how (soon|early) can i|when can i (retire|stop work|stop working|be free|quit)|stop working (sooner|earlier)|retire (sooner|earlier))\b/.test(
       t.replace(/[_*~]/g, ' ')

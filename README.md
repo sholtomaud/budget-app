@@ -27,6 +27,7 @@ and the documentation site (`npm run docs:dev`, published at `/<repo>/docs/` on 
 | **Chat panel**            | Done: "Ask Crux" on every screen; common questions answered on the device, optional AI for the rest, changes as cards to apply or undo                                        |
 | **Setup by chatting**     | Done (first part of M10): a chat screen beside Start sets up your data, budget and plan with buttons; typed answers read on the device, or by the AI if one is on             |
 | **Charts in the chat**    | Done (second part of M10): charts drawn on the device from your data, asked for in words or designed by the AI; save, reopen with today's data, download SVG, PNG or CSV      |
+| **Run my plan**           | Done (first part of M11): one button runs every Freedom step and keeps a dated history; the AI can run it and read the history too                                            |
 | M10–M15                   | Planned (SPEC §19): chat-first setup and real data, goals and one-click plans, sync, receipts, live connections, offers and agents                                            |
 
 Try it: **Start → Try synthetic data → Generate and load**, then see the **Import** screen. Or import

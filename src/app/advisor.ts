@@ -38,7 +38,16 @@ import {
   describe,
   type Proposal,
 } from './proposals.ts';
+import { percent } from '../assistant/phrases.ts';
 import { buildChart, chartFacts, type BuiltChart } from './charts.ts';
+import {
+  currentInputsHash,
+  loadRuns,
+  runFacts,
+  runFullPlan,
+  saveRun,
+  STEP_WORDS,
+} from './plan-run.ts';
 import { withoutNulls } from '../viz/spec.ts';
 import { topicCategories } from '../viz/requests.ts';
 import { SCREEN_WORDS } from '../assistant/intents.ts';
@@ -98,6 +107,42 @@ export async function runTool(
     });
   };
   switch (name) {
+    case 'run_my_plan': {
+      const runs = [200, 500, 1000].includes(Number(input.runs)) ? Number(input.runs) : 500;
+      const tierName = (id: string) => v.budget.tiers.find((t) => t.id === id)?.name ?? id;
+      const full = await runFullPlan(v, setup, {
+        runs,
+        onStep: (k, state) => {
+          if (state === 'running') sink?.onProgress?.(`${STEP_WORDS[k][0]}…`);
+        },
+      });
+      await saveRun(full.run);
+      const trust = await forecastConfidence(v);
+      if (sink) sink.chart = { kind: 'chance', p: full.run.pSuccess, target: full.run.goal.target };
+      sink?.links.push({ label: 'Open Freedom', path: '/freedom' });
+      return JSON.stringify({
+        ...runFacts(full.run, tierName),
+        spendingForecast: trust.facts,
+        shown: 'Kept in the History on the Freedom screen, with the full results.',
+      });
+    }
+    case 'get_plan_history': {
+      const list = (await loadRuns()).slice().reverse().slice(0, 10);
+      const latest = list[0];
+      const stale = latest ? (await currentInputsHash(v, setup)) !== latest.inputsHash : false;
+      return JSON.stringify({
+        runs: list.map((r) => ({
+          ranAt: r.at,
+          chance: percent(r.pSuccess),
+          target: percent(r.goal.target),
+          freedomStarts: r.goal.start,
+          tier: v.budget.tiers.find((t) => t.id === r.goal.tier)?.name ?? r.goal.tier,
+          runId: r.runId,
+        })),
+        newestOutOfDate: stale,
+        ...(list.length ? {} : { note: 'No full runs yet: run_my_plan makes one.' }),
+      });
+    }
     case 'make_chart': {
       const spec = withoutNulls(input) as { series?: { filter?: { categories?: string[] } }[] };
       // Plain names become category ids (the AI sees names, not every id).
@@ -367,6 +412,10 @@ export function toolActivity(name: string, input: Record<string, unknown>): [str
       return ['Finding that screen…', 'Offered a button to open it'];
     case 'make_chart':
       return ['Drawing the chart from your data…', 'Drew the chart'];
+    case 'run_my_plan':
+      return ['Running your plan in full…', 'Ran your plan in full and kept it in History'];
+    case 'get_plan_history':
+      return ['Reading your earlier runs…', 'Read your earlier runs'];
     default:
       return [`Running ${name}…`, `Ran ${name}`];
   }

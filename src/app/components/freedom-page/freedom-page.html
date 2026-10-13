@@ -139,11 +139,13 @@
         </select>
       </label>
       <label>Seed <input name="seed" type="text" size="8" /></label>
-      <button type="submit" class="simulate">Simulate</button>
+      <button type="submit" class="simulate">Run my plan</button>
+      <button type="button" class="secondary stop" hidden>Stop</button>
       <label>Scenario name <input name="scenarioName" type="text" size="16" /></label>
       <button type="button" class="secondary save-scenario">Save as scenario</button>
       <span class="status muted" role="status" aria-live="polite"></span>
     </form>
+    <ol class="steps" aria-label="What Run my plan does" hidden></ol>
   </div>
 
   <article class="card checks" hidden aria-labelledby="checks-h">
@@ -154,6 +156,7 @@
   </article>
 
   <div class="results" hidden>
+    <p class="last-run" role="status"></p>
     <div class="cards">
       <article class="card stat">
         <h2>Chance of success</h2>
@@ -172,7 +175,6 @@
         <p class="muted fn-det-note"></p>
         <p class="fn-p90-line">
           <span class="fn-p90">–</span>
-          <button type="button" class="secondary small find-p90">Find</button>
         </p>
         <p class="muted fn-p90-note"></p>
       </article>
@@ -200,7 +202,7 @@
         Each input in turn is frozen at its median, using the same simulated futures, to show how
         much of the risk it carries.
       </p>
-      <button type="button" class="secondary small drivers-run">Analyse</button>
+      <p class="muted drivers-wait">Worked out when you run your plan.</p>
       <table class="drivers" hidden>
         <thead>
           <tr>
@@ -211,6 +213,21 @@
         </thead>
         <tbody></tbody>
       </table>
+    </article>
+
+    <article class="card plans" aria-labelledby="plans-h">
+      <h2 id="plans-h">Earliest freedom</h2>
+      <p class="muted plans-note">Worked out when you run your plan.</p>
+      <ul class="plan-list"></ul>
+    </article>
+
+    <article class="card history" aria-labelledby="history-h">
+      <h2 id="history-h">History</h2>
+      <p class="muted">
+        Every run is kept with its date, so you can see how your plan changes. The newest 20 are
+        kept, on this device.
+      </p>
+      <ol class="run-list" reversed></ol>
     </article>
 
     <details class="card record">

@@ -5,7 +5,7 @@
 
 | | |
 |---|---|
-| Status | Draft 18: M0–M9, the chat panel, plan guidance, and M10's setup by chatting, charts in the chat and bank and accounting CSV import built (ADRs 0001–0013, 0019–0028, 0030); M10–M15 planned, with proposed directions in ADRs 0014, 0016–0018, 0027–0029 |
+| Status | Draft 18: M0–M9, the chat panel, plan guidance, and M10's setup by chatting, charts in the chat and bank and accounting CSV import, the earliest freedom date, and Run my plan with dated runs built (ADRs 0001–0013, 0019–0028, 0030–0032); M10–M15 planned, with proposed directions in ADRs 0014, 0016–0018, 0027–0029 |
 | Date | 2026-10-13 |
 | Kernel | [GSSK](https://github.com/energese-project/GSSK-Giannantoni), consumed as a pinned WebAssembly artefact |
 | Runtime | Browser only. Static site, no backend |
@@ -707,6 +707,7 @@ differ highlighted). Every result cites its runs (inputs hash, seed, run range).
 | FR-OPT-004 | **Screen, then confirm.** Candidates are screened with 64 runs on common random numbers; only finalists (≤ about 12) get the full 1,000 runs, stopping early when the 95 % interval is clearly above or below the target. Only confirmed runs are reported. Gate: on the synthetic personas, the confirmed plans reach the target and total simulated futures fall by ≥ 10× against evaluating every candidate at 1,000. |
 | FR-OPT-005 | **WebGPU screening (optional).** When WebGPU is available, screening may run in a compute-shader batch simulator with the same seeds (NFR-DET-001). GSSK in the workers stays the reference for every reported figure (NFR-KER-001). CI checks the GPU screen and GSSK rank a fixed set of plans the same way and agree on pSuccess within a stated tolerance; without WebGPU, screening runs on the workers. |
 | FR-OPT-006 | **Earliest freedom date.** "When is the earliest I can stop work?" (chat, built in or through the AI's `find_earliest_freedom` tool) is answered by one search: a bisection over start dates on a 3-month grid, from now to 10 years after the current start, with common random numbers. It returns up to three plans as scenario cards: the earliest at the target, the earliest with a 5-point safer margin, and the earliest spending 10 % less after freedom. Each cites its runs. The AI never tests dates one at a time (ADR 0031). |
+| FR-OPT-007 | **Dated runs.** Every Run my plan is kept with its date, inputs hash, reproducibility record and results (not the simulated paths), the newest 20, in the vault. Freedom opens on the last run, marked out of date when the current inputs hash differs or a setting changes, with the change in chance since the run before; a History list opens any run. Stop keeps what finished. The AI's `run_my_plan` and `get_plan_history` tools use the same runs. ADR 0032. |
 
 ---
 
@@ -1200,6 +1201,7 @@ the spec, an ADR when it is scheduled.
 | **Lodging with tax offices** | Direct lodgement with the main tax authorities (ATO first, then others). Needs registration as a software provider and each authority's security requirements, so it waits for a business behind the app. |
 | **Recurring-charge detection** | Find subscriptions and regular bills ("you pay for 3 streaming services") and flag price rises. |
 | **Life-event scenarios** | Ready-made scenarios (a child, a sabbatical, a move, study) instead of editing budget lines by hand. |
+| **Notification relay** | A tiny server that receives a connector's webhook ("new transactions") and sends a push notification carrying no financial data, storing nothing. Plain Node, no third-party packages. The app's first server, so it needs its own ADR; only worth it for notifications (fetch-on-open needs no server). |
 | **Prior sensitivity of pSuccess** | Deferred in ADR 0022: re-run the simulation with the spending priors power-scaled ×0.5 and ×2 and show how much the chance moves. |
 | **In-browser LLM** | Parked (§20 question 7). |
 | **Monthly check-in** | "You're 3 weeks ahead of plan, and here's why": a short chat summary when new data arrives. |

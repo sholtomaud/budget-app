@@ -19,6 +19,14 @@ import { canonicalJson } from '../lib/hash.ts';
 import { fnv1a64 } from '../lib/prng.ts';
 import { step, type ActivitySink } from './activity.ts';
 import { buildChart, type BuiltChart } from './charts.ts';
+import {
+  fullRunText,
+  PLAN_STEPS,
+  runFullPlan,
+  saveRun,
+  STEP_WORDS,
+  type FullRun,
+} from './plan-run.ts';
 import { SPENDING_BY_GROUP, specFromRequest } from '../viz/requests.ts';
 import { AdvisorSession } from './advisor.ts';
 import { navigate } from './core/router.ts';
@@ -189,6 +197,33 @@ export class Assistant {
   ): Promise<ChatReply> {
     const v = this.view();
     switch (intent.id) {
+      case 'full-run': {
+        const setup = await currentSetup(v);
+        const tierName = (id: string) => v.budget.tiers.find((t) => t.id === id)?.name ?? id;
+        const full = await step(
+          say,
+          'Running your plan in full: every step of the Freedom screen…',
+          (f: FullRun) =>
+            f.run.done.length === PLAN_STEPS.length
+              ? 'Ran every step and kept it in History'
+              : 'Ran part of it',
+          (update) =>
+            runFullPlan(v, setup, {
+              runs: 500,
+              onStep: (k, state) => {
+                if (state === 'running') update(`${STEP_WORDS[k][0]}…`);
+              },
+            })
+        );
+        await saveRun(full.run);
+        return reply({
+          text: fullRunText(full.run, tierName),
+          runIds: [full.run.runId, ...(full.run.earliest?.plans.map((p) => p.runId) ?? [])],
+          chart: { kind: 'chance', p: full.run.pSuccess, target: full.run.goal.target },
+          links: [{ label: 'Open Freedom', path: '/freedom' }],
+          suggestions: ['Why is it low?', 'How sure is the forecast?'],
+        });
+      }
       case 'chance':
         return fromInsight(
           await step(

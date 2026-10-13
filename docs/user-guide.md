@@ -270,7 +270,7 @@ Then choose a withdrawal strategy:
 
 Mark super as locked until your preservation date.
 
-**Simulate** runs 1,000 possible futures on the GSSK kernel. Each future has its own investment
+**Run my plan** does everything in one go, showing each result as it arrives: the chance of success first, then the plan checks, the other tiers, what drives shortfalls, the freedom number at your target and the years to reach it, and the earliest date freedom could start. **Stop** keeps what has finished. The main simulation runs 1,000 possible futures (or the number under **Runs**) on the GSSK kernel. Each future has its own investment
 returns, spending and replacement costs, all in today's dollars. Tax follows the 2025-26
 Australian resident rates, Medicare levy and capital-gains discount. That table is labelled
 _assumed_ until a maintainer has checked it against the ATO.
@@ -288,13 +288,23 @@ falls a little. That is honest, not pessimistic.
 - **Freedom number:** two versions.
   - The spreadsheet rule: a year's need, grossed up for tax, at a withdrawal rate. Labelled
     _assumed_.
-  - **Find**: the smallest starting capital that succeeds at your target probability. Finding it
-    also shows **years to freedom** if you keep working and saving as now.
+  - At your target: the smallest starting capital that succeeds at your target probability, with
+    **years to freedom** if you keep working and saving as now.
 - **Project runway:** how long you could fund chosen work at this tier from money you can reach
   today.
 - **Capital in today's dollars:** a fan with 20 example futures and your floor.
 - **What drives shortfalls:** freezes each uncertain input in turn, to show which carries the
   risk.
+- **Earliest freedom:** the earliest start that reaches your target, one with a safer margin, and
+  one spending a little less after freedom. **Use this plan** puts one in your plan (run it again to
+  see it); **Save as scenario** keeps it to compare.
+
+**History.** Every run is kept with its date, the newest 20, on this device and encrypted with the
+rest of your data. The screen opens on your last run and says when your data or settings have
+changed since, and how the chance moved since the run before. **Show** opens any earlier run.
+
+In the chat, **Run my plan** does the same and answers in words. With an AI provider on, the AI can
+run it too (and read your history), so its answer matches the screen's.
 
 Under **Reproducibility**, each result records the kernel version, the wasm hash, the model and
 inputs hashes, and the seed, so the same numbers can be produced again.
@@ -362,20 +372,20 @@ your holdings on the Freedom screen. The file stays on this device.
 
 ## Screens
 
-| Screen       | What it is for                                                                    | Milestone |
-| ------------ | --------------------------------------------------------------------------------- | --------- |
-| Set up       | A chat that sets Crux up with you: your data, your budget, your plan              | M10       |
-| Import       | CDR (Open Banking) JSON/ZIP and budget CSV files, with a mapping wizard and undo  | M1, M3    |
-| Ledger       | Transactions, categories, review queue, CAPEX proposals                           | M2        |
-| Budget       | Budget lines by tier, actual vs budget, run rate                                  | M3        |
-| CAPEX        | Asset register, replacement timeline, sinking fund                                | M3        |
-| Forecast     | Fan charts per category, with method and backtest score                           | M4        |
-| Freedom      | Goal editor, probability of success, capital fan chart                            | M5        |
-| Scenarios    | Side-by-side comparison, the optimiser and its trade-offs                         | M6        |
-| Chat         | Panel on every screen; built-in answers, optional AI, changes as cards            | M8, chat  |
-| Saved charts | Charts kept from the chat: as saved, or with today's data; download SVG, PNG, CSV | M10       |
-| Settings     | Encryption, export, delete all; AI provider, call log, return history             | M7, M8    |
-| Kernel       | Shows the pinned kernel and runs an example model                                 | M0        |
+| Screen       | What it is for                                                                            | Milestone |
+| ------------ | ----------------------------------------------------------------------------------------- | --------- |
+| Set up       | A chat that sets Crux up with you: your data, your budget, your plan                      | M10       |
+| Import       | CDR (Open Banking) JSON/ZIP and budget CSV files, with a mapping wizard and undo          | M1, M3    |
+| Ledger       | Transactions, categories, review queue, CAPEX proposals                                   | M2        |
+| Budget       | Budget lines by tier, actual vs budget, run rate                                          | M3        |
+| CAPEX        | Asset register, replacement timeline, sinking fund                                        | M3        |
+| Forecast     | Fan charts per category, with method and backtest score                                   | M4        |
+| Freedom      | Goal editor; Run my plan; probability of success, fan chart, earliest date; dated history | M5, M11   |
+| Scenarios    | Side-by-side comparison, the optimiser and its trade-offs                                 | M6        |
+| Chat         | Panel on every screen; built-in answers, optional AI, changes as cards                    | M8, chat  |
+| Saved charts | Charts kept from the chat: as saved, or with today's data; download SVG, PNG, CSV         | M10       |
+| Settings     | Encryption, export, delete all; AI provider, call log, return history                     | M7, M8    |
+| Kernel       | Shows the pinned kernel and runs an example model                                         | M0        |
 
 ## Labels on numbers
 

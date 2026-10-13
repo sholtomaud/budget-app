@@ -33,6 +33,7 @@ Every deviation from the [specification](../spec.md) gets one.
 | [0026](./0026-plan-guidance.md)                            | Plan guidance: checks that find the settings behind a bad result                                     | Accepted            |
 | [0027](./0027-chat-first-setup.md)                         | Chat-first setup: guided steps as state machines, AI for unrecognised text, goals from words         | Accepted (part)     |
 | [0028](./0028-charts-in-chat.md)                           | Charts in the chat: specs the app fills with its own data, AI-designed charts, saved charts          | Accepted            |
-| [0029](./0029-one-click-plans-and-compute.md)              | One-click plans: three different plans (NSGA-II), screen-then-confirm runs, WebGPU screening         | Proposed            |
+| [0029](./0029-one-click-plans-and-compute.md)              | One-click plans: three different plans (NSGA-II), screen-then-confirm runs, WebGPU screening         | Accepted (part)     |
 | [0030](./0030-bank-csv-adapters.md)                        | Bank and accounting CSVs: presets, a learned column mapper that learns from corrections              | Accepted            |
+| [0032](./0032-run-my-plan-and-history.md)                  | Run my plan: one button, a dated history, the same run for the AI (run_my_plan, get_plan_history)    | Accepted            |
 | [0031](./0031-earliest-freedom-date.md)                    | The earliest freedom date: a bisection over start dates, three plans, and a final answer in the chat | Accepted            |
