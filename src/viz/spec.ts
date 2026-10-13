@@ -8,8 +8,16 @@
 import { validate, formatError, type Schema } from '../lib/jsonschema.ts';
 
 export const CHART_KINDS = ['line', 'bar', 'stacked-bar', 'table'] as const;
-export const DATASETS = ['spending', 'income', 'budget'] as const;
-export const GROUP_BY = ['month', 'quarter', 'year', 'category', 'group', 'merchant'] as const;
+export const DATASETS = ['spending', 'income', 'budget', 'big-purchases'] as const;
+export const GROUP_BY = [
+  'month',
+  'quarter',
+  'year',
+  'category',
+  'group',
+  'merchant',
+  'item',
+] as const;
 export const MEASURES = ['sum', 'count'] as const;
 
 export type ChartKind = (typeof CHART_KINDS)[number];
@@ -27,6 +35,8 @@ export interface SeriesFilter {
   to?: string;
   /** The last N complete months of data (ignored when from/to are given). */
   lastMonths?: number;
+  /** The next N months from this one, for planned data (ignored when from/to are given). */
+  nextMonths?: number;
 }
 
 export interface SeriesSpec {
@@ -47,7 +57,7 @@ export interface ChartSpec {
 
 /** What a dataset holds, in words: all the AI sees to design a chart (FR-VIZ-003). */
 export const CATALOGUE_NOTE =
-  'Grouped by month, quarter or year, values are totals for each period. Grouped by category, group or merchant, they are monthly averages over the months chosen, biggest first, the rest folded into "Everything else". Without a range, a series covers every complete month of data.';
+  'Grouped by month, quarter or year, values are totals for each period. Grouped by category, group, merchant or item, they are monthly averages over the months chosen (big purchases: totals), biggest first, the rest folded into "Everything else". Without a range, a series covers every complete month of data; big purchases cover this month to the end of the planning horizon. Datasets can share a time axis: past spending next to future big purchases draws one timeline.';
 
 export const CATALOGUE: Record<Dataset, string> = {
   spending:
@@ -55,7 +65,9 @@ export const CATALOGUE: Record<Dataset, string> = {
   income:
     'Money coming in classified as income (pay, interest, refunds of capital excluded). Dollars. Provenance: actual.',
   budget:
-    "The budget lines at the plan's tier, as a monthly rate. Grouped by month it is the same each month; grouped by category or group it is the monthly budget for each. 'text' matches the line's item. Dollars. Provenance: budgeted.",
+    "The budget lines at the plan's tier, as a monthly rate. Grouped by month it is the same each month; grouped by category or group it is the monthly budget for each. 'text' matches the line's item; group by item for one bar per line. Dollars. Provenance: budgeted.",
+  'big-purchases':
+    "Big purchases from the Big purchases screen (the CAPEX register), in the future: when each falls due and what it costs, in today's dollars. Owned items that are replaced fall due at their median replacement date and again every average life after it; wish-list and planned items at their buy-by date (this month without one). Deferred, dropped, retired items and those above the plan's tier are left out. Group by month, quarter or year for when; by item, category or group for what. 'text' matches the item's name; use from/to or nextMonths, not lastMonths. Dollars. Provenance: forecast.",
 };
 
 const str = (maxLength: number): Schema => ({ type: 'string', maxLength });
@@ -92,6 +104,7 @@ export const CHART_SCHEMA: Schema = {
               from: { type: 'string', pattern: MONTH },
               to: { type: 'string', pattern: MONTH },
               lastMonths: { type: 'integer', minimum: 1, maximum: 120 },
+              nextMonths: { type: 'integer', minimum: 1, maximum: 600 },
             },
           },
         },
@@ -132,6 +145,7 @@ export const CHART_TOOL_SCHEMA: Schema = strictObj({
           from: nullable({ type: 'string' }),
           to: nullable({ type: 'string' }),
           lastMonths: nullable({ type: 'integer' }),
+          nextMonths: nullable({ type: 'integer' }),
         })
       ),
     }),
@@ -163,12 +177,24 @@ export function checkSpec(spec: unknown): string | null {
   const s = spec as ChartSpec;
   if (s.kind === 'line' && !isTime(s.groupBy))
     return 'A line chart needs a time axis: group by month, quarter or year.';
+  const planned = s.series.filter((x) => x.dataset === 'big-purchases').length;
+  if (planned && planned < s.series.length && !isTime(s.groupBy))
+    return 'Big purchases are totals and the other datasets monthly averages; chart them together only on a time axis.';
   for (const x of s.series) {
+    const f = x.filter;
+    if (x.dataset === 'big-purchases') {
+      if (s.groupBy === 'merchant')
+        return 'Big purchases have no merchant; group by item, category or group instead.';
+      if (f?.lastMonths)
+        return 'Big purchases are in the future: use nextMonths or from/to, not lastMonths.';
+    } else if (f?.nextMonths)
+      return `nextMonths is for big purchases; ${x.dataset} is past data, so use lastMonths or from/to.`;
+    if ((x.dataset === 'spending' || x.dataset === 'income') && s.groupBy === 'item')
+      return 'Transactions have no item; group by merchant instead.';
     if (x.dataset === 'budget' && x.measure === 'count')
       return 'The budget is a rate; it can only be summed.';
     if (x.dataset === 'budget' && s.groupBy === 'merchant')
-      return 'Budget lines have no merchant; group by category or group instead.';
-    const f = x.filter;
+      return 'Budget lines have no merchant; group by item, category or group instead.';
     if (f?.from && f.to && f.from > f.to) return `The range ${f.from} to ${f.to} is backwards.`;
   }
   return null;

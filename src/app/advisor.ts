@@ -433,6 +433,12 @@ export class AdvisorSession {
         });
         const aiId = activityId('ai');
         let first = true;
+        // While the provider thinks, the wait counts up, so a slow reply reads as alive.
+        let waiting: ReturnType<typeof setInterval> | undefined;
+        const waited = () => {
+          clearInterval(waiting);
+          waiting = undefined;
+        };
         const reply = await sendStream({
           provider: ap.provider,
           auth: ap.provider,
@@ -442,17 +448,22 @@ export class AdvisorSession {
           note: 'Tool results contain rounded totals from your plan and simulations, never transactions, account details or exact balances.',
           request,
           ...(opts.signal ? { signal: opts.signal } : {}),
-          onSent: () =>
-            say?.({
-              kind: 'crux',
-              id: sendId,
-              state: 'running',
-              text: `Sent to ${label} (${size}, amounts rounded). Waiting for its reply…`,
-            }),
+          onSent: () => {
+            const wait = (s: string) =>
+              say?.({
+                kind: 'crux',
+                id: sendId,
+                state: 'running',
+                text: `Sent to ${label} (${size}, amounts rounded). Waiting for its reply…${s}`,
+              });
+            wait('');
+            waiting = setInterval(() => wait(` ${elapsed(t0)}`), 1000);
+          },
           onDelta: (d) => {
             if (d.kind === 'tool') return;
             if (first) {
               first = false;
+              waited();
               say?.({
                 kind: 'crux',
                 id: sendId,
@@ -468,7 +479,7 @@ export class AdvisorSession {
               ...(d.kind === 'note' ? { note: true } : {}),
             });
           },
-        });
+        }).finally(waited);
         if (first)
           say?.({
             kind: 'crux',

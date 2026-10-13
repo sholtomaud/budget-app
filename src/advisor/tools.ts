@@ -164,7 +164,7 @@ ${DATASETS.map((d) => `- ${d}: ${CATALOGUE[d]}`).join('\n')}
 
 ${CATALOGUE_NOTE}
 
-kind: line (needs groupBy month, quarter or year), bar, stacked-bar, or table. Up to 6 series, all grouped the same way. filter.categories takes category ids ('food.groceries'), group ids ('food'), or plain names ('groceries'). filter.text looks for words in the merchant or description. from/to are 'YYYY-MM'; lastMonths counts back from the latest complete month. Keep the title under 80 characters and labels under 40.`,
+kind: line (needs groupBy month, quarter or year), bar, stacked-bar, or table. Up to 6 series, all grouped the same way. For "when are my big purchases" or "what is coming up", use big-purchases grouped by month, quarter or year (a bar chart reads best); for the future against today's spending, put big-purchases and spending on the same time axis. filter.categories takes category ids ('food.groceries'), group ids ('food'), or plain names ('groceries'). filter.text looks for words in the merchant, description or item. from/to are 'YYYY-MM'; lastMonths counts back from the latest complete month; nextMonths counts forward from this month (big purchases only). Keep the title under 80 characters and labels under 40.`,
     input_schema: CHART_TOOL_SCHEMA,
   },
 ];
@@ -180,7 +180,7 @@ Rules:
 - Speak plainly and briefly: a few short paragraphs at most. Use frequencies ("in about 9 in 10 simulated futures"), not jargon (no "pSuccess", "P90" without saying what it means).
 - Explain what a result means for the person, why (check_plan first, then explain_shortfall), and what they could change (find_plan_changes).
 - When a plan looks surprisingly bad, call check_plan before anything else: a setting is often the cause, not the person's finances.
-- To show something over time or by category, call make_chart; the chart appears in the chat. Describe it from the facts it returns.
+- To show something over time or by category, call make_chart; the chart appears in the chat. Describe it from the facts it returns. When the user asks for a chart, always try make_chart before saying a chart can't be drawn: combine datasets, groupings and filters to get as close as you can. If it returns an error, fix the spec and try again; only then say what can't be charted and what you drew instead.
 - Changes go through the propose_ tools as cards the user applies. Never say a change was made; say it is ready for them to apply.
 - Don't add a "not financial advice" note: the app shows it once.
 - For "when is the earliest I can stop work?" and the like, call find_earliest_freedom once and present its plans. Don't search for a date yourself with propose_plan and run_plan.

@@ -19,7 +19,7 @@
     },
     "groupBy": {
       "type": "string",
-      "enum": ["month", "quarter", "year", "category", "group", "merchant"]
+      "enum": ["month", "quarter", "year", "category", "group", "merchant", "item"]
     },
     "series": {
       "type": "array",
@@ -36,7 +36,7 @@
           },
           "dataset": {
             "type": "string",
-            "enum": ["spending", "income", "budget"]
+            "enum": ["spending", "income", "budget", "big-purchases"]
           },
           "measure": {
             "type": "string",
@@ -70,6 +70,11 @@
                 "type": "integer",
                 "minimum": 1,
                 "maximum": 120
+              },
+              "nextMonths": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 600
               }
             }
           }
