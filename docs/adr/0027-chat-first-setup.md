@@ -1,6 +1,6 @@
 # ADR 0027 — Chat-first setup: guided steps, AI for what the steps don't recognise
 
-- Status: proposed (milestones M10 and M11)
+- Status: accepted for setup (M10, first part built); goals from words and spending insights proposed (M11)
 - Date: 2026-10-13
 - SPEC: §12 (screens), §13.3 (advisor), FR-SETUP-001…006, FR-GOAL-010…012, NFR-HON-002,
   NFR-PRIV-003, NFR-MISSION-001
@@ -89,6 +89,25 @@ Rules:
 - **No named stores or products** until there is a price source and the offers rules of §22 apply.
   Suggestions describe what would happen, not what the person should do: information, not
   personal advice (open question 13).
+
+## Built so far (M10, first part)
+
+- **The flows:** your data, your budget and your plan (`src/assistant/flows/setup.ts`), run by
+  `src/app/setup-runner.ts`. "Your goals" waits for goals from words (M11); until then, the plan
+  step runs the Freedom screen's settings.
+- **The chat screen:** `/chat`, offered from Start and the menu. The top bar, the getting-started
+  bar and the chat panel step aside there.
+- **Shared conversation:** the chat panel and the chat screen use one `Conversation`
+  (`src/app/conversation.ts`) for messages, the activity log, cards and buttons.
+- **Data paths:** CDR files and the sample households import as today. Budget CSVs are previewed
+  with the wizard's detection; when a sheet isn't recognised and a provider is on, the AI mapping
+  assistant (FR-ING-017) proposes a mapping. Bank and accounting CSV exports say they aren't
+  readable yet and offer another way, until the adapters (later in M10).
+- **What is saved:** the step setup is waiting at, in IndexedDB with the household (`setup`),
+  removed by delete-all. Steps that hold files in memory resume at their section's question.
+- **AI reading:** one structured-output call (purpose `setup`) with the step's question, its
+  options and the message; consent and the call log as for every AI call. An answer of "other"
+  goes to the advisor as an ordinary question.
 
 ## Consequences
 

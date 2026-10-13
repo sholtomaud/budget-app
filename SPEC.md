@@ -5,7 +5,7 @@
 
 | | |
 |---|---|
-| Status | Draft 17: M0–M9, the chat panel and plan guidance built (ADRs 0001–0013, 0019–0026); M10–M15 planned, with proposed directions in ADRs 0014, 0016–0018, 0027–0029 |
+| Status | Draft 17: M0–M9, the chat panel, plan guidance and setup by chatting (first part of M10) built (ADRs 0001–0013, 0019–0027); M10–M15 planned, with proposed directions in ADRs 0014, 0016–0018, 0027–0029 |
 | Date | 2026-10-13 |
 | Kernel | [GSSK](https://github.com/energese-project/GSSK-Giannantoni), consumed as a pinned WebAssembly artefact |
 | Runtime | Browser only. Static site, no backend |

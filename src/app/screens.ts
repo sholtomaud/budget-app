@@ -9,6 +9,8 @@ export interface Screen extends RouteDef {
 
 export const screens: Screen[] = [
   { path: '/', nav: 'Start', title: 'Start', component: 'start-page' },
+  // The chat screen sits beside Start until it proves itself (ADR 0027).
+  { path: '/chat', nav: 'Set up', title: 'Set up Crux', component: 'chat-page' },
   { path: '/import', nav: 'Import', title: 'Import', component: 'import-page' },
   { path: '/ledger', nav: 'Transactions', title: 'Transactions', component: 'ledger-page' },
   { path: '/budget', nav: 'Budget', title: 'Budget', component: 'budget-page' },

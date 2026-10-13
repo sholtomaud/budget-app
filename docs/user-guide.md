@@ -1,10 +1,30 @@
 # Using Crux
 
 ::: info Status
-M0–M9 are done, with the chat panel: everything from import to the freedom simulation, scenarios,
+M0–M9 are done, with the chat panel and setup by chatting (the first part of M10): everything from import to the freedom simulation, scenarios,
 encryption and export, the checked spending model, and optional AI help
 ([SPEC §19](./spec.md#_19-milestones)).
 :::
+
+## Set up by chatting
+
+**Set up by chatting** on Start (or **Set up** in the menu) opens a full-screen chat that sets Crux
+up with you, one question at a time:
+
+1. **Your data.** A bank export (CDR JSON or ZIP), a budget spreadsheet, several CSV files, or a
+   sample household. Bank and accounting CSV exports (MYOB, Xero) aren't readable yet; it says so
+   and offers another way.
+2. **Your budget.** Choose the CSV files of your spreadsheet. It shows what it found in each before
+   anything is saved; **Check them in the wizard** opens the Budget screen instead.
+3. **Your plan.** It runs your plan in 500 simulated futures and explains the result.
+
+Every step has buttons, so you never have to type. You can also type an answer ("I have a MYOB
+export"); Crux recognises common answers on this device. With an AI provider turned on, it asks the
+AI which option you meant, with your consent, sending only that question, its options and your
+message. Questions ("What does P90 mean?") are answered as usual, and setup carries on.
+
+Setup remembers where you got to; **Start setup again** in the menu goes back to the beginning. On
+a phone the menu is behind the **Menu** button. Start stays the first screen for now.
 
 ## Ask Crux (the chat panel)
 
@@ -302,6 +322,7 @@ your holdings on the Freedom screen. The file stays on this device.
 
 | Screen    | What it is for                                                                   | Milestone |
 | --------- | -------------------------------------------------------------------------------- | --------- |
+| Set up    | A chat that sets Crux up with you: your data, your budget, your plan             | M10       |
 | Import    | CDR (Open Banking) JSON/ZIP and budget CSV files, with a mapping wizard and undo | M1, M3    |
 | Ledger    | Transactions, categories, review queue, CAPEX proposals                          | M2        |
 | Budget    | Budget lines by tier, actual vs budget, run rate                                 | M3        |

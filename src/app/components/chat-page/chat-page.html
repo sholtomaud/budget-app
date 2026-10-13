@@ -1,0 +1,44 @@
+<div class="layout">
+  <nav class="side" id="chat-side" aria-label="Menu">
+    <a class="brand" href="/" data-route="/">Crux</a>
+    <h2>Setup</h2>
+    <ol class="steps">
+      <li data-section="data">Your data</li>
+      <li data-section="budget">Your budget</li>
+      <li data-section="plan">Your plan</li>
+    </ol>
+    <button type="button" class="secondary small restart">Start setup again</button>
+    <h2>Screens</h2>
+    <ul class="links"></ul>
+    <button type="button" class="secondary small theme" aria-label="Toggle colour theme"></button>
+  </nav>
+  <section class="main" aria-label="Chat">
+    <header>
+      <button
+        type="button"
+        class="secondary small menu"
+        aria-expanded="false"
+        aria-controls="chat-side"
+      >
+        Menu
+      </button>
+      <h1>Set up Crux</h1>
+      <span class="provider muted small"></span>
+    </header>
+    <p class="note">
+      Works from your own data on this device. If you turn on an AI provider, answers that use it
+      say so. Not financial advice.
+    </p>
+    <ol class="log" aria-live="polite"></ol>
+    <div class="suggestions"></div>
+    <form class="ask" aria-label="Message Crux">
+      <label for="setup-q" class="visually-hidden">Your message</label>
+      <textarea id="setup-q" name="q" rows="2" placeholder="Answer, or ask anything…"></textarea>
+      <p class="actions">
+        <button type="submit" class="send">Send</button>
+        <button type="button" class="secondary stop" hidden>Stop</button>
+        <span class="status muted small" role="status" aria-live="polite"></span>
+      </p>
+    </form>
+  </section>
+</div>

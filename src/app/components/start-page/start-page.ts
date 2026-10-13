@@ -6,15 +6,9 @@ import { guideStore, nextStep, restartGuide } from '../../guide.ts';
 import { publicPath } from '../../core/routes.ts';
 import { sim, synth } from '../../workers.ts';
 import type { PersonaSummary } from '../../../workers/synth.worker.ts';
+import { PERSONA_LABEL } from '../../personas.ts';
 import template from './start-page.html?raw';
 import style from './start-page.css?raw';
-
-/** Friendly names for the synthetic households (the persona file names stay as ids). */
-const PERSONA_LABEL: Record<string, string> = {
-  default: 'Renting, one salary',
-  'frugal-renter': 'Frugal renter',
-  'high-capex-crypto': 'High earner, big purchases, crypto',
-};
 
 export class StartPage extends BaseComponent {
   private unsubscribe: (() => void) | null = null;
