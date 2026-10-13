@@ -12,6 +12,17 @@ import type { Category } from '../classify/categories.ts';
 import type { MemoryEntry } from '../classify/memory.ts';
 import type { Rule } from '../classify/rules.ts';
 import { IngestService, type ImportStore, type InputFile } from '../ingest/service.ts';
+import {
+  emptyMapperState,
+  learn,
+  personalModel,
+  suggest,
+  type MapperState,
+  type Suggestion,
+} from '../ingest/csv/mapper.ts';
+import type { Model } from '../ingest/csv/model.ts';
+import { previewCsv, type CsvPreview } from '../ingest/csv/preview.ts';
+import { validateSpec, type BankCsvSpec } from '../ingest/csv/read.ts';
 import type { LedgerView } from '../ingest/view.ts';
 import { txnKey } from '../ingest/ids.ts';
 import { merchantKey } from '../classify/normalise.ts';
@@ -47,6 +58,27 @@ export class MemoryBudgetStore implements BudgetStore {
   }
 }
 
+/** The CSV mapper's memory: confirmed layouts and corrections (ADR 0030). */
+export interface MapperStore {
+  load(): Promise<MapperState | null>;
+  save(s: MapperState): Promise<void>;
+}
+
+export class MemoryMapperStore implements MapperStore {
+  private s: MapperState | null = null;
+  async load() {
+    return this.s ? structuredClone(this.s) : null;
+  }
+  async save(s: MapperState) {
+    this.s = structuredClone(s);
+  }
+}
+
+export interface CsvProposal {
+  suggestion: Suggestion;
+  preview: CsvPreview;
+}
+
 export interface WorkbookOptions {
   mapping?: Mapping;
   categoryMap?: Record<string, string>;
@@ -56,17 +88,22 @@ export class DataService {
   readonly ingest: IngestService;
   readonly classifier: Classifier;
   private readonly budgetStore: BudgetStore;
+  private readonly mapperStore: MapperStore;
   budget: BudgetState = emptyBudget();
+  mapper: MapperState = emptyMapperState();
+  private model: { key: string; model: Model } | null = null;
 
   constructor(
     imports: ImportStore,
     classifyState: StateStore,
     budgetStore: BudgetStore = new MemoryBudgetStore(),
-    timezone?: string
+    timezone?: string,
+    mapperStore: MapperStore = new MemoryMapperStore()
   ) {
     this.ingest = new IngestService(imports, timezone);
     this.classifier = new Classifier(classifyState);
     this.budgetStore = budgetStore;
+    this.mapperStore = mapperStore;
   }
 
   private async saveBudget() {
@@ -82,17 +119,53 @@ export class DataService {
   }
 
   async load(): Promise<void> {
-    const [, , budget] = await Promise.all([
+    const [, , budget, mapper] = await Promise.all([
       this.ingest.load(),
       this.classifier.load(),
       this.budgetStore.load(),
+      this.mapperStore.load(),
     ]);
     if (budget) this.budget = { ...emptyBudget(), ...budget };
+    if (mapper) this.mapper = { ...emptyMapperState(), ...mapper };
     this.reclassify();
   }
 
   async importFiles(files: InputFile[], label?: string) {
     const rec = await this.ingest.importFiles(files, label ? { label } : {});
+    this.reclassify();
+    return rec;
+  }
+
+  // ---- Bank and accounting CSVs (ADR 0030) ----
+
+  /** The mapper retrained with this household's corrections, cached until they change. */
+  private mapperModel(): Model {
+    const c = this.mapper.corrections;
+    const key = `${c.length}:${c.at(-1)?.at ?? ''}`;
+    if (this.model?.key !== key) this.model = { key, model: personalModel(c) };
+    return this.model.model;
+  }
+
+  /** Propose a mapping for a transaction CSV and preview it. Nothing is saved. */
+  suggestCsv(file: string, text: string): CsvProposal {
+    const suggestion = suggest(file, text, this.mapper, this.mapperModel());
+    return { suggestion, preview: previewCsv(text, suggestion.spec, this.ingest.timezone) };
+  }
+
+  previewCsv(text: string, spec: BankCsvSpec): CsvPreview {
+    return previewCsv(text, spec, this.ingest.timezone);
+  }
+
+  /** Import a CSV with the mapping the user confirmed, and learn from it. */
+  async importCsv(input: InputFile, spec: BankCsvSpec, label?: string) {
+    const invalid = validateSpec(spec);
+    if (invalid) throw new Error(invalid);
+    const rec = await this.ingest.importCsv(input, spec, label ? { label } : {});
+    if (rec.files[0]?.status === 'imported') {
+      const text = new TextDecoder().decode(input.bytes);
+      this.mapper = learn(this.mapper, text, spec, new Date(rec.at), this.mapperModel());
+      await this.mapperStore.save(this.mapper);
+    }
     this.reclassify();
     return rec;
   }

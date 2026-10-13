@@ -34,3 +34,4 @@ Every deviation from the [specification](../spec.md) gets one.
 | [0027](./0027-chat-first-setup.md)                         | Chat-first setup: guided steps as state machines, AI for unrecognised text, goals from words   | Accepted (part)     |
 | [0028](./0028-charts-in-chat.md)                           | Charts in the chat: specs the app fills with its own data, AI-designed charts, saved charts    | Accepted            |
 | [0029](./0029-one-click-plans-and-compute.md)              | One-click plans: three different plans (NSGA-II), screen-then-confirm runs, WebGPU screening   | Proposed            |
+| [0030](./0030-bank-csv-adapters.md)                        | Bank and accounting CSVs: presets, a learned column mapper that learns from corrections        | Accepted            |

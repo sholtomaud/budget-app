@@ -15,7 +15,7 @@ export interface Account {
   maskedNumber?: string;
   role: AccountRole;
   currency: string;
-  source: { kind: 'cdr-file' | 'synthetic' | 'manual'; fileHash?: string };
+  source: { kind: 'cdr-file' | 'csv-file' | 'synthetic' | 'manual'; fileHash?: string };
   provenance: Provenance;
 }
 

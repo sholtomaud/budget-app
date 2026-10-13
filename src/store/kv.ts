@@ -1,6 +1,7 @@
 import type { ClassifyState, StateStore } from '../classify/service.ts';
 import type { BudgetState } from '../budget/state.ts';
-import type { BudgetStore } from '../data/service.ts';
+import type { BudgetStore, MapperStore } from '../data/service.ts';
+import type { MapperState } from '../ingest/csv/mapper.ts';
 import { done, openDb, request } from './idb.ts';
 import { kvAad, vault } from './vault.ts';
 
@@ -49,6 +50,16 @@ export class IdbBudgetStore implements BudgetStore {
     return this.v.get();
   }
   save(s: BudgetState) {
+    return this.v.set(s);
+  }
+}
+
+export class IdbMapperStore implements MapperStore {
+  private readonly v = new IdbValue<MapperState>('csv-mapper');
+  load() {
+    return this.v.get();
+  }
+  save(s: MapperState) {
     return this.v.set(s);
   }
 }

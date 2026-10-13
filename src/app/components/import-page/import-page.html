@@ -1,8 +1,9 @@
 <section class="screen">
   <h1>Import</h1>
   <p class="lede">
-    Load Consumer Data Right (Open Banking) exports: the account list, balances, and transaction
-    pages, as JSON files or a ZIP of them. Files are read on this device and never uploaded.
+    Load Consumer Data Right (Open Banking) exports, as JSON files or a ZIP of them, or a bank or
+    accounting CSV (CommBank, ANZ, Westpac, NAB, ING, Xero, MYOB or any other layout). Files are
+    read on this device and never uploaded.
   </p>
 
   <div class="drop" tabindex="0" aria-describedby="drop-help">
@@ -13,7 +14,7 @@
           type="file"
           class="pick-files"
           multiple
-          accept=".json,.zip,application/json,application/zip"
+          accept=".json,.zip,.csv,application/json,application/zip,text/csv"
       /></label>
       <label class="button secondary"
         >Choose a folder<input type="file" class="pick-folder" webkitdirectory multiple
@@ -22,6 +23,41 @@
   </div>
   <p class="status" role="status" aria-live="polite"></p>
   <p class="error" role="alert" hidden></p>
+
+  <article class="card csv-map" hidden aria-labelledby="csv-title">
+    <h2 id="csv-title">Check the columns of <span class="csv-name"></span></h2>
+    <p class="csv-source"></p>
+    <div class="csv-options">
+      <label>Account <input type="text" class="csv-account" maxlength="80" /></label>
+      <label
+        >Dates are
+        <select class="csv-dates">
+          <option value="dmy">day/month/year</option>
+          <option value="mdy">month/day/year</option>
+          <option value="ymd">year-month-day</option>
+        </select></label
+      >
+      <label class="check"
+        ><input type="checkbox" class="csv-invert" /> Spending shows as positive (flip the
+        signs)</label
+      >
+    </div>
+    <div class="scroll">
+      <table class="csv-table">
+        <thead>
+          <tr class="csv-fields"></tr>
+          <tr class="csv-headers"></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <p class="csv-summary" role="status" aria-live="polite"></p>
+    <ul class="csv-issues"></ul>
+    <p class="actions">
+      <button type="button" class="csv-import">Import</button>
+      <button type="button" class="secondary csv-skip">Skip this file</button>
+    </p>
+  </article>
 
   <article class="card last" hidden>
     <h2>Last import</h2>

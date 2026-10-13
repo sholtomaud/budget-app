@@ -11,9 +11,10 @@ encryption and export, the checked spending model, and optional AI help
 **Set up by chatting** on Start (or **Set up** in the menu) opens a full-screen chat that sets Crux
 up with you, one question at a time:
 
-1. **Your data.** A bank export (CDR JSON or ZIP), a budget spreadsheet, several CSV files, or a
-   sample household. Bank and accounting CSV exports (MYOB, Xero) aren't readable yet; it says so
-   and offers another way.
+1. **Your data.** A bank export (CDR JSON or ZIP), a bank CSV, an accounting export (MYOB, Xero),
+   a budget spreadsheet, several CSV files, or a sample household. For CSVs it works out the
+   columns and says what it found before anything is saved; **Check the columns first** sends you
+   to the Import screen's column mapper.
 2. **Your budget.** Choose the CSV files of your spreadsheet. It shows what it found in each before
    anything is saved; **Check them in the wizard** opens the Budget screen instead.
 3. **Your plan.** It runs your plan in 500 simulated futures and explains the result.
@@ -142,6 +143,29 @@ accepts Consumer Data Right (Open Banking) responses as JSON, or a ZIP of them:
 - Balance files carry no time in the standard. Add a top-level `"x-as-at": "2025-06-30T23:59:59+10:00"`
   for exact checks; otherwise the file's date is used and labelled **assumed**.
 - **Undo** in the import history removes everything that import added.
+
+### Bank and accounting CSVs
+
+Choose a CSV your bank or accounting software exported, and the Import screen shows its first rows
+with what each column holds: the date, the amount (or money in and money out), the description,
+the balance, and so on. Nothing is saved until you press **Import**.
+
+- **Where the suggestions come from.** Under each column it says **preset** (a layout it knows:
+  CommBank, ANZ, Westpac, NAB, ING, a Xero bank statement or Account Transactions report, a MYOB
+  bank register), **suggested** with a confidence (the column mapper, which reads the header and
+  the values), or **remembered** (a layout you imported before). Low-confidence suggestions are
+  marked in red. Change any column with its menu.
+- **It learns from you.** When you change a column and import, the mapper remembers the layout and
+  learns from the correction, so files laid out like it are mapped your way next time. What it
+  learns stays on this device, with the rest of your data.
+- **Account.** Files without an account column go into the account you name; files with one
+  (Westpac, NAB, MYOB) make one account per number.
+- **Dates and signs.** Dates are read day first unless the file can only be month first; change it
+  if needed. If spending shows as positive (some credit-card exports), tick **flip the signs**.
+- **Balances.** When the file has a balance column that agrees with the amounts, the account gets
+  an opening and closing balance, so reconciliation can check it.
+- Rows without a readable date or amount are skipped and listed. Importing the same file again
+  does nothing, and overlapping exports don't double up.
 
 ## Ledger
 

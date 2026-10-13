@@ -17,7 +17,13 @@ export type DynamicChoices = 'personas';
 
 /** What the runner does on entering a state; its outcome picks the next state. */
 export type EffectId =
-  'import-transactions' | 'load-sample' | 'preview-budget' | 'commit-budget' | 'plan-chance';
+  | 'import-transactions'
+  | 'preview-bank-csv'
+  | 'commit-bank-csv'
+  | 'load-sample'
+  | 'preview-budget'
+  | 'commit-budget'
+  | 'plan-chance';
 
 export type Section = 'data' | 'budget' | 'plan';
 

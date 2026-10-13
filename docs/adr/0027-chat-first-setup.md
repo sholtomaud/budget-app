@@ -101,8 +101,9 @@ Rules:
   (`src/app/conversation.ts`) for messages, the activity log, cards and buttons.
 - **Data paths:** CDR files and the sample households import as today. Budget CSVs are previewed
   with the wizard's detection; when a sheet isn't recognised and a provider is on, the AI mapping
-  assistant (FR-ING-017) proposes a mapping. Bank and accounting CSV exports say they aren't
-  readable yet and offer another way, until the adapters (later in M10).
+  assistant (FR-ING-017) proposes a mapping. Bank and accounting CSV exports go through the column
+  mapper (ADR 0030): the chat says what each file holds and imports it, or sends you to the Import
+  screen to check the columns.
 - **What is saved:** the step setup is waiting at, in IndexedDB with the household (`setup`),
   removed by delete-all. Steps that hold files in memory resume at their section's question.
 - **AI reading:** one structured-output call (purpose `setup`) with the step's question, its

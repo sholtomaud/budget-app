@@ -5,7 +5,7 @@
 
 | | |
 |---|---|
-| Status | Draft 17: M0–M9, the chat panel, plan guidance and setup by chatting and charts in the chat (first two parts of M10) built (ADRs 0001–0013, 0019–0028); M10–M15 planned, with proposed directions in ADRs 0014, 0016–0018, 0027–0029 |
+| Status | Draft 18: M0–M9, the chat panel, plan guidance, and M10's setup by chatting, charts in the chat and bank and accounting CSV import built (ADRs 0001–0013, 0019–0028, 0030); M10–M15 planned, with proposed directions in ADRs 0014, 0016–0018, 0027–0029 |
 | Date | 2026-10-13 |
 | Kernel | [GSSK](https://github.com/energese-project/GSSK-Giannantoni), consumed as a pinned WebAssembly artefact |
 | Runtime | Browser only. Static site, no backend |
@@ -315,10 +315,17 @@ their spreadsheet program. The app does not read `.xlsx` (ADR 0003). Import goes
 | FR-ING-017 | **LLM mapping assistant (M8, optional).** For layouts the first two tiers leave uncertain, an LLM proposes a mapping spec from the header rows and a few sampled rows, redacted with amounts bucketed (FR-API-003). It uses structured outputs: the Claude API's `output_config.format` with the JSON Schema or a `strict: true` tool, or `json_schema` response format on OpenAI-compatible providers. The response is re-validated locally. Consent and logging follow §13.1. |
 | FR-ING-018 | The wizard shows who suggested each column (rules, model or LLM) and their confidence. Every suggestion is editable. |
 
-### 6.3 Later formats (not v1)
+### 6.3 Bank and accounting CSVs (M10); later formats
 
-Bank transaction CSV adapters (column-mapping presets per bank), OFX/QFX, QIF. Each adapter converts to the canonical
-`Txn` and is held to the same FR-ING-002…008.
+Transaction CSVs from banks and accounting packages are mapped column by column and converted to
+the canonical `Txn`, held to the same FR-ING-002…008 (ADR 0030). OFX/QFX and QIF remain later formats.
+
+| ID | Requirement |
+|---|---|
+| FR-ING-019 | A transaction CSV is imported through a *mapping spec* (`schemas/bank-csv-mapping.schema.json`): the field of each column (date, amount or money in and out, description, payee, balance, reference, account, category, type, unused), header row, date order, sign, account and currency. Deterministic code applies it; the user confirms it with a preview (counts, date range, money in and out, rows that can't be read). |
+| FR-ING-020 | Presets recognise CommBank, ANZ, Westpac, NAB and ING exports, and Xero (bank statement, Account Transactions) and MYOB (bank register) exports. Other layouts get the learned mapper's suggestion (FR-ING-016). Each column shows who suggested it and how confident it is (FR-ING-018). |
+| FR-ING-021 | The mapper learns from the user's corrections: the confirmed layout is remembered, and corrected columns retrain the model. Kept on the device with the household; exported, encrypted and deleted with it. |
+| FR-ING-022 | CSV rows get a stable id from account, date, amount, description and occurrence, so re-imports and overlapping exports don't duplicate. A balance column that agrees with the amounts gives opening and closing checkpoints for reconciliation (FR-REC-001). |
 
 ---
 
