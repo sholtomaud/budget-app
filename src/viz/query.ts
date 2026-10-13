@@ -3,11 +3,14 @@
  * ledger and the budget in, a table of rounded-to-the-cent dollars out. Pure:
  * the same spec over the same data gives the same table.
  */
-import type { BudgetLine } from '../budget/model.ts';
+import { inTier } from '../budget/capex.ts';
+import { replacementSummary } from '../budget/lifetime.ts';
+import type { BudgetLine, Tier } from '../budget/model.ts';
 import { weeklyRate } from '../budget/model.ts';
 import { perWeek, WEEKS_IN, type PeriodTable } from '../budget/periods.ts';
 import { categoryName, type Category } from '../classify/categories.ts';
-import type { Txn } from '../domain/types.ts';
+import type { Asset, Txn } from '../domain/types.ts';
+import { addMonths, daysBetween } from '../lib/dates.ts';
 import { coveredMonths, spend } from '../forecast/series.ts';
 import { isTime, type ChartSpec, type GroupBy, type SeriesSpec } from './spec.ts';
 
@@ -18,15 +21,32 @@ export interface QueryContext {
   periods: PeriodTable;
   /** The budget tier to use: the plan's. */
   tier: string;
+  /** The CAPEX register, for big purchases. */
+  assets?: readonly Asset[];
+  tiers?: readonly Tier[];
+  /** Today, 'YYYY-MM-DD': where big purchases start. Defaults to the clock. */
+  today?: string;
+  /** How far ahead big purchases go (the Big purchases screen's horizon). */
+  horizonYears?: number;
 }
 
-export type Provenance = 'actual' | 'budgeted';
+export type Provenance = 'actual' | 'budgeted' | 'forecast';
+
+/** One big purchase falling due: a point on the timeline (dollars). */
+export interface PlannedPurchase {
+  month: string;
+  item: string;
+  categoryId: string;
+  value: number;
+}
 
 export interface TableSeries {
   label: string;
   values: number[];
   unit: 'dollars' | 'count';
   provenance: Provenance;
+  /** Big purchases: what falls due when, in time order. */
+  purchases?: PlannedPurchase[];
 }
 
 export interface ChartTable {
@@ -77,7 +97,65 @@ function seriesMonths(s: SeriesSpec, all: readonly string[]): string[] {
   const f = s.filter;
   if (f?.from || f?.to) return all.filter((m) => (!f.from || m >= f.from) && (!f.to || m <= f.to));
   if (f?.lastMonths) return all.slice(-f.lastMonths);
+  if (f?.nextMonths) return all.slice(0, f.nextMonths);
   return [...all];
+}
+
+const DEFAULT_HORIZON_YEARS = 10;
+const todayOf = (ctx: QueryContext) => ctx.today ?? new Date().toISOString().slice(0, 10);
+
+/** From this month to the end of the horizon, or to the series' own `to` when that is later. */
+function futureMonths(ctx: QueryContext, s: SeriesSpec): string[] {
+  const start = `${todayOf(ctx).slice(0, 7)}-01`;
+  let n = Math.round((ctx.horizonYears ?? DEFAULT_HORIZON_YEARS) * 12);
+  const to = s.filter?.to;
+  if (to) n = Math.max(n, monthsBetween(start.slice(0, 7), to) + 1);
+  return Array.from({ length: Math.max(0, n) }, (_, i) => addMonths(start, i).slice(0, 7));
+}
+
+const monthsBetween = (a: string, b: string) =>
+  (Number(b.slice(0, 4)) - Number(a.slice(0, 4))) * 12 +
+  Number(b.slice(5, 7)) -
+  Number(a.slice(5, 7));
+
+/**
+ * When each big purchase falls due, from this month to `months` ahead
+ * (FR-CAP-001, FR-CAP-004). Deterministic: an owned item that is replaced
+ * falls due at its median replacement date and again every average life
+ * after it, its cost grown by its real growth rate; a wish-list or planned
+ * item at its buy-by date, or this month without one (or when it is overdue).
+ * Dollars, real.
+ */
+export function plannedPurchases(ctx: QueryContext, months: number): PlannedPurchase[] {
+  const today = todayOf(ctx);
+  const start = `${today.slice(0, 7)}-01`;
+  const out: PlannedPurchase[] = [];
+  const at = (i: number) => addMonths(start, i).slice(0, 7);
+  for (const a of ctx.assets ?? []) {
+    if (a.status === 'retired' || a.decision?.action === 'drop') continue;
+    if (ctx.tiers?.length && !inTier(a, ctx.tier, ctx.tiers)) continue;
+    const cost = Number((a.forecastCost ?? a.cost).minor);
+    const growth = a.replacementCostGrowth ?? 0;
+    const push = (i: number, years: number) =>
+      out.push({
+        month: at(i),
+        item: a.name,
+        categoryId: a.categoryId,
+        value: Math.round(cost * Math.pow(1 + growth, years)) / 100,
+      });
+    if (a.status === 'owned') {
+      if (!a.replace || !a.purchasedAt) continue;
+      const age = Math.max(0, daysBetween(a.purchasedAt, today) / 365.25);
+      const life = Math.max(0.1, a.life.meanYears);
+      let t = replacementSummary(life, a.life.shape ?? 2.5, age).p50;
+      for (; Math.floor(t * 12) < months; t += life) push(Math.floor(t * 12), t);
+    } else if (a.decision?.action !== 'defer') {
+      const by = a.decision?.by;
+      const i = by ? Math.max(0, monthsBetween(start.slice(0, 7), by.slice(0, 7))) : 0;
+      if (i < months) push(i, 0);
+    }
+  }
+  return out.sort((x, y) => (x.month < y.month ? -1 : x.month > y.month ? 1 : y.value - x.value));
 }
 
 interface Row {
@@ -92,13 +170,33 @@ function rows(s: SeriesSpec, g: GroupBy, months: readonly string[], ctx: QueryCo
   const keep = new Set(months);
   const count = s.measure === 'count';
   const f = s.filter;
+  if (s.dataset === 'big-purchases') {
+    for (const p of purchasesIn(s, months, ctx)) {
+      const key = isTime(g)
+        ? bucket(p.month, g)
+        : g === 'group'
+          ? groupOf(p.categoryId)
+          : g === 'category'
+            ? p.categoryId
+            : p.item;
+      out.push({ month: p.month, key, value: count ? 1 : Math.round(p.value * 100) });
+    }
+    return out;
+  }
   if (s.dataset === 'budget') {
     const per = (code: string) => perWeek(code, ctx.periods);
     for (const l of ctx.lines) {
       if (!inCategories(l.categoryId, f?.categories) || !textMatch(l.item, f?.text)) continue;
       const monthly = weeklyRate(l, ctx.tier, per) * WEEKS_IN.month;
       if (!monthly) continue;
-      const key = g === 'group' ? groupOf(l.categoryId) : g === 'category' ? l.categoryId : '';
+      const key =
+        g === 'group'
+          ? groupOf(l.categoryId)
+          : g === 'category'
+            ? l.categoryId
+            : g === 'item'
+              ? l.item.trim().slice(0, 40) || '(no name)'
+              : '';
       for (const m of months)
         out.push({ month: m, key: isTime(g) ? bucket(m, g) : key, value: monthly });
     }
@@ -130,8 +228,10 @@ function rows(s: SeriesSpec, g: GroupBy, months: readonly string[], ctx: QueryCo
 
 export function runChart(spec: ChartSpec, ctx: QueryContext): ChartResult {
   const all = coveredMonths(ctx.txns);
-  const hasBudget = spec.series.some((s) => s.dataset === 'budget');
-  if (!all.length && !hasBudget)
+  const noLedger = spec.series.every(
+    (s) => s.dataset === 'budget' || s.dataset === 'big-purchases'
+  );
+  if (!all.length && !noLedger)
     return { ok: false, error: 'There are no complete months of transactions to chart yet.' };
   // A budget on its own still needs months to sit in: the last 12, ending this month.
   const months = all.length ? all : lastYear();
@@ -140,7 +240,7 @@ export function runChart(spec: ChartSpec, ctx: QueryContext): ChartResult {
   // A series nothing matches would draw as a flat zero, which reads as "you spent nothing".
   const perSeries = spec.series
     .map((s) => {
-      const ms = seriesMonths(s, months);
+      const ms = seriesMonths(s, s.dataset === 'big-purchases' ? futureMonths(ctx, s) : months);
       return { s, ms, rows: rows(s, g, ms, ctx) };
     })
     .filter((p) => {
@@ -148,7 +248,9 @@ export function runChart(spec: ChartSpec, ctx: QueryContext): ChartResult {
       notes.push(
         p.s.dataset === 'budget'
           ? `${p.s.label}: there is no budget for this yet, so it isn't shown.`
-          : `${p.s.label}: nothing matches it, so it isn't shown.`
+          : p.s.dataset === 'big-purchases'
+            ? `${p.s.label}: no big purchase falls due in this range, so it isn't shown. Add them on the Big purchases screen.`
+            : `${p.s.label}: nothing matches it, so it isn't shown.`
       );
       return false;
     });
@@ -173,7 +275,7 @@ export function runChart(spec: ChartSpec, ctx: QueryContext): ChartResult {
   if (!x.length)
     return {
       ok: false,
-      error: 'Nothing matches that chart: no transactions or budget lines in it.',
+      error: 'Nothing matches that chart: no transactions, budget lines or big purchases in it.',
     };
   const index = new Map(x.map((k, i) => [k, i]));
   const otherAt = index.get(OTHER);
@@ -185,7 +287,8 @@ export function runChart(spec: ChartSpec, ctx: QueryContext): ChartResult {
       if (i !== undefined) values[i]! += r.value;
     }
     const count = s.measure === 'count';
-    const divide = isTime(g) ? 1 : Math.max(1, ms.length);
+    const planned = s.dataset === 'big-purchases';
+    const divide = isTime(g) || planned ? 1 : Math.max(1, ms.length);
     return {
       label: s.label,
       values: values.map((v) => {
@@ -193,7 +296,8 @@ export function runChart(spec: ChartSpec, ctx: QueryContext): ChartResult {
         return count ? Math.round(per * 10) / 10 : Math.round(per) / 100;
       }),
       unit: count ? 'count' : 'dollars',
-      provenance: s.dataset === 'budget' ? 'budgeted' : 'actual',
+      provenance: s.dataset === 'budget' ? 'budgeted' : planned ? 'forecast' : 'actual',
+      ...(planned ? { purchases: purchasesIn(s, ms, ctx) } : {}),
     };
   });
 
@@ -207,16 +311,28 @@ export function runChart(spec: ChartSpec, ctx: QueryContext): ChartResult {
           ? bucketLabel(k, g)
           : k === OTHER
             ? 'Everything else'
-            : g === 'merchant'
+            : g === 'merchant' || g === 'item'
               ? k
               : categoryName(k, ctx.categories)
       ),
       series,
       window: used.length ? { from: used[0]!, to: used[used.length - 1]! } : null,
-      perMonth: !isTime(g),
+      perMonth: !isTime(g) && perSeries.some((p) => p.s.dataset !== 'big-purchases'),
       notes,
     },
   };
+}
+
+/** The big purchases a series shows, in time order. */
+function purchasesIn(s: SeriesSpec, ms: readonly string[], ctx: QueryContext): PlannedPurchase[] {
+  const keep = new Set(ms);
+  const end = ms.length ? monthsBetween(todayOf(ctx).slice(0, 7), ms.at(-1)!) + 1 : 0;
+  return plannedPurchases(ctx, end).filter(
+    (p) =>
+      keep.has(p.month) &&
+      inCategories(p.categoryId, s.filter?.categories) &&
+      textMatch(p.item, s.filter?.text)
+  );
 }
 
 function lastYear(): string[] {

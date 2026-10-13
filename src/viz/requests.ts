@@ -31,9 +31,25 @@ const GROUP_WORDS: Record<ChartRequest['groupBy'], string> = {
   category: 'by category',
   group: 'by group',
   merchant: 'by merchant',
+  item: 'by item',
 };
 
 export function specFromRequest(r: ChartRequest, categories: readonly Category[]): ChartSpec {
+  if (r.dataset === 'big-purchases')
+    return {
+      kind: 'bar',
+      title: `Big purchases coming up ${GROUP_WORDS[r.groupBy]}`,
+      caption:
+        "When each big purchase falls due, in today's dollars, from the Big purchases screen.",
+      groupBy: r.groupBy,
+      series: [
+        {
+          label: 'Big purchases',
+          dataset: 'big-purchases',
+          ...(r.months ? { filter: { nextMonths: r.months } } : {}),
+        },
+      ],
+    };
   const cats = r.topic ? topicCategories(r.topic, categories) : [];
   const filter: SeriesFilter = {
     ...(cats.length ? { categories: cats } : r.topic ? { text: r.topic.slice(0, 40) } : {}),

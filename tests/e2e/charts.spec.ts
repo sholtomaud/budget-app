@@ -118,7 +118,14 @@ test('the AI designs a chart: it sends a spec, the app fills in the values', asy
           label: 'Cafes',
           dataset: 'spending',
           measure: null,
-          filter: { categories: ['cafes'], text: null, from: null, to: null, lastMonths: 6 },
+          filter: {
+            categories: ['cafes'],
+            text: null,
+            from: null,
+            to: null,
+            lastMonths: 6,
+            nextMonths: null,
+          },
         },
       ],
     };
@@ -190,4 +197,149 @@ test('the AI designs a chart: it sends a spec, the app fills in the values', asy
   )!.content;
   expect(toolResult).toContain('"valuesAre":"totals per period"');
   expect(toolResult).toMatch(/"total":"~\$/);
+});
+
+/** The sample household's big purchases (its CAPEX register), from the Budget screen. */
+async function importBigPurchases(page: Page) {
+  await page
+    .getByRole('navigation', { name: 'Screens' })
+    .getByRole('link', { name: 'Budget' })
+    .click();
+  await page
+    .locator('.pick-csv')
+    .setInputFiles('fixtures/syn-default-42/workbook/capex-register.csv');
+  const capex = page.locator('.wizard .sheet[data-file="capex-register.csv"]');
+  await expect(capex.getByLabel('Sheet type')).toHaveValue('capex');
+  await capex.getByRole('button', { name: /^Import/ }).click();
+  await expect(page.locator('.sheets li')).toHaveCount(1);
+}
+
+/** Settings → AI provider: Google Gemini with a test key. */
+async function useGemini(page: Page) {
+  const nav = page.getByRole('navigation', { name: 'Screens' });
+  await nav.getByRole('link', { name: 'Settings' }).click();
+  const form = page.getByRole('form', { name: 'AI provider' });
+  await form.getByLabel('Provider').selectOption('gemini');
+  await form.getByLabel('API key, for this session only').fill('gemini-test-key');
+  await form.getByRole('button', { name: 'Save' }).click();
+}
+
+async function send(page: Page, q: string) {
+  const panel = page.locator('chat-panel');
+  await panel.getByLabel('Your message').fill(q);
+  await panel.getByRole('button', { name: 'Send' }).click();
+  const dialog = page.getByRole('dialog');
+  await dialog.getByLabel("Don't ask again for this until the app reloads").check();
+  await dialog.getByRole('button', { name: 'Send', exact: true }).click();
+}
+
+test('when can I make my big purchases: a timeline drawn on the device, ahead of today', async ({
+  page,
+}) => {
+  test.setTimeout(180_000);
+  await loadSample(page);
+  await importBigPurchases(page);
+  const reply = await ask(
+    page,
+    'Can you generate a chart which shows when I can make my big purchases into the future?'
+  );
+  await expect(reply.locator('.who')).toHaveText('Crux · on this device');
+  const chart = reply.locator('chat-chart');
+  await expect(chart.locator('.title')).toHaveText('Big purchases coming up by year');
+  await expect(chart.locator('[data-prov="forecast"]')).toBeVisible();
+  await expect(chart.locator('svg rect').first()).toBeVisible();
+  const year = String(new Date().getFullYear());
+  await expect(chart.locator('svg')).toContainText(year);
+});
+
+test('the AI charts big purchases: it asks for the dataset, the app fills in when and what', async ({
+  page,
+}) => {
+  test.setTimeout(180_000);
+  const bodies: Record<string, unknown>[] = [];
+  const chunk = (d: unknown) => `data: ${JSON.stringify(d)}\n\n`;
+  await page.route('https://generativelanguage.googleapis.com/**', async (route: Route) => {
+    bodies.push(route.request().postDataJSON() as Record<string, unknown>);
+    const spec = {
+      kind: 'bar',
+      title: 'What is coming up',
+      caption: null,
+      groupBy: 'year',
+      series: [
+        {
+          label: 'Big purchases',
+          dataset: 'big-purchases',
+          measure: null,
+          filter: {
+            categories: null,
+            text: null,
+            from: null,
+            to: null,
+            lastMonths: null,
+            nextMonths: 60,
+          },
+        },
+      ],
+    };
+    const delta =
+      bodies.length === 1
+        ? {
+            tool_calls: [
+              {
+                index: 0,
+                id: 'call_1',
+                type: 'function',
+                function: { name: 'make_chart', arguments: JSON.stringify(spec) },
+              },
+            ],
+          }
+        : { content: 'Here is what falls due over the next five years.' };
+    const sse = chunk({
+      model: 'gemini-3.8-flash',
+      choices: [{ delta, finish_reason: bodies.length === 1 ? 'tool_calls' : 'stop' }],
+    });
+    await route.fulfill({ contentType: 'text/event-stream', body: `${sse}data: [DONE]\n\n` });
+  });
+
+  await loadSample(page);
+  await importBigPurchases(page);
+  await useGemini(page);
+  await send(page, 'Draw a timeline of the things I need to save up for.');
+
+  const reply = page.locator('chat-panel .msg.reply').last();
+  await expect(reply).toHaveAttribute('data-done', 'true', { timeout: 60_000 });
+  await expect(reply.locator('.who')).toHaveText('Crux + Google Gemini');
+  const chart = reply.locator('chat-chart');
+  await expect(chart.locator('.title')).toHaveText('What is coming up');
+  await expect(chart.locator('[data-prov="forecast"]')).toBeVisible();
+
+  // The catalogue offered big purchases; the tool result says what falls due, rounded.
+  const first = JSON.stringify(bodies[0]);
+  expect(first).toContain('big-purchases');
+  expect(first).toContain('always try make_chart');
+  const toolResult = (bodies[1]!.messages as { role: string; content: string }[]).find(
+    (m) => m.role === 'tool'
+  )!.content;
+  expect(toolResult).toContain('"provenance":"forecast"');
+  expect(toolResult).toMatch(/"fallsDue":\[\{"when":"\d{4}-\d{2}","item":"[^"]+","cost":"~\$/);
+});
+
+test('a provider that goes quiet is given up on with a reason, not left waiting', async ({
+  page,
+}) => {
+  test.setTimeout(180_000);
+  await page.clock.install();
+  // The provider accepts the request and never answers.
+  await page.route('https://generativelanguage.googleapis.com/**', () => new Promise(() => {}));
+  await loadSample(page);
+  await useGemini(page);
+  await send(page, 'What do I need to save up for? Draw it for me.');
+
+  const panel = page.locator('chat-panel');
+  await expect(panel.getByText(/Waiting for its reply|Sending your question/)).toBeVisible();
+  await page.clock.fastForward('01:31');
+  await expect(panel.locator('.status')).toContainText(
+    'Google Gemini stopped replying: nothing arrived for 90 s.'
+  );
+  await expect(panel.getByRole('button', { name: 'Send' })).toBeEnabled();
 });
