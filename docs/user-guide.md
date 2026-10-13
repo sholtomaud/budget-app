@@ -1,7 +1,7 @@
 # Using Crux
 
 ::: info Status
-M0–M9 are done, with the chat panel and setup by chatting (the first part of M10): everything from import to the freedom simulation, scenarios,
+M0–M9 are done, with the chat panel, setup by chatting and charts in the chat (the first two parts of M10): everything from import to the freedom simulation, scenarios,
 encryption and export, the checked spending model, and optional AI help
 ([SPEC §19](./spec.md#_19-milestones)).
 :::
@@ -25,6 +25,24 @@ message. Questions ("What does P90 mean?") are answered as usual, and setup carr
 
 Setup remembers where you got to; **Start setup again** in the menu goes back to the beginning. On
 a phone the menu is behind the **Menu** button. Start stays the first screen for now.
+
+## Charts in the chat
+
+Ask for a chart in plain words, in the chat panel or on the chat screen:
+
+- **Chart my spending on groceries by month against the budget**
+- **Chart my spending by group**, **Chart my income by month**, **Graph spending on cafes over
+  the last 12 months by month**
+
+These are drawn on this device from your own data. **Where does my money go?** comes with a chart
+too. With an AI provider on, you can ask for other charts in your own words; the AI describes the
+chart, and Crux works out every value itself, so the numbers are always your data's. If part of a
+chart has nothing in it (a budget you haven't set, say), it is left out and the chart says so.
+
+Under each chart: **Save chart** keeps it under **Saved charts** in the menu, and **SVG**, **PNG**
+and **CSV** download it. A saved chart shows the values from when you saved it; **Show with
+today's data** redraws it from what's there now. Saved charts are encrypted with the rest of your
+data, included in exports, and removed by delete-all.
 
 ## Ask Crux (the chat panel)
 
@@ -320,19 +338,20 @@ your holdings on the Freedom screen. The file stays on this device.
 
 ## Screens
 
-| Screen    | What it is for                                                                   | Milestone |
-| --------- | -------------------------------------------------------------------------------- | --------- |
-| Set up    | A chat that sets Crux up with you: your data, your budget, your plan             | M10       |
-| Import    | CDR (Open Banking) JSON/ZIP and budget CSV files, with a mapping wizard and undo | M1, M3    |
-| Ledger    | Transactions, categories, review queue, CAPEX proposals                          | M2        |
-| Budget    | Budget lines by tier, actual vs budget, run rate                                 | M3        |
-| CAPEX     | Asset register, replacement timeline, sinking fund                               | M3        |
-| Forecast  | Fan charts per category, with method and backtest score                          | M4        |
-| Freedom   | Goal editor, probability of success, capital fan chart                           | M5        |
-| Scenarios | Side-by-side comparison, the optimiser and its trade-offs                        | M6        |
-| Chat      | Panel on every screen; built-in answers, optional AI, changes as cards           | M8, chat  |
-| Settings  | Encryption, export, delete all; AI provider, call log, return history            | M7, M8    |
-| Kernel    | Shows the pinned kernel and runs an example model                                | M0        |
+| Screen       | What it is for                                                                    | Milestone |
+| ------------ | --------------------------------------------------------------------------------- | --------- |
+| Set up       | A chat that sets Crux up with you: your data, your budget, your plan              | M10       |
+| Import       | CDR (Open Banking) JSON/ZIP and budget CSV files, with a mapping wizard and undo  | M1, M3    |
+| Ledger       | Transactions, categories, review queue, CAPEX proposals                           | M2        |
+| Budget       | Budget lines by tier, actual vs budget, run rate                                  | M3        |
+| CAPEX        | Asset register, replacement timeline, sinking fund                                | M3        |
+| Forecast     | Fan charts per category, with method and backtest score                           | M4        |
+| Freedom      | Goal editor, probability of success, capital fan chart                            | M5        |
+| Scenarios    | Side-by-side comparison, the optimiser and its trade-offs                         | M6        |
+| Chat         | Panel on every screen; built-in answers, optional AI, changes as cards            | M8, chat  |
+| Saved charts | Charts kept from the chat: as saved, or with today's data; download SVG, PNG, CSV | M10       |
+| Settings     | Encryption, export, delete all; AI provider, call log, return history             | M7, M8    |
+| Kernel       | Shows the pinned kernel and runs an example model                                 | M0        |
 
 ## Labels on numbers
 

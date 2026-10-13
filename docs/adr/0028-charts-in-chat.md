@@ -1,6 +1,6 @@
 # ADR 0028 — Charts in the chat: built-in and AI-specified, saved on the device
 
-- Status: proposed (milestone M10)
+- Status: accepted (M10, second part built)
 - Date: 2026-10-13
 - SPEC: §12 (screens), FR-VIZ-001…006, NFR-HON-001, NFR-HON-002, NFR-PRIV-003, ADR 0007
 - Builds on: ADR 0023 (chat panel), ADR 0027 (chat-first setup)
@@ -58,6 +58,39 @@ words that isn't in that summary is flagged "unverified figure", as today.
 - **Live or as it was:** a saved chart opens showing the snapshot, with a "Show with today's data"
   switch that re-runs its queries.
 - **Download:** SVG, PNG (drawn on a canvas from the SVG) and CSV of the values.
+
+## Built (M10, second part)
+
+- **Vocabulary:** kinds `line`, `bar`, `stacked-bar`, `table`; datasets `spending`, `income`,
+  `budget`; grouped by month, quarter, year, category, group or merchant; sum or count. The fan
+  kind arrives with a forecast dataset; until then it isn't in the schema. Category and merchant
+  axes show monthly averages, biggest first, with the rest folded into "Everything else".
+- **Where it lives:** `src/viz/spec.ts` (schema and checks), `src/viz/query.ts` (queries and CSV),
+  `src/viz/requests.ts` (charts asked for in words), `src/app/charts.ts` (building, the AI's
+  facts, saved charts), `<chat-chart>` and the Saved charts screen (`/charts`).
+- **Built-in charts:** "Chart my spending on groceries by month against the budget" and the like
+  are recognised on the device; "Where does my money go?" comes with a chart by group. A request
+  that names neither spending, income nor a category goes to the AI.
+- **AI-designed charts:** the advisor's `make_chart` tool.
+
+### How an AI-designed chart is validated
+
+1. **Shape, by the provider.** `make_chart` is a strict tool (ADR 0021's convention: every
+   property required, optional ones nullable). Kinds, datasets, groupings and measures are enums,
+   so the model can't name a chart or a dataset that doesn't exist.
+2. **Limits, on the device.** Nulls are dropped and the spec is validated again against
+   `schemas/chart-spec.schema.json`, which adds what strict mode can't carry: lengths of titles and
+   labels, at most 6 series, `YYYY-MM` months, a range for "last N months", and no other fields.
+3. **Sense, on the device.** `checkSpec` refuses what the schema can't say: a line needs a time
+   axis, a budget can't be counted or grouped by merchant, a range can't run backwards. Category
+   names the model uses are mapped to category ids; a name that matches nothing is dropped.
+4. **Values, only from the app.** The spec has no place for a number. The queries run on the
+   ledger and budget; a series nothing matches is left out with a note, never drawn as zero. Text
+   from the spec (title, labels, caption) is set with `textContent`, so markup shows as text.
+
+Any failure goes back to the model as an error in words, and nothing is drawn. The model gets
+rounded facts about a chart it drew (total, average, highest and lowest points); a figure in its
+reply that isn't among them is flagged "unverified figure" (NFR-HON-002).
 
 ## Consequences
 

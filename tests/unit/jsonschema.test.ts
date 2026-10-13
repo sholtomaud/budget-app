@@ -70,4 +70,11 @@ describe('jsonschema subset', () => {
     expect(validate(one, { normal: [1] })).toBeNull();
     expect(validate(one, 3)).not.toBeNull();
   });
+
+  test('maxLength and maxItems', () => {
+    const schema: Schema = { type: 'array', maxItems: 2, items: { type: 'string', maxLength: 3 } };
+    expect(validate(schema, ['abc', 'de'])).toBeNull();
+    expect(validate(schema, ['abcd'])?.message).toBe('longer than 3');
+    expect(validate(schema, ['a', 'b', 'c'])?.message).toBe('allows at most 2 item(s)');
+  });
 });

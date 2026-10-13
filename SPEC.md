@@ -5,7 +5,7 @@
 
 | | |
 |---|---|
-| Status | Draft 17: M0–M9, the chat panel, plan guidance and setup by chatting (first part of M10) built (ADRs 0001–0013, 0019–0027); M10–M15 planned, with proposed directions in ADRs 0014, 0016–0018, 0027–0029 |
+| Status | Draft 17: M0–M9, the chat panel, plan guidance and setup by chatting and charts in the chat (first two parts of M10) built (ADRs 0001–0013, 0019–0028); M10–M15 planned, with proposed directions in ADRs 0014, 0016–0018, 0027–0029 |
 | Date | 2026-10-13 |
 | Kernel | [GSSK](https://github.com/energese-project/GSSK-Giannantoni), consumed as a pinned WebAssembly artefact |
 | Runtime | Browser only. Static site, no backend |
@@ -739,7 +739,7 @@ uncertain.
 | FR-GOAL-010 | **Goals from words** (M11). Free text ("stop working as soon as possible, a house, a nice car") becomes a goals draft (`schemas/goals-draft.schema.json`): freedom start, purchases with rough timing, tier hints, non-negotiables, and unknowns. Goal chips produce the same draft without AI. |
 | FR-GOAL-011 | The AI never supplies a cost or price (NFR-HON-002). Missing amounts become follow-up questions; a skipped one may take a default from a shipped table, labelled `assumed`. |
 | FR-GOAL-012 | **Spending insights as scenarios** (M11). A category is compared with the household's history and with published household spending (labelled `assumed`), expressed in freedom time. A suggested change (including a shopping list) is a scenario card showing the savings and the new freedom date. No named stores or products until §22's rules apply; suggestions describe outcomes, not instructions. |
-| FR-VIZ-001 | Every chart in the chat is a chart spec (`schemas/chart-spec.schema.json`): a kind (line, fan, bar, stacked bar, table) and series that are queries over named datasets, from a fixed vocabulary. A spec never carries values. ADR 0028. |
+| FR-VIZ-001 | Every chart in the chat is a chart spec (`schemas/chart-spec.schema.json`): a kind (line, bar, stacked bar, table; fan with a forecast dataset, later) and series that are queries over named datasets, from a fixed vocabulary. A spec never carries values. ADR 0028. |
 | FR-VIZ-002 | The app validates the spec, runs its queries on the device and draws it with in-house SVG components, with provenance labels (NFR-HON-001). The AI never sends code, HTML or SVG. |
 | FR-VIZ-003 | To design a chart, the AI sees the dataset catalogue (names, fields, units) only, never household values. |
 | FR-VIZ-004 | Chart commentary: templated for built-in charts; for AI-designed charts, written from the app's redacted summary, with figures not in that summary flagged "unverified figure". |

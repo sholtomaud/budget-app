@@ -13,6 +13,8 @@ import { STARTERS } from '../assistant/intents.ts';
 import { parseMarkdown, type Block, type Inline } from '../assistant/markdown.ts';
 import { chanceWords, percent } from '../assistant/phrases.ts';
 import { applyProposal, describe, PERIOD_WORDS, type Proposal } from './proposals.ts';
+import './components/chat-chart/chat-chart.ts';
+import type { ChatChart } from './components/chat-chart/chat-chart.ts';
 
 export interface ConversationElements {
   log: HTMLElement;
@@ -198,6 +200,11 @@ export class Conversation {
       return li;
     }
     if (r.chart) li.append(this.meter(r.chart.p, r.chart.target));
+    for (const c of r.charts ?? []) {
+      const chart = document.createElement('chat-chart') as ChatChart;
+      chart.item = c;
+      li.append(chart);
+    }
     for (const p of r.proposals) li.append(this.card(p));
     if (r.links.length)
       li.append(

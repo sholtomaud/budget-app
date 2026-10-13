@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Crux chart spec (ADR 0028)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["kind", "title", "groupBy", "series"],
+  "properties": {
+    "kind": {
+      "type": "string",
+      "enum": ["line", "bar", "stacked-bar", "table"]
+    },
+    "title": {
+      "type": "string",
+      "maxLength": 80
+    },
+    "caption": {
+      "type": "string",
+      "maxLength": 240
+    },
+    "groupBy": {
+      "type": "string",
+      "enum": ["month", "quarter", "year", "category", "group", "merchant"]
+    },
+    "series": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["label", "dataset"],
+        "properties": {
+          "label": {
+            "type": "string",
+            "maxLength": 40
+          },
+          "dataset": {
+            "type": "string",
+            "enum": ["spending", "income", "budget"]
+          },
+          "measure": {
+            "type": "string",
+            "enum": ["sum", "count"]
+          },
+          "filter": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "categories": {
+                "type": "array",
+                "maxItems": 20,
+                "items": {
+                  "type": "string",
+                  "maxLength": 60
+                }
+              },
+              "text": {
+                "type": "string",
+                "maxLength": 40
+              },
+              "from": {
+                "type": "string",
+                "pattern": "^\\d{4}-(0[1-9]|1[0-2])$"
+              },
+              "to": {
+                "type": "string",
+                "pattern": "^\\d{4}-(0[1-9]|1[0-2])$"
+              },
+              "lastMonths": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 120
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
