@@ -756,6 +756,7 @@ uncertain.
 | FR-VIZ-004 | Chart commentary: templated for built-in charts; for AI-designed charts, written from the app's redacted summary, with figures not in that summary flagged "unverified figure". |
 | FR-VIZ-005 | Any chart can be saved: spec, title, caption and a snapshot of the values with its run reference, in the encrypted vault, included in export and removed by delete-all. A saved chart shows the snapshot or re-runs on today's data. |
 | FR-VIZ-006 | Saved charts download as SVG, PNG and CSV. |
+| FR-VIZ-007 | On a time axis, a series can be split by category or group (the biggest few and "Everything else"); series can share a colour (`hue`, or the same category when split) and be drawn `light` or `dashed`, so a budget pairs with its spending in one colour per category. The AI names hues, never colour values. ADR 0035. |
 
 ---
 
