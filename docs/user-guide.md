@@ -378,7 +378,15 @@ for it. **Import an export** restores a file, replacing what's on this device.
 
 Everything above works with no AI at all. If you want help from an AI model, choose a provider
 under **AI provider (optional)**: Anthropic (Claude), Google Gemini, or any OpenAI-compatible service, including
-one running on your own computer (Ollama, LM Studio, llama.cpp at `localhost`). Paste an API key.
+one running on your own computer. Paste an API key.
+
+**A model on your own computer** needs no key: choose **Local model (llama.cpp, Ollama, LM Studio)**,
+set the endpoint to your server (`http://localhost:8080` for llama.cpp's `llama-server`,
+`http://localhost:11434` for Ollama with the model's name, `http://localhost:1234` for LM Studio)
+and save. Nothing then leaves your computer. Ollama only answers web pages it is told to: start it
+with `OLLAMA_ORIGINS` set to this site's address. Chrome asks once before a website may reach your
+own computer; allow it. Safari may refuse. For charts and the advisor's tools, use a model and server
+that support tool calls (llama-server with `--jinja`).
 **The key is kept only while the app is open.** It is never saved on this device or put in an
 export, and reloading or locking forgets it. **Forget key** removes it at once.
 

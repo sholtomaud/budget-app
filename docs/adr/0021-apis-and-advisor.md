@@ -35,7 +35,10 @@ Every external call goes through `send()` in `src/app/egress.ts`:
    `https://api.openai.com`, `https://generativelanguage.googleapis.com` (Gemini), and
    `http://localhost:*` / `http://127.0.0.1:*` for local
    OpenAI-compatible servers (Ollama, LM Studio, llama.cpp). Other hosted providers need a build
-   with their origin added.
+   with their origin added. A **Local model** provider (`http://localhost:8080`, llama-server's
+   default) is listed by default, and a local endpoint needs no key: none is sent unless the
+   person enters one (llama-server's `--api-key`). The consent dialog still shows each call. (Added
+   2026-10-15.)
 2. **Consent with the exact payload.** A dialog shows the provider, purpose, URL and the request
    body as it will be sent. "Don't send" sends nothing. "Don't ask again" holds only until the app
    reloads.

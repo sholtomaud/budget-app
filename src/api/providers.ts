@@ -43,6 +43,14 @@ export const DEFAULT_PROVIDERS: ProviderConfig[] = [
     endpoint: 'https://api.openai.com',
     model: 'gpt-4.1',
   },
+  {
+    // llama.cpp's llama-server, Ollama (port 11434, name the model), LM Studio (1234)…
+    id: 'local',
+    kind: 'openai-compatible',
+    label: 'Local model (llama.cpp, Ollama, LM Studio)',
+    endpoint: 'http://localhost:8080',
+    model: 'local',
+  },
 ];
 
 /**
@@ -72,4 +80,14 @@ export function originAllowed(url: string): boolean {
     }
     return u.origin === o;
   });
+}
+
+/** A server on this computer: nothing leaves the device, and a key is optional. */
+export function isLocal(endpoint: string): boolean {
+  try {
+    const u = new URL(endpoint);
+    return u.hostname === 'localhost' || u.hostname === '127.0.0.1';
+  } catch {
+    return false;
+  }
 }

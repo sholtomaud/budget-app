@@ -9,7 +9,7 @@ import {
   type ToolDef,
   type Turn,
 } from '../../src/api/llm.ts';
-import { DEFAULT_PROVIDERS, originAllowed } from '../../src/api/providers.ts';
+import { DEFAULT_PROVIDERS, isLocal, originAllowed } from '../../src/api/providers.ts';
 import { bucketAmount, redactText, roughAmount } from '../../src/api/redact.ts';
 import type { Schema } from '../../src/lib/jsonschema.ts';
 
@@ -246,5 +246,18 @@ describe('LLM classification payload (§8 stage 6, FR-API-003)', async () => {
     expect(validate(p.schema, ok)).toBeNull();
     expect(validate(p.schema, { labels: [{ ref: 1, categoryId: 'made.up' }] })).not.toBeNull();
     expect(labelsFromAnswer(p, ok)).toEqual([{ key: items[0]!.key, categoryId: 'food.groceries' }]);
+  });
+});
+
+describe('a local model (llama.cpp, Ollama, LM Studio)', () => {
+  test('a server on this computer is local: allowed, and a key is optional', () => {
+    const local = provider('local');
+    expect(local.kind).toBe('openai-compatible');
+    expect(originAllowed(local.endpoint)).toBe(true);
+    expect(isLocal(local.endpoint)).toBe(true);
+    expect(isLocal('http://127.0.0.1:11434')).toBe(true);
+    expect(isLocal('https://api.openai.com')).toBe(false);
+    expect(isLocal('http://localhost.example.com')).toBe(false);
+    expect(isLocal('not a url')).toBe(false);
   });
 });
