@@ -63,6 +63,11 @@ export interface TableSeries {
   role?: QuantileRole;
   /** Big purchases: what falls due when, in time order. */
   purchases?: PlannedPurchase[];
+  /** What decides the colour: series with the same key share one (a split series: its category). */
+  hueKey?: string;
+  look?: 'solid' | 'light' | 'dashed';
+  /** A split series: the category or group it shows, and the series it came from. */
+  part?: { of: string; key: string };
 }
 
 export interface ChartTable {
@@ -85,6 +90,9 @@ export type ChartResult = { ok: true; table: ChartTable } | { ok: false; error: 
 
 /** Category and merchant axes keep the biggest few; the rest is one bar. */
 export const MAX_BARS = 12;
+/** A split series keeps the biggest few categories; fewer when two are paired. */
+export const MAX_PARTS = 8;
+export const MAX_PARTS_PAIRED = 6;
 const OTHER = '(other)';
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -180,6 +188,8 @@ interface Row {
   month: string;
   key: string;
   value: number;
+  /** The row's category, for splitBy. */
+  cat: string;
 }
 
 /** One series as rows: month, axis key and value (minor units, or 1 per transaction for count). */
@@ -197,7 +207,12 @@ function rows(s: SeriesSpec, g: GroupBy, months: readonly string[], ctx: QueryCo
           : g === 'category'
             ? p.categoryId
             : p.item;
-      out.push({ month: p.month, key, value: count ? 1 : Math.round(p.value * 100) });
+      out.push({
+        month: p.month,
+        key,
+        value: count ? 1 : Math.round(p.value * 100),
+        cat: p.categoryId,
+      });
     }
     return out;
   }
@@ -216,7 +231,12 @@ function rows(s: SeriesSpec, g: GroupBy, months: readonly string[], ctx: QueryCo
               ? l.item.trim().slice(0, 40) || '(no name)'
               : '';
       for (const m of months)
-        out.push({ month: m, key: isTime(g) ? bucket(m, g) : key, value: monthly });
+        out.push({
+          month: m,
+          key: isTime(g) ? bucket(m, g) : key,
+          value: monthly,
+          cat: l.categoryId,
+        });
     }
     return out;
   }
@@ -239,7 +259,7 @@ function rows(s: SeriesSpec, g: GroupBy, months: readonly string[], ctx: QueryCo
         : g === 'category'
           ? c.categoryId
           : merchant.trim().replace(/\s+/g, ' ').slice(0, 40) || '(no name)';
-    out.push({ month, key, value: count ? 1 : v });
+    out.push({ month, key, value: count ? 1 : v, cat: c.categoryId });
   }
   return out;
 }
@@ -340,9 +360,34 @@ export function runChart(spec: ChartSpec, ctx: QueryContext): ChartResult {
   const index = new Map(x.map((k, i) => [k, i]));
   const otherAt = index.get(OTHER);
 
-  const series: TableSeries[] = perSeries.map(({ s, ms, rows }) => {
+  // Split series share the same few categories, so a budget pairs with its spending.
+  const partOf = (s: SeriesSpec, r: Row) => (s.splitBy === 'group' ? groupOf(r.cat) : r.cat);
+  const split = perSeries.filter((p) => p.s.splitBy);
+  let parts: string[] = [];
+  if (split.length) {
+    const totals = new Map<string, number>();
+    for (const p of split)
+      for (const r of p.rows) {
+        const k = partOf(p.s, r);
+        totals.set(k, (totals.get(k) ?? 0) + Math.abs(r.value));
+      }
+    parts = [...totals.entries()]
+      .sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1))
+      .map(([k]) => k);
+    const cap = split.length > 1 ? MAX_PARTS_PAIRED : MAX_PARTS;
+    if (parts.length > cap) parts = [...parts.slice(0, cap - 1), OTHER];
+  }
+  const partName = (k: string) =>
+    k === OTHER ? 'Everything else' : categoryName(k, ctx.categories);
+
+  const build = (
+    s: SeriesSpec,
+    ms: readonly string[],
+    rs: readonly Row[],
+    extra: Partial<TableSeries> & { label: string }
+  ): TableSeries => {
     const values = new Array<number>(x.length).fill(0);
-    for (const r of rows) {
+    for (const r of rs) {
       const i = index.get(r.key) ?? otherAt;
       if (i !== undefined) values[i]! += r.value;
     }
@@ -350,16 +395,62 @@ export function runChart(spec: ChartSpec, ctx: QueryContext): ChartResult {
     const planned = s.dataset === 'big-purchases';
     const divide = isTime(g) || planned ? 1 : Math.max(1, ms.length);
     return {
-      label: s.label,
       values: values.map((v) => {
         const per = v / divide;
         return count ? Math.round(per * 10) / 10 : Math.round(per) / 100;
       }),
       unit: count ? 'count' : 'dollars',
       provenance: s.dataset === 'budget' ? 'budgeted' : planned ? 'forecast' : 'actual',
-      ...(planned ? { purchases: purchasesIn(s, ms, ctx) } : {}),
+      ...(s.look ? { look: s.look } : {}),
+      ...extra,
     };
+  };
+
+  const built: TableSeries[] = perSeries.flatMap(({ s, ms, rows }) => {
+    if (!s.splitBy)
+      return [
+        build(s, ms, rows, {
+          label: s.label,
+          hueKey: s.hue ?? s.label,
+          ...(s.dataset === 'big-purchases' ? { purchases: purchasesIn(s, ms, ctx) } : {}),
+        }),
+      ];
+    const at = new Map(parts.map((k, i) => [k, i]));
+    const other = at.get(OTHER);
+    const byPart = parts.map((): Row[] => []);
+    for (const r of rows) {
+      const i = at.get(partOf(s, r)) ?? other;
+      if (i !== undefined) byPart[i]!.push(r);
+    }
+    return parts.flatMap((k, i) =>
+      byPart[i]!.length
+        ? [
+            build(s, ms, byPart[i]!, {
+              label: `${partName(k)} · ${s.label}`,
+              hueKey: `part:${k}`,
+              part: { of: s.label, key: k },
+            }),
+          ]
+        : []
+    );
   });
+
+  // Each category's split series side by side (Food · Spent, Food · Budget), after the rest.
+  const rank = (t: TableSeries) => (t.part ? parts.indexOf(t.part.key) : -1);
+  const series = built
+    .map((t, i) => ({ t, i }))
+    .sort((a, b) => rank(a.t) - rank(b.t) || a.i - b.i)
+    .map(({ t }) => t);
+
+  // Spending below zero overall means money out was imported as money in.
+  for (const p of perSeries)
+    if (p.s.dataset === 'spending' && p.s.measure !== 'count') {
+      const total = p.rows.reduce((a, r) => a + r.value, 0);
+      if (total < 0)
+        notes.push(
+          `${p.s.label} comes out below zero: refunds and money in outweigh money out. If that's not right, an import may have its signs flipped; check the amounts in the Ledger.`
+        );
+    }
 
   const used = perSeries.flatMap((p) => p.ms).sort();
   return {

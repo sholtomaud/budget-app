@@ -757,6 +757,7 @@ uncertain.
 | FR-VIZ-004 | Chart commentary: templated for built-in charts; for AI-designed charts, written from the app's redacted summary, with figures not in that summary flagged "unverified figure". |
 | FR-VIZ-005 | Any chart can be saved: spec, title, caption and a snapshot of the values with its run reference, in the encrypted vault, included in export and removed by delete-all. A saved chart shows the snapshot or re-runs on today's data. |
 | FR-VIZ-006 | Saved charts download as SVG, PNG and CSV. |
+| FR-VIZ-007 | On a time axis, a series can be split by category or group (the biggest few and "Everything else"); series can share a colour (`hue`, or the same category when split) and be drawn `light` or `dashed`, so a budget pairs with its spending in one colour per category. The AI names hues, never colour values. ADR 0035. |
 | FR-VIZ-008 | Dashboards: named layouts of up to 12 charts, each a built-in chart, a saved chart or a chart spec, never values, drawn from today's data. Kept in the vault (exports, delete-all). Every drag has a button equivalent (keyboard, phones). A dashboard from outside the app (a template file, the AI) is checked against `DASHBOARD_SCHEMA` and each chart as a chart. ADR 0036. |
 
 ---
@@ -769,7 +770,7 @@ All of this is **off by default**. The app is complete without it.
 
 | ID | Requirement |
 |---|---|
-| FR-API-001 | Providers are configured in Settings (endpoint, model, key). **Keys are never stored on the device**: they are held in memory for the session, never written to storage or exports, forgotten on reload or lock, and sent only to their own endpoint (ADR 0021). |
+| FR-API-001 | Providers are configured in Settings (endpoint, model, key). **Keys are never stored on the device**: they are held in memory for the session, never written to storage or exports, forgotten on reload or lock, and sent only to their own endpoint (ADR 0021). A server on this computer (`localhost`) needs no key. |
 | FR-API-002 | Before each call, show the exact payload to be sent; the user confirms. "Don't ask again until the app reloads" MAY be offered per provider and purpose. |
 | FR-API-003 | **Redaction by default.** Payloads never contain account IDs, masked numbers, BSB/account numbers, names of people, addresses or exact balances. Amounts are bucketed or rounded. |
 | FR-API-004 | Every call is logged locally (time, provider, purpose, origin, payload hash, bytes sent, status) and shown in Settings. |

@@ -118,6 +118,9 @@ test('the AI designs a chart: it sends a spec, the app fills in the values', asy
           label: 'Cafes',
           dataset: 'spending',
           measure: null,
+          splitBy: null,
+          hue: null,
+          look: null,
           filter: {
             categories: ['cafes'],
             text: null,
@@ -270,6 +273,9 @@ test('the AI charts big purchases: it asks for the dataset, the app fills in whe
           label: 'Big purchases',
           dataset: 'big-purchases',
           measure: null,
+          splitBy: null,
+          hue: null,
+          look: null,
           filter: {
             categories: null,
             text: null,
@@ -342,4 +348,112 @@ test('a provider that goes quiet is given up on with a reason, not left waiting'
     'Google Gemini stopped replying: nothing arrived for 90 s.'
   );
   await expect(panel.getByRole('button', { name: 'Send' })).toBeEnabled();
+});
+
+test('budget against spending by category over time: one colour per category, the budget lighter (ADR 0035)', async ({
+  page,
+}) => {
+  test.setTimeout(180_000);
+  let calls = 0;
+  const chunk = (d: unknown) => `data: ${JSON.stringify(d)}\n\n`;
+  await page.route('https://generativelanguage.googleapis.com/**', async (route: Route) => {
+    calls++;
+    const s = (label: string, dataset: string, look: string | null) => ({
+      label,
+      dataset,
+      measure: null,
+      splitBy: 'group',
+      hue: null,
+      look,
+      filter: {
+        categories: null,
+        text: null,
+        from: null,
+        to: null,
+        lastMonths: 12,
+        nextMonths: null,
+      },
+    });
+    const spec = {
+      kind: 'line',
+      title: 'Spending against budget by category',
+      caption: null,
+      groupBy: 'month',
+      series: [s('Spent', 'spending', null), s('Budget', 'budget', 'light')],
+    };
+    const sse =
+      calls === 1
+        ? chunk({
+            model: 'gemini-3.8-flash',
+            choices: [
+              {
+                delta: {
+                  tool_calls: [
+                    {
+                      index: 0,
+                      id: 'call_1',
+                      type: 'function',
+                      function: { name: 'make_chart', arguments: JSON.stringify(spec) },
+                    },
+                  ],
+                },
+                finish_reason: 'tool_calls',
+              },
+            ],
+          })
+        : chunk({ choices: [{ delta: { content: 'Here it is.' }, finish_reason: 'stop' }] });
+    await route.fulfill({ contentType: 'text/event-stream', body: `${sse}data: [DONE]\n\n` });
+  });
+
+  await loadSample(page);
+  const nav = page.getByRole('navigation', { name: 'Screens' });
+  await nav.getByRole('link', { name: 'Budget' }).click();
+  await page.locator('.pick-csv').setInputFiles('fixtures/syn-default-42/workbook/opex-budget.csv');
+  await page
+    .locator('.wizard .sheet')
+    .getByRole('button', { name: /^Import \d+ rows/ })
+    .click();
+  await expect(page.locator('.wizard .sheet')).toHaveCount(0);
+  await nav.getByRole('link', { name: 'Settings' }).click();
+  const form = page.getByRole('form', { name: 'AI provider' });
+  await form.getByLabel('Provider').selectOption('gemini');
+  await form.getByLabel('API key, for this session only').fill('gemini-test-key');
+  await form.getByRole('button', { name: 'Save' }).click();
+
+  const panel = page.locator('chat-panel');
+  await panel
+    .getByLabel('Your message')
+    .fill('A time series of budget vs actual by category, one colour per category');
+  await panel.getByRole('button', { name: 'Send' }).click();
+  const dialog = page.getByRole('dialog');
+  await dialog.getByLabel("Don't ask again for this until the app reloads").check();
+  await dialog.getByRole('button', { name: 'Send', exact: true }).click();
+
+  const chart = panel.locator('.msg.reply').last().locator('chat-chart');
+  await expect(chart.locator('svg path').first()).toBeVisible({ timeout: 60_000 });
+  const lines = await chart.locator('svg path').evaluateAll((ps) =>
+    ps.map((p) => ({
+      title: p.querySelector('title')?.textContent ?? '',
+      stroke: p.getAttribute('stroke'),
+      look: p.getAttribute('data-look'),
+      opacity: p.getAttribute('stroke-opacity'),
+    }))
+  );
+  const spent = lines.filter((l) => l.title.endsWith(' · Spent'));
+  expect(spent.length).toBeGreaterThan(2);
+  let paired = 0;
+  for (const s of spent) {
+    const budget = lines.find((l) => l.title === s.title.replace(' · Spent', ' · Budget'));
+    if (!budget) continue; // a category with spending but no budget
+    paired++;
+    expect(budget.stroke).toBe(s.stroke);
+    expect(budget.look).toBe('light');
+    expect(budget.opacity).toBe('0.45');
+  }
+  expect(paired).toBeGreaterThan(1);
+  // Every category its own colour.
+  expect(new Set(spent.map((s) => s.stroke)).size).toBe(spent.length);
+  await expect(chart.locator('.legend .key.light').first()).toBeVisible();
+  // Months read level.
+  await expect(chart.locator('svg text[transform]')).toHaveCount(0);
 });

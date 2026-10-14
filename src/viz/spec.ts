@@ -19,11 +19,17 @@ export const GROUP_BY = [
   'item',
 ] as const;
 export const MEASURES = ['sum', 'count'] as const;
+/** On a time axis, one line (or bar) per category or group of a series. */
+export const SPLIT_BY = ['category', 'group'] as const;
+/** How a series is drawn in its colour: a lighter shade or dashed reads as "the plan for" its solid partner. */
+export const LOOKS = ['solid', 'light', 'dashed'] as const;
 
 export type ChartKind = (typeof CHART_KINDS)[number];
 export type Dataset = (typeof DATASETS)[number];
 export type GroupBy = (typeof GROUP_BY)[number];
 export type Measure = (typeof MEASURES)[number];
+export type SplitBy = (typeof SPLIT_BY)[number];
+export type Look = (typeof LOOKS)[number];
 
 export interface SeriesFilter {
   /** Category groups ('food') or categories ('food.groceries'). */
@@ -44,6 +50,11 @@ export interface SeriesSpec {
   dataset: Dataset;
   filter?: SeriesFilter;
   measure?: Measure;
+  /** One series per category or group, the biggest few and "Everything else" (time axis only). */
+  splitBy?: SplitBy;
+  /** Series sharing a hue share a colour; split series take their category's. */
+  hue?: string;
+  look?: Look;
 }
 
 export interface ChartSpec {
@@ -57,7 +68,7 @@ export interface ChartSpec {
 
 /** What a dataset holds, in words: all the AI sees to design a chart (FR-VIZ-003). */
 export const CATALOGUE_NOTE =
-  'Grouped by month, quarter or year, values are totals for each period. Grouped by category, group, merchant or item, they are monthly averages over the months chosen (big purchases: totals), biggest first, the rest folded into "Everything else". Without a range, a series covers every complete month of data; big purchases cover this month to the end of the planning horizon. Datasets can share a time axis: past spending next to future big purchases draws one timeline.';
+  'Grouped by month, quarter or year, values are totals for each period. Grouped by category, group, merchant or item, they are monthly averages over the months chosen (big purchases: totals), biggest first, the rest folded into "Everything else". Without a range, a series covers every complete month of data; big purchases cover this month to the end of the planning horizon. Datasets can share a time axis: past spending next to future big purchases draws one timeline. On a time axis, splitBy (category or group) turns a series into one per category, the biggest few plus "Everything else"; two split series (spending and budget) give each category one colour, so draw the budget with look "light" or "dashed" to pair it with the spending. Series with the same hue share a colour. Colours are the app\'s: name a hue, never a colour.';
 
 export const CATALOGUE: Record<Dataset, string> = {
   spending:
@@ -97,6 +108,9 @@ export const CHART_SCHEMA: Schema = {
           label: str(40),
           dataset: { type: 'string', enum: [...DATASETS] },
           measure: { type: 'string', enum: [...MEASURES] },
+          splitBy: { type: 'string', enum: [...SPLIT_BY] },
+          hue: str(40),
+          look: { type: 'string', enum: [...LOOKS] },
           filter: {
             type: 'object',
             additionalProperties: false,
@@ -140,6 +154,9 @@ export const CHART_TOOL_SCHEMA: Schema = strictObj({
       label: { type: 'string' },
       dataset: { type: 'string', enum: [...DATASETS] },
       measure: nullable({ type: 'string', enum: [...MEASURES] }),
+      splitBy: nullable({ type: 'string', enum: [...SPLIT_BY] }),
+      hue: nullable({ type: 'string' }),
+      look: nullable({ type: 'string', enum: [...LOOKS] }),
       filter: nullable(
         strictObj({
           categories: nullable({ type: 'array', items: { type: 'string' } }),
@@ -185,6 +202,8 @@ export function checkSpec(spec: unknown): string | null {
     if (!['fan', 'line', 'table'].includes(s.kind))
       return 'Savings over time is drawn as a fan, a line or a table.';
     if (s.series[0]!.filter) return 'Savings over time takes no filter: it is the whole plan.';
+    if (s.series[0]!.splitBy)
+      return 'Savings over time is the whole plan: it has no categories to split.';
     return null;
   }
   if (s.kind === 'fan') return 'A fan shows a range of futures: only savings over time has one.';
@@ -193,6 +212,10 @@ export function checkSpec(spec: unknown): string | null {
   const planned = s.series.filter((x) => x.dataset === 'big-purchases').length;
   if (planned && planned < s.series.length && !isTime(s.groupBy))
     return 'Big purchases are totals and the other datasets monthly averages; chart them together only on a time axis.';
+  const splits = s.series.filter((x) => x.splitBy).length;
+  if (splits && !isTime(s.groupBy))
+    return 'splitBy draws one series per category over time: group by month, quarter or year (or group by category without splitBy).';
+  if (splits > 3) return 'Split at most three series: each becomes several.';
   for (const x of s.series) {
     const f = x.filter;
     if (x.dataset === 'big-purchases') {

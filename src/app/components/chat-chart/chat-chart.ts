@@ -42,6 +42,20 @@ const svgEl = (name: string, attrs: Record<string, string | number>, text?: stri
 
 const colour = (i: number) => `var(--series-${(i % 8) + 1})`;
 
+/** Each series' colour: one per hue key, in order of first appearance (ADR 0035). */
+export function seriesColours(t: ChartTable): string[] {
+  const keys = new Map<string, number>();
+  return t.series.map((s, i) => {
+    const k = s.hueKey ?? `#${i}`;
+    if (!keys.has(k)) keys.set(k, keys.size);
+    return colour(keys.get(k)!);
+  });
+}
+
+/** How a look draws: a lighter shade, or dashed. */
+const LIGHT = 0.45;
+const DASH = '5 3';
+
 /** Shorten a long axis label so bars stay readable. */
 const short = (s: string, n: number) => (s.length > n ? `${s.slice(0, n - 1)}…` : s);
 
@@ -108,9 +122,10 @@ export class ChatChart extends BaseComponent {
       box.append(el('span', { class: 'prov', 'data-prov': 'forecast' }, 'forecast'));
       return box;
     }
+    const hues = seriesColours(t);
     t.series.forEach((s, i) => {
-      const key = el('span', { class: 'key' }, s.label);
-      key.style.setProperty('--swatch', colour(i));
+      const key = el('span', { class: `key ${s.look ?? 'solid'}` }, s.label);
+      key.style.setProperty('--swatch', hues[i]!);
       box.append(key);
     });
     for (const p of new Set(t.series.map((s) => s.provenance)))
@@ -210,9 +225,10 @@ export class ChatChart extends BaseComponent {
         stroke: 'var(--border-strong)',
       })
     );
-    // Label every bar when there's room, else about eight of them.
-    const every = Math.max(1, Math.ceil(n / 8));
-    const rotate = n > 6 && spec.groupBy !== 'year';
+    // Time reads left to right: about six level labels. Categories: up to eight, slanted.
+    const time = ['month', 'quarter', 'year'].includes(spec.groupBy);
+    const every = Math.max(1, Math.ceil(n / (time ? 6 : 8)));
+    const rotate = !time && n > 6;
     t.labels.forEach((l, i) => {
       if (i % every) return;
       const x = cx(i);
@@ -262,19 +278,30 @@ export class ChatChart extends BaseComponent {
         marks.append(path);
       }
     } else if (spec.kind === 'line') {
+      const hues = seriesColours(t);
+      const many = t.series.length > 4;
       t.series.forEach((s, k) => {
         const d = s.values
           .map((v, i) => `${i ? 'L' : 'M'}${cx(i).toFixed(1)},${sy(v).toFixed(1)}`)
           .join('');
-        const path = svgEl('path', { d, fill: 'none', stroke: colour(k), 'stroke-width': 2 });
+        const path = svgEl('path', {
+          d,
+          fill: 'none',
+          stroke: hues[k]!,
+          'stroke-width': 2,
+          'data-look': s.look ?? 'solid',
+          ...(s.look === 'light' ? { 'stroke-opacity': LIGHT } : {}),
+          ...(s.look === 'dashed' ? { 'stroke-dasharray': DASH } : {}),
+        });
         path.append(svgEl('title', {}, s.label));
         marks.append(path);
         s.values.forEach((v, i) => {
           const dot = svgEl('circle', {
             cx: cx(i),
             cy: sy(v),
-            r: n > 24 ? 1.5 : 3,
-            fill: colour(k),
+            r: n > 24 || many ? 1.5 : 3,
+            fill: hues[k]!,
+            ...(s.look === 'light' ? { 'fill-opacity': LIGHT } : {}),
           });
           dot.append(svgEl('title', {}, `${s.label}, ${t.labels[i]}: ${fmt.format(v)}`));
           marks.append(dot);
@@ -284,6 +311,7 @@ export class ChatChart extends BaseComponent {
       const inner = band * 0.8;
       const each = stacked ? inner : inner / t.series.length;
       const base = t.x.map(() => [0, 0]);
+      const hues = seriesColours(t);
       t.series.forEach((s, k) => {
         s.values.forEach((v, i) => {
           const left = cx(i) - inner / 2 + (stacked ? 0 : each * k);
@@ -295,7 +323,12 @@ export class ChatChart extends BaseComponent {
             y: Math.min(sy(from), sy(to)).toFixed(1),
             width: Math.max(1, each - 1).toFixed(1),
             height: Math.abs(sy(from) - sy(to)).toFixed(1),
-            fill: colour(k),
+            fill: hues[k]!,
+            'data-look': s.look ?? 'solid',
+            ...(s.look && s.look !== 'solid' ? { 'fill-opacity': LIGHT } : {}),
+            ...(s.look === 'dashed'
+              ? { stroke: hues[k]!, 'stroke-dasharray': '3 2', 'stroke-width': 1 }
+              : {}),
           });
           rect.append(svgEl('title', {}, `${s.label}, ${t.labels[i]}: ${fmt.format(v)}`));
           marks.append(rect);

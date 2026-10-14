@@ -3,40 +3,41 @@
 Architecture decision records. Each one records a decision, its context and its consequences.
 Every deviation from the [specification](../spec.md) gets one.
 
-| ADR                                                        | Decision                                                                                             | Status              |
-| ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ------------------- |
-| [0001](./0001-ui-framework.md)                             | Native web components (Boba pattern), no UI framework                                                | Accepted            |
-| [0002](./0002-test-runner.md)                              | `node:test` for unit tests                                                                           | Superseded by 0006  |
-| [0003](./0003-csv-instead-of-xlsx.md)                      | Budget workbooks imported as CSV, not xlsx                                                           | Accepted            |
-| [0004](./0004-gssk-pin-from-dist-branch.md)                | GSSK vendored from its `dist` branch, pinned by commit and SHA-256                                   | Accepted            |
-| [0005](./0005-conservation-check.md)                       | What GSSK's conservation error measures; sinks accumulate                                            | Accepted            |
-| [0006](./0006-vitest-vitepress-pages.md)                   | Vitest for tests, VitePress for docs, GitHub Pages for deployment                                    | Accepted            |
-| [0007](./0007-no-third-party-runtime.md)                   | No third-party runtime code; TypeScript 7; no ESLint; no `.mjs`                                      | Accepted            |
-| [0008](./0008-cdr-ingest-and-synthetic-data.md)            | CDR v1.36.0 ingest, `x-as-at` balances, rebuild-on-undo, synthetic data rules                        | Accepted            |
-| [0009](./0009-classification.md)                           | Classification stages, merchant memory, CAPEX proposals, evaluation                                  | Accepted            |
-| [0010](./0010-budget-and-capex.md)                         | Workbook CSV import rules, actual vs budget, replacement timing, sinking fund                        | Accepted            |
-| [0011](./0011-forecasting-and-ml-core.md)                  | Forecast methods and choice, bootstrap quantiles, CAPEX Monte-Carlo, ml-core ABI and parity          | Accepted            |
-| [0012](./0012-freedom-simulation.md)                       | Closed GSSK model, monthly constant edges, controller, tax, Monte-Carlo pool, metrics                | Accepted            |
-| [0013](./0013-scenarios-and-optimiser.md)                  | Optimiser levers and distance, grid and CMA-ES (ml-core) with common random numbers, Pareto          | Accepted            |
-| [0019](./0019-encryption-export-delete.md)                 | Wrapped data key, sealed records, lock by reload, `.budgetapp` export, delete-all                    | Accepted            |
-| [0014](./0014-workbook-mapping-assistant.md)               | Budget CSVs of any layout: one mapping spec; rules, an in-browser learned mapper, optional LLM       | Proposed            |
-| [0015](./0015-bayesian-workflow.md)                        | Bayesian workflow: pooled structural time series, shared spending factor, return uncertainty         | Accepted (see 0022) |
-| [0016](./0016-sync-and-user-owned-storage.md)              | Local-first sync to storage the user owns (Google Drive first), end-to-end encrypted                 | Proposed            |
-| [0017](./0017-receipts-companion-app.md)                   | iOS receipts companion app (separate repo); line items reconciled to bank transactions               | Proposed            |
-| [0018](./0018-monetisation-and-agentic-layer.md)           | Monetisation without selling data: on-device offers, intent marketplace, mandated agents             | Proposed            |
-| [0020](./0020-name-landing-and-guide.md)                   | The name Crux, a plain-language landing page, a getting-started guide, plain menu names              | Accepted            |
-| [0021](./0021-apis-and-advisor.md)                         | Optional AI providers: session-only keys, one egress gate with consent and a log, the advisor        | Accepted            |
-| [0023](./0023-chat-panel.md)                               | The chat panel: built-in answers first, AI second, changes as cards                                  | Accepted            |
-| [0022](./0022-bayesian-spending-and-return-uncertainty.md) | The Bayesian spending model as built, its checks, and return-parameter uncertainty                   | Accepted            |
-| [0024](./0024-streaming-and-activity-log.md)               | Streamed AI replies and an activity log in the chat panel                                            | Accepted            |
-| [0025](./0025-negative-spending-and-invalid-runs.md)       | Negative spending is no spending; no valid runs is an error, never 0 %                               | Accepted            |
-| [0026](./0026-plan-guidance.md)                            | Plan guidance: checks that find the settings behind a bad result                                     | Accepted            |
-| [0027](./0027-chat-first-setup.md)                         | Chat-first setup: guided steps as state machines, AI for unrecognised text, goals from words         | Accepted (part)     |
-| [0028](./0028-charts-in-chat.md)                           | Charts in the chat: specs the app fills with its own data, AI-designed charts, saved charts          | Accepted            |
-| [0029](./0029-one-click-plans-and-compute.md)              | One-click plans: three different plans (NSGA-II), screen-then-confirm runs, WebGPU screening         | Accepted (part)     |
-| [0030](./0030-bank-csv-adapters.md)                        | Bank and accounting CSVs: presets, a learned column mapper that learns from corrections              | Accepted            |
-| [0036](./0036-dashboards.md)                               | Dashboards: named layouts of built-in and saved charts, drag or buttons, drawn from today's data     | Accepted            |
-| [0034](./0034-budget-categories-and-coicop.md)             | Budget lines onto standard (COICOP) categories: rules, then a structured output, then you            | Accepted            |
-| [0033](./0033-essentials-floor.md)                         | The floor: no plan, search or proposal spends less than the Secure budget                            | Accepted            |
-| [0032](./0032-run-my-plan-and-history.md)                  | Run my plan: one button, a dated history, the same run for the AI (run_my_plan, get_plan_history)    | Accepted            |
-| [0031](./0031-earliest-freedom-date.md)                    | The earliest freedom date: a bisection over start dates, three plans, and a final answer in the chat | Accepted            |
+| ADR                                                        | Decision                                                                                              | Status              |
+| ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | ------------------- |
+| [0001](./0001-ui-framework.md)                             | Native web components (Boba pattern), no UI framework                                                 | Accepted            |
+| [0002](./0002-test-runner.md)                              | `node:test` for unit tests                                                                            | Superseded by 0006  |
+| [0003](./0003-csv-instead-of-xlsx.md)                      | Budget workbooks imported as CSV, not xlsx                                                            | Accepted            |
+| [0004](./0004-gssk-pin-from-dist-branch.md)                | GSSK vendored from its `dist` branch, pinned by commit and SHA-256                                    | Accepted            |
+| [0005](./0005-conservation-check.md)                       | What GSSK's conservation error measures; sinks accumulate                                             | Accepted            |
+| [0006](./0006-vitest-vitepress-pages.md)                   | Vitest for tests, VitePress for docs, GitHub Pages for deployment                                     | Accepted            |
+| [0007](./0007-no-third-party-runtime.md)                   | No third-party runtime code; TypeScript 7; no ESLint; no `.mjs`                                       | Accepted            |
+| [0008](./0008-cdr-ingest-and-synthetic-data.md)            | CDR v1.36.0 ingest, `x-as-at` balances, rebuild-on-undo, synthetic data rules                         | Accepted            |
+| [0009](./0009-classification.md)                           | Classification stages, merchant memory, CAPEX proposals, evaluation                                   | Accepted            |
+| [0010](./0010-budget-and-capex.md)                         | Workbook CSV import rules, actual vs budget, replacement timing, sinking fund                         | Accepted            |
+| [0011](./0011-forecasting-and-ml-core.md)                  | Forecast methods and choice, bootstrap quantiles, CAPEX Monte-Carlo, ml-core ABI and parity           | Accepted            |
+| [0012](./0012-freedom-simulation.md)                       | Closed GSSK model, monthly constant edges, controller, tax, Monte-Carlo pool, metrics                 | Accepted            |
+| [0013](./0013-scenarios-and-optimiser.md)                  | Optimiser levers and distance, grid and CMA-ES (ml-core) with common random numbers, Pareto           | Accepted            |
+| [0019](./0019-encryption-export-delete.md)                 | Wrapped data key, sealed records, lock by reload, `.budgetapp` export, delete-all                     | Accepted            |
+| [0014](./0014-workbook-mapping-assistant.md)               | Budget CSVs of any layout: one mapping spec; rules, an in-browser learned mapper, optional LLM        | Proposed            |
+| [0015](./0015-bayesian-workflow.md)                        | Bayesian workflow: pooled structural time series, shared spending factor, return uncertainty          | Accepted (see 0022) |
+| [0016](./0016-sync-and-user-owned-storage.md)              | Local-first sync to storage the user owns (Google Drive first), end-to-end encrypted                  | Proposed            |
+| [0017](./0017-receipts-companion-app.md)                   | iOS receipts companion app (separate repo); line items reconciled to bank transactions                | Proposed            |
+| [0018](./0018-monetisation-and-agentic-layer.md)           | Monetisation without selling data: on-device offers, intent marketplace, mandated agents              | Proposed            |
+| [0020](./0020-name-landing-and-guide.md)                   | The name Crux, a plain-language landing page, a getting-started guide, plain menu names               | Accepted            |
+| [0021](./0021-apis-and-advisor.md)                         | Optional AI providers: session-only keys, one egress gate with consent and a log, the advisor         | Accepted            |
+| [0023](./0023-chat-panel.md)                               | The chat panel: built-in answers first, AI second, changes as cards                                   | Accepted            |
+| [0022](./0022-bayesian-spending-and-return-uncertainty.md) | The Bayesian spending model as built, its checks, and return-parameter uncertainty                    | Accepted            |
+| [0024](./0024-streaming-and-activity-log.md)               | Streamed AI replies and an activity log in the chat panel                                             | Accepted            |
+| [0025](./0025-negative-spending-and-invalid-runs.md)       | Negative spending is no spending; no valid runs is an error, never 0 %                                | Accepted            |
+| [0026](./0026-plan-guidance.md)                            | Plan guidance: checks that find the settings behind a bad result                                      | Accepted            |
+| [0027](./0027-chat-first-setup.md)                         | Chat-first setup: guided steps as state machines, AI for unrecognised text, goals from words          | Accepted (part)     |
+| [0028](./0028-charts-in-chat.md)                           | Charts in the chat: specs the app fills with its own data, AI-designed charts, saved charts           | Accepted            |
+| [0029](./0029-one-click-plans-and-compute.md)              | One-click plans: three different plans (NSGA-II), screen-then-confirm runs, WebGPU screening          | Accepted (part)     |
+| [0030](./0030-bank-csv-adapters.md)                        | Bank and accounting CSVs: presets, a learned column mapper that learns from corrections               | Accepted            |
+| [0036](./0036-dashboards.md)                               | Dashboards: named layouts of built-in and saved charts, drag or buttons, drawn from today's data      | Accepted            |
+| [0035](./0035-chart-encodings.md)                          | Chart encodings: split by category, colour by meaning (hue), light and dashed shades; our own grammar | Accepted            |
+| [0034](./0034-budget-categories-and-coicop.md)             | Budget lines onto standard (COICOP) categories: rules, then a structured output, then you             | Accepted            |
+| [0033](./0033-essentials-floor.md)                         | The floor: no plan, search or proposal spends less than the Secure budget                             | Accepted            |
+| [0032](./0032-run-my-plan-and-history.md)                  | Run my plan: one button, a dated history, the same run for the AI (run_my_plan, get_plan_history)     | Accepted            |
+| [0031](./0031-earliest-freedom-date.md)                    | The earliest freedom date: a bisection over start dates, three plans, and a final answer in the chat  | Accepted            |

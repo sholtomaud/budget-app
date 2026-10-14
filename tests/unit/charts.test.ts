@@ -158,6 +158,9 @@ describe('chart specs are checked before anything is drawn', () => {
           label: 'Spending',
           dataset: 'spending',
           measure: null,
+          splitBy: null,
+          hue: null,
+          look: null,
           filter: {
             categories: ['food.groceries'],
             text: null,
@@ -275,6 +278,126 @@ describe('queries run on the device', () => {
     const csv = tableCsv(r.table);
     expect(csv.split('\n')[0]).toBe(',"Spending (AUD a month, actual)"');
     expect(csv).toContain(`"'=HYPERLINK(""x"")",60`);
+  });
+});
+
+describe('split series, paired colours, looks (ADR 0035)', () => {
+  test('a series split by category over time: the biggest few, each its own series', () => {
+    const r = runChart(
+      spec({
+        kind: 'line',
+        series: [{ label: 'Spent', dataset: 'spending', splitBy: 'category' }],
+      }),
+      ctx
+    );
+    if (!r.ok) throw new Error(r.error);
+    expect(r.table.series.map((s) => s.label)).toEqual([
+      'Groceries · Spent',
+      'Fuel · Spent',
+      'Cafes · Spent',
+    ]);
+    expect(r.table.series[0]!.values).toEqual([100, 110, 120]);
+    expect(r.table.series[0]!.part).toEqual({ of: 'Spent', key: 'food.groceries' });
+  });
+
+  test('spending and budget split together: the same categories, the same hue key, the budget lighter', () => {
+    const r = runChart(
+      spec({
+        kind: 'line',
+        series: [
+          { label: 'Spent', dataset: 'spending', splitBy: 'group' },
+          { label: 'Budget', dataset: 'budget', splitBy: 'group', look: 'light' },
+        ],
+      }),
+      ctx
+    );
+    if (!r.ok) throw new Error(r.error);
+    const food = r.table.series.filter((s) => s.part?.key === 'food');
+    expect(food.map((s) => s.label)).toEqual(['Food · Spent', 'Food · Budget']);
+    expect(new Set(food.map((s) => s.hueKey)).size).toBe(1);
+    expect(food[1]!.look).toBe('light');
+    expect(food[1]!.provenance).toBe('budgeted');
+  });
+
+  test('beyond the cap, the rest fold into "Everything else"', () => {
+    const many = Array.from({ length: 12 }, (_, i) => `misc.c${i}`);
+    const more: QueryContext = {
+      ...ctx,
+      categories: [...categories, ...many.map((id) => ({ id, name: id, kind: 'opex' as const }))],
+      txns: [
+        ...txns,
+        ...many.flatMap((id, i) => months.map((m) => txn(`${m}-05`, -(i + 1), id, 'opex'))),
+      ],
+    };
+    const r = runChart(
+      spec({
+        kind: 'stacked-bar',
+        series: [{ label: 'Spent', dataset: 'spending', splitBy: 'category' }],
+      }),
+      more
+    );
+    if (!r.ok) throw new Error(r.error);
+    expect(r.table.series).toHaveLength(8);
+    expect(r.table.series.at(-1)!.label).toBe('Everything else · Spent');
+  });
+
+  test('a hue shared by name; series without one keep their own', () => {
+    const r = runChart(
+      spec({
+        kind: 'line',
+        series: [
+          {
+            label: 'Groceries',
+            dataset: 'spending',
+            filter: { categories: ['food.groceries'] },
+            hue: 'g',
+          },
+          { label: 'Groceries budget', dataset: 'budget', hue: 'g', look: 'dashed' },
+          { label: 'Fuel', dataset: 'spending', filter: { categories: ['transport.fuel'] } },
+        ],
+      }),
+      ctx
+    );
+    if (!r.ok) throw new Error(r.error);
+    expect(r.table.series.map((s) => s.hueKey)).toEqual(['g', 'g', 'Fuel']);
+  });
+
+  test('split only on a time axis, at most three, never savings over time', () => {
+    expect(
+      checkSpec(
+        spec({
+          groupBy: 'category',
+          series: [{ label: 'S', dataset: 'spending', splitBy: 'category' }],
+        })
+      )
+    ).toContain('group by month, quarter or year');
+    const s = { label: 'S', dataset: 'spending' as const, splitBy: 'group' as const };
+    expect(checkSpec(spec({ series: [s, s, s, s] }))).toContain('at most three');
+    expect(
+      checkSpec(
+        spec({
+          kind: 'fan',
+          groupBy: 'year',
+          series: [{ label: 'C', dataset: 'capital', splitBy: 'group' }],
+        })
+      )
+    ).toContain('no categories to split');
+    expect(checkSpec(spec({ series: [{ ...s, look: 'neon' as never }] }))).not.toBeNull();
+  });
+
+  test('spending below zero gets a note about flipped signs', () => {
+    const flipped: QueryContext = {
+      ...ctx,
+      txns: months
+        .map((m) => txn(`${m}-02`, 100, 'food.groceries', 'opex'))
+        .concat(txn('2025-03-31', 1, 'food.cafes', 'opex')),
+    };
+    const r = runChart(
+      spec({ kind: 'line', series: [{ label: 'Spent', dataset: 'spending' }] }),
+      flipped
+    );
+    if (!r.ok) throw new Error(r.error);
+    expect(r.table.notes.join(' ')).toContain('signs flipped');
   });
 });
 

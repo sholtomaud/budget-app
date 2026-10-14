@@ -53,6 +53,11 @@ too. With an AI provider on, you can ask for other charts in your own words; the
 chart, and Crux works out every value itself, so the numbers are always your data's. If part of a
 chart has nothing in it (a budget you haven't set, say), it is left out and the chart says so.
 
+The AI can break a line down by category over time ("my spending against budget by category, month
+by month"): each category gets its own colour, and its budget is drawn in the same colour, lighter
+or dashed. It shows the biggest few categories and puts the rest under "Everything else". If
+spending comes out below zero, the chart says so: an import may have its signs flipped.
+
 After you've run your plan, **Chart my savings over time** shows your savings in today's dollars a
 year at a time to the end of freedom: the typical future, the range most futures fall in, and your
 floor (dashed). It comes from your latest run and says when that run is out of date.
@@ -386,7 +391,15 @@ for it. **Import an export** restores a file, replacing what's on this device.
 
 Everything above works with no AI at all. If you want help from an AI model, choose a provider
 under **AI provider (optional)**: Anthropic (Claude), Google Gemini, or any OpenAI-compatible service, including
-one running on your own computer (Ollama, LM Studio, llama.cpp at `localhost`). Paste an API key.
+one running on your own computer. Paste an API key.
+
+**A model on your own computer** needs no key: choose **Local model (llama.cpp, Ollama, LM Studio)**,
+set the endpoint to your server (`http://localhost:8080` for llama.cpp's `llama-server`,
+`http://localhost:11434` for Ollama with the model's name, `http://localhost:1234` for LM Studio)
+and save. Nothing then leaves your computer. Ollama only answers web pages it is told to: start it
+with `OLLAMA_ORIGINS` set to this site's address. Chrome asks once before a website may reach your
+own computer; allow it. Safari may refuse. For charts and the advisor's tools, use a model and server
+that support tool calls (llama-server with `--jinja`).
 **The key is kept only while the app is open.** It is never saved on this device or put in an
 export, and reloading or locking forgets it. **Forget key** removes it at once.
 
