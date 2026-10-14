@@ -231,14 +231,18 @@ export interface SpendingInput {
    */
   credits?: string[];
   /**
-   * What essentials (housing, utilities, groceries…: data-tables/essentials.json)
-   * cost a month: the floor spending after freedom may not fall below (ADR 0033).
-   * The larger of their actual cost over the last 12 months and the lowest
-   * tier's budget for them. Not scaled by the spending levers.
+   * The floor spending after freedom may not go below (ADR 0033): the lowest
+   * tier's (Secure) budget, or with no budget what the essentials
+   * (data-tables/essentials.json) cost over the last 12 months. Not scaled by
+   * the spending levers. `outdated`: floor-tier groups well under what they
+   * actually cost.
    */
   essentials?: {
     monthly: number;
     source: 'actual' | 'budgeted';
+    /** The tier that sets it, when budgeted. */
+    tier?: string;
     top: { categoryId: string; monthly: number }[];
+    outdated?: { group: string; actual: number; budgeted: number }[];
   };
 }

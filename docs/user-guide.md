@@ -303,11 +303,13 @@ falls a little. That is honest, not pessimistic.
   one spending a little less after freedom. **Use this plan** puts one in your plan (run it again to
   see it); **Save as scenario** keeps it to compare.
 
-**Essentials come first.** Spending after freedom can never go below what your essentials cost:
-housing, utilities, phone and internet, health, groceries and transport, from the last 12 months
-(or your lowest tier's budget for them, if that's more). If your plan or a tier's budget is below
-that, a plan check says so and offers a fix, and none of the searches, or the AI, will suggest a
-plan below it. Rent has to be categorised (Housing) to count; check Transactions if it isn't.
+**Your Secure budget is the floor.** Spending after freedom can never go below your Secure tier:
+every budget line at its Secure multiplier (lines you've set to 0 for Secure, like luxuries, don't
+count). A plan at Independent can come down to Secure, never below. If your plan or a tier's budget
+is below it, a plan check says so and offers a fix, and none of the searches, or the AI, will
+suggest a plan below it. If your rent or bills have actually cost well more than the Secure budget
+gives them, a note says the budget may be out of date. With no budget yet, what your essentials
+(housing, utilities, groceries, health, transport) cost over the last year stands in.
 
 **History.** Every run is kept with its date, the newest 20, on this device and encrypted with the
 rest of your data. The screen opens on your last run and says when your data or settings have

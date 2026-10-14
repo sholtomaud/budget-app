@@ -1,4 +1,4 @@
-# ADR 0033 — The essentials floor: no plan spends less than rent and food cost
+# ADR 0033 — The floor: no plan spends less than the Secure budget
 
 - Status: accepted
 - Date: 2026-10-13
@@ -17,21 +17,26 @@ alone is about $700 a week; 63 % of Secure (about $1,400 a month) can't pay it. 
   AI's proposals had no lower bound at all;
 - nothing compared spending after freedom with what the essentials cost.
 
-A plan that can't pay the rent is not freedom (NFR-MISSION-001). Every tier, every search and every
-proposal must respect a floor.
+A plan that can't pay the rent is not freedom (NFR-MISSION-001). Every search and every proposal
+must respect a floor, and the person has already said where it is: their Secure tier.
 
 ## Decision
 
-### What the essentials are, and what they cost
+### The floor is the Secure budget
 
-- **Essentials** are categories a household can't drop: housing, utilities, phone and internet,
-  health insurance, medical and pharmacy, groceries, public transport, fuel and car costs, and
-  bank fees (`data-tables/essentials.json`, editable; a group id covers its categories).
-- **Their cost a month** is the larger of what they cost over the last 12 months and what the
-  lowest tier budgets for them. Computed with the spending input (`essentials` on
-  `SpendingInput`), not scaled by the spending levers.
-- **The floor** on the spending-after-freedom lever is that cost divided by the tier's budget
-  (`minTierSpend`). Above 1 when the tier itself doesn't cover the essentials.
+- **The lowest tier is the floor.** Tiers are the person's own definition of how they could live:
+  Secure (the essentials), Independent, Luxury. Every budget line carries a multiplier per tier,
+  so the Secure tier is each line at its Secure multiplier; a line that tier leaves out (multiplier
+  0, a luxury) adds nothing. That total, a month, is the least a plan may spend after freedom.
+- **Per tier:** a plan at Independent may come down to the Secure total, not below; a plan at
+  Secure has no room below its own budget. The floor on the spending-after-freedom lever is the
+  Secure total divided by the plan tier's (`minTierSpend`).
+- **Out of date?** Where a group the floor depends on (housing, utilities, phone and internet) has
+  actually cost well more over the last 12 months than the Secure budget gives it (over 15 % and
+  $50 a month), a plan check notes it: if rent has gone up, the floor is too low until the budget
+  is updated.
+- **No budget yet:** what the essentials (`data-tables/essentials.json`: housing, utilities, phone
+  and internet, health, groceries, transport, bank fees) cost over the last 12 months stands in.
 
 ### Who respects it
 
@@ -45,17 +50,19 @@ proposal must respect a floor.
   `propose_plan` raises a proposal below the floor and says so; the system prompt forbids
   suggesting one.
 
-### Per tier
+### Spreadsheet budgets
 
-The floor is the same for every tier, because rent doesn't change with the tier. A Secure tier
-budgeted below it is flagged by the check, so the fix is to update the budget or choose a higher
-tier, not to "save" by not paying rent.
+Budgets exported from a spreadsheet like the project owner's import as they are: the header is
+found below a title row; the tier multipliers come from the "Fin. Secure / Indepnt / Luxury"
+columns, not the sheet's own weekly totals; reading stops at TOTALS, so calculators below it are
+ignored; rows with no period (notes, calculations) and amounts that aren't money ("33%") are
+skipped with a reason; a section label beside an item still starts a section.
 
 ## Consequences
 
 - **Honest plans:** no answer the app gives can rely on not paying for essentials.
-- **Categorisation matters:** rent filed as "uncategorised" isn't counted. The synthetic households
-  file rent that way, so their floor is groceries and fuel; real exports categorised by the bank
-  adapters (ADR 0030) usually name rent. The Transactions screen fixes the rest.
+- **The budget matters:** the floor is only as good as the Secure budget, which is why an
+  out-of-date one is pointed out. Without a budget, rent filed as "uncategorised" isn't counted
+  (the synthetic households file it that way); the Transactions screen fixes that.
 - **Tests:** unit tests for the check and its fix, the earliest search at the floor, and which
   categories count.

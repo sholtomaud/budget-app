@@ -21,7 +21,8 @@ export type CheckId =
   | 'all-cash'
   | 'over-spending'
   | 'credits'
-  | 'below-essentials';
+  | 'below-essentials'
+  | 'floor-outdated';
 
 export interface PlanCheck {
   id: CheckId;
@@ -177,16 +178,20 @@ export function checkPlan(setup: FreedomSetup, spending: SpendingInput, asOf: st
     const tierOnly = after / Math.max(1e-9, lever);
     const what = e.top.map((t) => categoryName(t.categoryId, []).toLowerCase()).join(', ');
     const tierName = setup.goal.tier.charAt(0).toUpperCase() + setup.goal.tier.slice(1);
+    const floorName =
+      e.source === 'budgeted'
+        ? `your ${e.tier ?? 'lowest'} budget (about ${aud(e.monthly)} a month: ${what}), the least the plan can live on`
+        : `what your essentials cost now (about ${aud(e.monthly)} a month: ${what})`;
     out.push({
       id: 'below-essentials',
       level: 'problem',
       text:
         tierOnly < e.monthly * 0.99
-          ? `The ${tierName} tier budgets about ${aud(tierOnly)} a month after freedom, less than your essentials cost now (about ${aud(e.monthly)} a month: ${what}). A plan on it can't pay for them. Update that tier's budget, choose a higher tier, or set spending after freedom to cover them.`
-          : `Spending after freedom is set to ${Math.round(lever * 100)} % of the ${tierName} tier, about ${aud(after)} a month: less than your essentials cost now (about ${aud(e.monthly)} a month: ${what}). A plan like that can't pay for them.`,
+          ? `The ${tierName} tier budgets about ${aud(tierOnly)} a month after freedom, less than ${floorName}. Choose a higher tier, or update that tier's budget.`
+          : `Spending after freedom is set to ${Math.round(lever * 100)} % of the ${tierName} tier, about ${aud(after)} a month: less than ${floorName}. A plan like that can't pay for it.`,
       fix: {
         label: `Spend at least ${aud(e.monthly)} a month after freedom`,
-        summary: `spending after freedom raised to ${Math.round(need * 100)} % of the tier, enough for your essentials`,
+        summary: `spending after freedom raised to ${Math.round(need * 100)} % of the tier, enough for ${e.source === 'budgeted' ? `your ${e.tier ?? 'lowest'} budget` : 'your essentials'}`,
         setup: {
           ...setup,
           levers: { tierSpend: need, currentSpend: setup.levers?.currentSpend ?? 1 },
@@ -194,6 +199,14 @@ export function checkPlan(setup: FreedomSetup, spending: SpendingInput, asOf: st
       },
     });
   }
+
+  // 8. The floor tier's budget well under what a group actually costs (ADR 0033).
+  for (const o of e?.outdated ?? [])
+    out.push({
+      id: 'floor-outdated',
+      level: 'note',
+      text: `${o.group.charAt(0).toUpperCase() + o.group.slice(1)}: about ${aud(o.actual)} a month over the last 12 months, but your ${e!.tier ?? 'lowest'} budget has about ${aud(o.budgeted)}. Plans are held to that budget as the least you can live on, so if it's out of date (rent gone up?), update it on the Budget screen.`,
+    });
   return out;
 }
 

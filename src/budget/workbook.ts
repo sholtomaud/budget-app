@@ -173,6 +173,9 @@ export function detect(rows: string[][]): Mapping {
     score: -1,
     headerRow: 0,
   };
+  // The header need not be the first row: exported sheets often start with a
+  // title row ("OUTGOINGS (CONSUMPTION or EXPENSES)"). The best-scoring of the
+  // first 20 rows wins; the first row only if nothing scores better.
   for (let i = 0; i < Math.min(rows.length, 20); i++) {
     const r = rows[i]!;
     if (isComment(r) || isBlank(r)) continue;
@@ -183,7 +186,6 @@ export function detect(rows: string[][]): Mapping {
       const score = sig * 3 + fields;
       if (score > best.score) best = { type, score, headerRow: i };
     }
-    break;
   }
   return mappingFor(rows, best.type, best.headerRow);
 }
@@ -206,6 +208,8 @@ export function mappingFor(rows: string[][], type: SheetType, headerRow: number)
   if (type === 'opex') {
     headers.forEach((h, i) => {
       if (used.has(i)) return;
+      // "Fin Secure (wk)" is the sheet's own weekly total, not a multiplier.
+      if (/\(wk\)|\bwk\b|week|normalis|normaliz|total/.test(h)) return;
       if (/secure/.test(h)) tierColumns[i] = 'secure';
       else if (/indep/.test(h)) tierColumns[i] = 'independent';
       else if (/lux/.test(h)) tierColumns[i] = 'luxury';
@@ -319,20 +323,21 @@ export function preview(file: string, text: string, opts: PreviewOptions = {}): 
 
     if (mapping.type === 'opex') {
       const first = (r[0] ?? '').trim();
-      if (/^total/i.test(first)) {
+      // A totals row ends the budget: sheets often keep calculators below it.
+      if (/^totals?\b/i.test(first) || /^totals?\b/i.test(col(r, 'item'))) {
         for (const [idx, tier] of Object.entries(mapping.tierColumns)) {
           const v = parseMoney(r[Number(idx)] ?? '');
           if (v !== undefined) fileTotals[tier] = Number(v);
         }
-        continue;
+        break;
       }
       const item = col(r, 'item');
       const costCell = col(r, 'cost');
-      if (!item && !costCell) {
-        const cat = col(r, 'category');
-        if (cat) section = cat;
-        continue;
-      }
+      // A section label sits in the category column, alone or beside the first item.
+      // An amount there is a stray calculation, not a section.
+      const cat = col(r, 'category');
+      if (cat && parseMoney(cat) === undefined) section = cat;
+      if (!item && !costCell) continue;
       if (mapping.columns.cost !== undefined && errorCols.has(mapping.columns.cost)) continue;
       const cost = parseMoney(costCell);
       if (cost === undefined) {
@@ -343,7 +348,15 @@ export function preview(file: string, text: string, opts: PreviewOptions = {}): 
         });
         continue;
       }
-      const unit = col(r, 'unit') || 'm';
+      const unit = col(r, 'unit');
+      if (!unit) {
+        issues.push({
+          row: rowNo,
+          column: 'Unit',
+          message: `No period for "${item || costCell}"; row skipped (a note or a calculation?)`,
+        });
+        continue;
+      }
       if (perWeek(unit, periods) === undefined) {
         issues.push({
           row: rowNo,
@@ -367,7 +380,7 @@ export function preview(file: string, text: string, opts: PreviewOptions = {}): 
           });
       }
       const sub = col(r, 'subCategory');
-      const sectionId = slug(col(r, 'category') || section || 'other');
+      const sectionId = slug(section || 'other');
       let categoryId = sub.includes('.') ? sub : `${sectionId}.${slug(sub || item)}`;
       categoryId = opts.categoryMap?.[categoryId] ?? categoryId;
       const line: BudgetLine = {

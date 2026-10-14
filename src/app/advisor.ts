@@ -262,10 +262,18 @@ export async function runTool(
               ? {
                   essentialsPerMonth: rough(BigInt(Math.round(e.monthly * 100))),
                   essentialsFrom:
-                    e.source === 'actual'
-                      ? 'what they cost over the last 12 months'
-                      : 'the lowest tier budget',
-                  lowestSpendingAfterFreedom: `${pct(minTierSpend(sp, lever))} of the tier: below this the essentials (rent, groceries, utilities…) can't be paid`,
+                    e.source === 'budgeted'
+                      ? `the ${e.tier ?? 'lowest'} tier's budget: the least the plan can live on`
+                      : 'what the essentials cost over the last 12 months (there is no budget yet)',
+                  ...(e.outdated?.length
+                    ? {
+                        budgetMayBeOutOfDate: e.outdated.map(
+                          (o) =>
+                            `${o.group}: about ${rough(BigInt(Math.round(o.actual * 100)))} a month actually spent, ${rough(BigInt(Math.round(o.budgeted * 100)))} budgeted`
+                        ),
+                      }
+                    : {}),
+                  lowestSpendingAfterFreedom: `${pct(minTierSpend(sp, lever))} of the tier: below this the plan can't pay for its floor`,
                 }
               : {}),
           };
