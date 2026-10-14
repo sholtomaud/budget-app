@@ -278,6 +278,8 @@ export interface PreviewOptions {
   tiers?: Tier[];
   /** Imported category id → app category id. */
   categoryMap?: Record<string, string>;
+  /** Budget lines' categories by source row (FR-ING-019): rules, the AI or the person. */
+  lineCategories?: Record<number, string>;
   defaultLife?: (categoryId: string) => { meanYears: number; shape: number };
   synthetic?: boolean;
 }
@@ -382,7 +384,7 @@ export function preview(file: string, text: string, opts: PreviewOptions = {}): 
       const sub = col(r, 'subCategory');
       const sectionId = slug(section || 'other');
       let categoryId = sub.includes('.') ? sub : `${sectionId}.${slug(sub || item)}`;
-      categoryId = opts.categoryMap?.[categoryId] ?? categoryId;
+      categoryId = opts.categoryMap?.[categoryId] ?? opts.lineCategories?.[rowNo] ?? categoryId;
       const line: BudgetLine = {
         id: `${file}#${rowNo}`,
         categoryId,

@@ -5,7 +5,7 @@
 
 | | |
 |---|---|
-| Status | Draft 18: M0–M9, the chat panel, plan guidance, and M10's setup by chatting, charts in the chat and bank and accounting CSV import, the earliest freedom date, and Run my plan with dated runs, the essentials floor and prior sensitivity of pSuccess built (ADRs 0001–0013, 0019–0028, 0030–0033); M10–M15 planned, with proposed directions in ADRs 0014, 0016–0018, 0027–0029 |
+| Status | Draft 18: M0–M9, the chat panel, plan guidance, and M10's setup by chatting, charts in the chat and bank and accounting CSV import, the earliest freedom date, and Run my plan with dated runs, the floor, prior sensitivity of pSuccess and budget lines on standard categories built (ADRs 0001–0013, 0019–0028, 0030–0034); M10–M15 planned, with proposed directions in ADRs 0014, 0016–0018, 0027–0029 |
 | Date | 2026-10-13 |
 | Kernel | [GSSK](https://github.com/energese-project/GSSK-Giannantoni), consumed as a pinned WebAssembly artefact |
 | Runtime | Browser only. Static site, no backend |
@@ -314,6 +314,7 @@ their spreadsheet program. The app does not read `.xlsx` (ADR 0003). Import goes
 | FR-ING-016 | **Learned mapper (M10).** A small in-browser model in ml-core classifies column and row roles from header tokens, value statistics and position. It is trained on synthetic budgets in many layouts and adapts to the user's own wizard corrections, kept locally. Gate: ≥ 95 % column accuracy on held-out synthetic layouts. |
 | FR-ING-017 | **LLM mapping assistant (M8, optional).** For layouts the first two tiers leave uncertain, an LLM proposes a mapping spec from the header rows and a few sampled rows, redacted with amounts bucketed (FR-API-003). It uses structured outputs: the Claude API's `output_config.format` with the JSON Schema or a `strict: true` tool, or `json_schema` response format on OpenAI-compatible providers. The response is re-validated locally. Consent and logging follow §13.1. |
 | FR-ING-018 | The wizard shows who suggested each column (rules, model or LLM) and their confidence. Every suggestion is editable. |
+| FR-ING-019 | **Budget lines onto standard categories.** Each budget line is put on one of the app's categories, which carry their COICOP 2018 code: by rules on the device (item, sub-category, section), then for the rest by the optional AI as a structured output limited to the app's category ids (sent names only, never amounts), and confirmed by the person, line by line in the wizard and in setup by chatting. ADR 0034. |
 
 ### 6.3 Bank and accounting CSVs (M10); later formats
 

@@ -82,6 +82,7 @@ export interface CsvProposal {
 export interface WorkbookOptions {
   mapping?: Mapping;
   categoryMap?: Record<string, string>;
+  lineCategories?: Record<number, string>;
 }
 
 export class DataService {

@@ -6,6 +6,19 @@ encryption and export, the checked spending model, and optional AI help
 ([SPEC §19](./spec.md#_19-milestones)).
 :::
 
+## Importing your budget spreadsheet
+
+Export the sheet as CSV and choose it on **Budget** (under _Import a budget CSV_) or in **Set up**.
+Title rows above the header, weekly-total columns, and calculators below the TOTALS row are fine:
+Crux reads the budget lines and tells you which rows it skipped and why.
+
+Each line is put on one of Crux's categories, so your budget and your transactions line up (Rent
+with rent, Electricity with electricity). The categories follow COICOP, the international
+standard for household spending. Most lines are matched on this device by name. With an AI
+provider on, **Match the other N with AI** asks it about the rest: it is sent the item names and
+sections only, never amounts, and can only answer with Crux's categories. The table shows who
+matched each line (the sheet, rules, AI or you); change any of them before importing.
+
 ## Set up by chatting
 
 **Set up by chatting** on Start (or **Set up** in the menu) opens a full-screen chat that sets Crux

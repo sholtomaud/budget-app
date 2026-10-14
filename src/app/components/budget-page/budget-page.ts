@@ -1,5 +1,6 @@
 import { BaseComponent, define } from '../../core/base-component.ts';
-import { suggestMapping } from '../../llm-actions.ts';
+import { suggestBudgetCategories, suggestMapping } from '../../llm-actions.ts';
+import { asLineCategories, ruleMappings, type LineMapping } from '../../../budget/category-map.ts';
 import {
   commitWorkbook,
   data,
@@ -305,15 +306,26 @@ export class BudgetPage extends BaseComponent {
     let mapping: Mapping | undefined;
     let categoryMap: Record<string, string> = {};
     let suggestedBy: string | null = null;
+    /** Budget lines' categories by row (FR-ING-019): sheet, rules, AI or you. */
+    let lineMaps: LineMapping[] | null = null;
+    let lineStatus = '';
     const rows = parseCsv(text);
 
     const draw = async () => {
+      const v = data.getState().view!;
+      // The lines as the sheet names them, for the rules and the AI.
+      const raw: WorkbookPreview = await previewWorkbook(name, text, {
+        ...(mapping ? { mapping } : {}),
+      });
+      if (raw.mapping.type === 'opex' && lineMaps === null)
+        lineMaps = ruleMappings(raw.lines, v.categories);
+      const opex = raw.mapping.type === 'opex';
       const p: WorkbookPreview = await previewWorkbook(name, text, {
         ...(mapping ? { mapping } : {}),
         categoryMap,
+        ...(opex && lineMaps ? { lineCategories: asLineCategories(lineMaps) } : {}),
       });
       mapping = p.mapping;
-      const v = data.getState().view!;
       const typeSel = document.createElement('select');
       typeSel.setAttribute('aria-label', 'Sheet type');
       for (const t of Object.keys(SHEET_LABEL) as SheetType[])
@@ -390,7 +402,63 @@ export class BudgetPage extends BaseComponent {
             )
           : null;
       const known = new Set(v.categories.map((c) => c.id));
-      const catRows = p.categoryIds.map((id) => {
+      const BY: Record<string, string> = {
+        sheet: 'the sheet',
+        rules: 'rules',
+        ai: 'AI',
+        you: 'you',
+      };
+      const byRow = new Map((lineMaps ?? []).map((m) => [m.row, m]));
+      const rawByRow = new Map(raw.lines.map((l) => [l.source?.row, l]));
+      const lineRows = opex
+        ? p.lines.map((l) => {
+            const row = l.source!.row;
+            const original = rawByRow.get(row);
+            const m = byRow.get(row);
+            const sel = categorySelect(
+              v.categories,
+              known.has(l.categoryId) ? l.categoryId : undefined,
+              known.has(l.categoryId) ? [] : [[l.categoryId, `Not matched: ${l.categoryId}`]]
+            );
+            sel.setAttribute('aria-label', `Category for ${l.item}`);
+            sel.onchange = () => {
+              lineMaps = [
+                ...(lineMaps ?? []).filter((x) => x.row !== row),
+                { row, categoryId: sel.value, by: 'you' },
+              ];
+              void draw();
+            };
+            return el(
+              'tr',
+              { 'data-row': String(row), 'data-by': m?.by ?? 'none' },
+              el('td', {}, l.item),
+              el('td', { class: 'muted' }, original?.categoryId.replace('.', ' / ') ?? ''),
+              el('td', {}, sel),
+              el('td', { class: 'muted by' }, m ? BY[m.by]! : 'not matched')
+            );
+          })
+        : [];
+      const unmatched = opex ? raw.lines.filter((l) => !byRow.has(l.source!.row)) : [];
+      const matchAi = el(
+        'button',
+        { type: 'button', class: 'secondary small match-ai' },
+        `Match the other ${count(unmatched.length)} with AI`
+      );
+      matchAi.disabled = unmatched.length === 0;
+      matchAi.onclick = async () => {
+        matchAi.disabled = true;
+        lineStatus = 'Asking…';
+        void draw();
+        try {
+          const r = await suggestBudgetCategories(unmatched, v.categories, name);
+          lineMaps = [...(lineMaps ?? []), ...r.mappings];
+          lineStatus = `${r.by} matched ${count(r.mappings.length)} of ${count(unmatched.length)}: check them before importing.`;
+        } catch (err) {
+          lineStatus = err instanceof Error ? err.message : String(err);
+        }
+        void draw();
+      };
+      const catRows = (opex ? [] : p.categoryIds).map((id) => {
         const sel = categorySelect(
           v.categories,
           known.has(id) ? id : undefined,
@@ -409,9 +477,11 @@ export class BudgetPage extends BaseComponent {
         `Import ${p.lines.length + p.assets.length + p.renewals.length + Object.keys(p.goal).length} rows`
       );
       commit.onclick = () =>
-        void commitWorkbook(name, text, { mapping: mapping!, categoryMap }).then(() =>
-          panel.remove()
-        );
+        void commitWorkbook(name, text, {
+          mapping: mapping!,
+          categoryMap,
+          ...(opex && lineMaps ? { lineCategories: asLineCategories(lineMaps) } : {}),
+        }).then(() => panel.remove());
       const cancel = el('button', { type: 'button', class: 'secondary' }, 'Cancel');
       cancel.onclick = () => panel.remove();
       const ai = el(
@@ -458,6 +528,39 @@ export class BudgetPage extends BaseComponent {
               { class: 'issues' },
               ...p.issues.map((i) =>
                 el('li', {}, `Row ${i.row}${i.column ? `, ${i.column}` : ''}: ${i.message}`)
+              )
+            )
+          : null,
+        lineRows.length
+          ? el(
+              'details',
+              { class: 'line-categories', open: '' },
+              el(
+                'summary',
+                {},
+                `Categories: ${count(lineRows.length - unmatched.length)} of ${count(lineRows.length)} lines matched`
+              ),
+              el('p', {}, matchAi, ' ', el('span', { class: 'muted', role: 'status' }, lineStatus)),
+              el(
+                'div',
+                { class: 'scroll' },
+                el(
+                  'table',
+                  {},
+                  el(
+                    'thead',
+                    {},
+                    el(
+                      'tr',
+                      {},
+                      el('th', {}, 'Item'),
+                      el('th', {}, 'In the sheet'),
+                      el('th', {}, 'Category'),
+                      el('th', {}, 'By')
+                    )
+                  ),
+                  el('tbody', {}, ...lineRows)
+                )
               )
             )
           : null,
