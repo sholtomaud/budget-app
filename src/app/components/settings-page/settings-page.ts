@@ -20,7 +20,7 @@ import {
   saveProviderSettings,
   setKey,
 } from '../../egress.ts';
-import { originAllowed } from '../../../api/providers.ts';
+import { isLocal, originAllowed } from '../../../api/providers.ts';
 import { loadHistories, saveHistories } from '../../freedom-inputs.ts';
 import { parsePriceHistory } from '../../../sim/history.ts';
 import { el } from '../../format.ts';
@@ -246,7 +246,11 @@ export class SettingsPage extends BaseComponent {
       f('endpoint').value = p.endpoint;
       f('model').value = p.model;
       f('key').value = '';
-      f('key').placeholder = hasKey(p.id) ? 'Key set for this session' : 'Not stored';
+      f('key').placeholder = hasKey(p.id)
+        ? 'Key set for this session'
+        : isLocal(p.endpoint)
+          ? 'Optional for a local server'
+          : 'Not stored';
     };
     active.onchange = fill;
     fill();
@@ -273,7 +277,7 @@ export class SettingsPage extends BaseComponent {
       msg(
         card,
         p
-          ? `${p.label} is on${hasKey(p.id) ? ', with a key for this session' : '; add a key to use it'}.`
+          ? `${p.label} is on${hasKey(p.id) ? ', with a key for this session' : isLocal(p.endpoint) ? ', on this computer: nothing leaves it' : '; add a key to use it'}.`
           : 'AI provider is off.',
         'ok'
       );

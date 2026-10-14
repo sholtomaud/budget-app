@@ -767,7 +767,7 @@ All of this is **off by default**. The app is complete without it.
 
 | ID | Requirement |
 |---|---|
-| FR-API-001 | Providers are configured in Settings (endpoint, model, key). **Keys are never stored on the device**: they are held in memory for the session, never written to storage or exports, forgotten on reload or lock, and sent only to their own endpoint (ADR 0021). |
+| FR-API-001 | Providers are configured in Settings (endpoint, model, key). **Keys are never stored on the device**: they are held in memory for the session, never written to storage or exports, forgotten on reload or lock, and sent only to their own endpoint (ADR 0021). A server on this computer (`localhost`) needs no key. |
 | FR-API-002 | Before each call, show the exact payload to be sent; the user confirms. "Don't ask again until the app reloads" MAY be offered per provider and purpose. |
 | FR-API-003 | **Redaction by default.** Payloads never contain account IDs, masked numbers, BSB/account numbers, names of people, addresses or exact balances. Amounts are bucketed or rounded. |
 | FR-API-004 | Every call is logged locally (time, provider, purpose, origin, payload hash, bytes sent, status) and shown in Settings. |

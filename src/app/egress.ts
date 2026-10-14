@@ -9,7 +9,12 @@
  *   4. the call is logged locally: time, provider, purpose, payload hash, bytes.
  */
 import { authHeaders, parseReply, type HttpRequest, type Reply } from '../api/llm.ts';
-import { DEFAULT_PROVIDERS, originAllowed, type ProviderConfig } from '../api/providers.ts';
+import {
+  DEFAULT_PROVIDERS,
+  isLocal,
+  originAllowed,
+  type ProviderConfig,
+} from '../api/providers.ts';
 import { SseParser, STALL_MS, streamFolder, watchdog, type StreamDelta } from '../api/stream.ts';
 import { sha256Hex } from '../lib/hash.ts';
 import { askConsent } from './components/consent-dialog/consent-dialog.ts';
@@ -58,7 +63,7 @@ export async function activeProvider(): Promise<
   const s = await loadProviderSettings();
   const p = s.providers.find((x) => x.id === s.active);
   if (!p) return { ok: false, reason: 'No AI provider is turned on. Choose one in Settings.' };
-  if (!hasKey(p.id))
+  if (!hasKey(p.id) && !isLocal(p.endpoint))
     return { ok: false, reason: `Enter your ${p.label} API key in Settings for this session.` };
   return { ok: true, provider: p };
 }
@@ -105,8 +110,10 @@ async function prepare(opts: SendOptions) {
   const headers: Record<string, string> = { ...req.headers };
   if (opts.auth) {
     const k = keys.get(opts.auth.id);
-    if (!k) throw new Error(`No API key for ${opts.auth.label} in this session`);
-    Object.assign(headers, authHeaders(opts.auth, k));
+    // A local server may run without a key (llama-server without --api-key, Ollama).
+    if (k) Object.assign(headers, authHeaders(opts.auth, k));
+    else if (!isLocal(opts.auth.endpoint))
+      throw new Error(`No API key for ${opts.auth.label} in this session`);
   }
   const entry: EgressLogEntry = {
     at: new Date().toISOString(),
