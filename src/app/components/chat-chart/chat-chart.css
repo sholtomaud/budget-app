@@ -37,6 +37,14 @@
   border-radius: 2px;
   background: var(--swatch);
 }
+:host .legend .key.light::before {
+  opacity: 0.45;
+}
+:host .legend .key.dashed::before {
+  background: transparent;
+  border: 2px dashed var(--swatch);
+  box-sizing: border-box;
+}
 :host figcaption {
   font-size: 0.8125rem;
   color: var(--text-muted);

@@ -53,6 +53,11 @@ too. With an AI provider on, you can ask for other charts in your own words; the
 chart, and Crux works out every value itself, so the numbers are always your data's. If part of a
 chart has nothing in it (a budget you haven't set, say), it is left out and the chart says so.
 
+The AI can break a line down by category over time ("my spending against budget by category, month
+by month"): each category gets its own colour, and its budget is drawn in the same colour, lighter
+or dashed. It shows the biggest few categories and puts the rest under "Everything else". If
+spending comes out below zero, the chart says so: an import may have its signs flipped.
+
 After you've run your plan, **Chart my savings over time** shows your savings in today's dollars a
 year at a time to the end of freedom: the typical future, the range most futures fall in, and your
 floor (dashed). It comes from your latest run and says when that run is out of date.

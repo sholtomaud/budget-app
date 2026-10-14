@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Crux chart spec (ADR 0028)",
+  "title": "Crux chart spec (ADR 0028, ADR 0035)",
   "type": "object",
   "additionalProperties": false,
   "required": ["kind", "title", "groupBy", "series"],
@@ -41,6 +41,18 @@
           "measure": {
             "type": "string",
             "enum": ["sum", "count"]
+          },
+          "splitBy": {
+            "type": "string",
+            "enum": ["category", "group"]
+          },
+          "hue": {
+            "type": "string",
+            "maxLength": 40
+          },
+          "look": {
+            "type": "string",
+            "enum": ["solid", "light", "dashed"]
           },
           "filter": {
             "type": "object",
