@@ -1,8 +1,14 @@
 /** Streamed replies (ADR 0024): SSE parsing and folding into a Reply. */
-import { describe, expect, test } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 import { chatRequest, type Turn } from '../../src/api/llm.ts';
 import { DEFAULT_PROVIDERS } from '../../src/api/providers.ts';
-import { SseParser, streamFolder, type StreamDelta } from '../../src/api/stream.ts';
+import {
+  SseParser,
+  STALL_MS,
+  streamFolder,
+  watchdog,
+  type StreamDelta,
+} from '../../src/api/stream.ts';
 import { Rng } from '../../src/lib/prng.ts';
 
 const provider = (id: string) => DEFAULT_PROVIDERS.find((p) => p.id === id)!;
@@ -361,5 +367,31 @@ describe('streamed chat requests', () => {
     expect(chatRequest(gemini, { system: 's', turns, tools: [], stream: true }).body.stream).toBe(
       true
     );
+  });
+});
+
+describe('a reply that goes quiet is given up on, not waited for for ever', () => {
+  test('the watchdog fires once after the silence, and each chunk resets it', () => {
+    vi.useFakeTimers();
+    try {
+      let stalls = 0;
+      const dog = watchdog(1000, () => stalls++);
+      vi.advanceTimersByTime(900);
+      dog.kick();
+      vi.advanceTimersByTime(900);
+      expect(stalls).toBe(0);
+      vi.advanceTimersByTime(200);
+      expect(stalls).toBe(1);
+      dog.kick();
+      vi.advanceTimersByTime(5000);
+      expect(stalls).toBe(1);
+      const quiet = watchdog(1000, () => stalls++);
+      quiet.stop();
+      vi.advanceTimersByTime(5000);
+      expect(stalls).toBe(1);
+      expect(STALL_MS).toBeGreaterThanOrEqual(60_000);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

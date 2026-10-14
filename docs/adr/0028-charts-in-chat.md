@@ -76,6 +76,34 @@ words that isn't in that summary is flagged "unverified figure", as today.
   latest Run my plan's capital in today's dollars, a point a year, with its bands and the floor. It
   stands alone (one series, by year) and is the only dataset a fan accepts.
 
+### Big purchases, ahead of today (added after the first release)
+
+The first vocabulary held only the past: spending, income and the budget. Asked "when can I make
+my big purchases into the future?", the AI had no dataset to name and declined the chart. Added:
+
+- **Dataset `big-purchases`:** the CAPEX register, in the future, provenance **forecast**. An owned
+  item that is replaced falls due at its median replacement date (P50, FR-CAP-001) and again every
+  average life after it, its cost grown by its real growth rate; a wish-list or planned item at its
+  buy-by date, or this month without one (FR-CAP-004). Deferred, dropped and retired items, and
+  items above the plan's tier, are left out. It runs from this month to the Big purchases screen's
+  horizon. Deterministic: no sampling, so a saved chart re-runs to the same picture.
+- **Grouping `item`** (a bar per big purchase or budget line) and **filter `nextMonths`**.
+- **Totals, not averages:** grouped by item, category or group, big purchases are totals over the
+  range. Mixing them with the averaged datasets is allowed only on a time axis, where past spending
+  and future purchases share one timeline.
+- **What the AI gets back** for a big-purchases series also lists what falls due when (month, item,
+  rounded cost), so it can say which purchase lands when without producing a number.
+- **Built in:** "chart my big purchases" and the like are recognised on the device.
+- **The prompt:** asked for a chart, the AI tries `make_chart` before saying a chart can't be drawn,
+  and fixes the spec on an error. The vocabulary is still the limit; the AI now says so only after
+  trying.
+
+### A provider that goes quiet
+
+A streamed reply that sends nothing for 90 s (no headers, or no bytes after them) is abandoned with
+a reason in words ("Google Gemini stopped replying…"), and the question can be asked again. While
+it waits, the step counts the seconds, so a slow reply reads as alive.
+
 ### How an AI-designed chart is validated
 
 1. **Shape, by the provider.** `make_chart` is a strict tool (ADR 0021's convention: every

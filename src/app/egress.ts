@@ -10,7 +10,7 @@
  */
 import { authHeaders, parseReply, type HttpRequest, type Reply } from '../api/llm.ts';
 import { DEFAULT_PROVIDERS, originAllowed, type ProviderConfig } from '../api/providers.ts';
-import { SseParser, streamFolder, type StreamDelta } from '../api/stream.ts';
+import { SseParser, STALL_MS, streamFolder, watchdog, type StreamDelta } from '../api/stream.ts';
 import { sha256Hex } from '../lib/hash.ts';
 import { askConsent } from './components/consent-dialog/consent-dialog.ts';
 import { sim } from './workers.ts';
@@ -148,13 +148,19 @@ export async function sendStream(
   }
 ): Promise<Reply> {
   const { method, body, headers, entry } = await prepare(opts);
+  // Stop (the person's signal) and silence (the watchdog) both abort the fetch.
+  const ctl = new AbortController();
+  const relay = () => ctl.abort(opts.signal?.reason);
+  if (opts.signal?.aborted) relay();
+  opts.signal?.addEventListener('abort', relay, { once: true });
+  let stalled = false;
+  const dog = watchdog(STALL_MS, () => {
+    stalled = true;
+    ctl.abort();
+  });
   try {
-    const res = await fetch(opts.request.url, {
-      method,
-      headers,
-      body,
-      ...(opts.signal ? { signal: opts.signal } : {}),
-    });
+    const res = await fetch(opts.request.url, { method, headers, body, signal: ctl.signal });
+    dog.kick();
     entry.status = res.status;
     opts.onSent?.();
     if (!res.ok) {
@@ -172,11 +178,20 @@ export async function sendStream(
     for (;;) {
       const { done, value } = await reader.read();
       if (done) break;
+      dog.kick();
       take(parser.push(value));
     }
     take(parser.end());
     return folder.finish();
+  } catch (err) {
+    if (stalled && !opts.signal?.aborted)
+      throw new Error(
+        `${opts.provider.label} stopped replying: nothing arrived for ${STALL_MS / 1000} s. Try again, or choose another model in Settings.`
+      );
+    throw err;
   } finally {
+    dog.stop();
+    opts.signal?.removeEventListener('abort', relay);
     await sim().appendEgressLog(entry);
   }
 }

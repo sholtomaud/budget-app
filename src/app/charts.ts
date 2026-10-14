@@ -40,6 +40,9 @@ export async function buildChart(
     lines: v.budget.lines,
     periods: v.budget.periods,
     tier: setup.goal.tier,
+    assets: v.assets,
+    tiers: v.budget.tiers,
+    horizonYears: v.budget.settings.horizonYears,
     ...(last
       ? {
           capital: {
@@ -61,10 +64,15 @@ export async function buildChart(
   return { ok: true, chart: { spec: s, table: r.table, at: new Date().toISOString() } };
 }
 
+/** Big purchases listed for the AI, soonest first; the chart shows them all. */
+const MAX_PURCHASES = 20;
+
 /**
  * What the AI gets back for a chart it designed (FR-VIZ-004): per series, the
  * total and the highest and lowest points, rounded (FR-API-003). Enough to
- * write about the chart; the chart itself shows the exact values.
+ * write about the chart; the chart itself shows the exact values. A big
+ * purchases series also lists what falls due when, so the AI can say which
+ * purchase lands in which month.
  */
 export function chartFacts(c: BuiltChart): Record<string, unknown> {
   const t = c.table;
@@ -74,12 +82,11 @@ export function chartFacts(c: BuiltChart): Record<string, unknown> {
     title: c.spec.title,
     points: t.labels.length,
     window: t.window,
-    valuesAre:
-      t.series[0]?.provenance === 'forecast'
-        ? "savings in today's dollars at each year, across the simulated futures"
-        : t.perMonth
-          ? 'monthly averages'
-          : 'totals per period',
+    valuesAre: t.series[0]?.role
+      ? "savings in today's dollars at each year, across the simulated futures"
+      : t.perMonth
+        ? 'monthly averages'
+        : 'totals per period',
     ...(t.floor !== undefined ? { floor: roughAmount(t.floor) } : {}),
     series: t.series.map((s) => {
       const fmt = (x: number) => (s.unit === 'count' ? Math.round(x) : roughAmount(x));
@@ -89,7 +96,8 @@ export function chartFacts(c: BuiltChart): Record<string, unknown> {
         if (x > s.values[hi]!) hi = i;
         if (x < s.values[lo]!) lo = i;
       });
-      if (s.provenance === 'forecast')
+      // Savings over time (a quantile of the futures): where it starts and ends, not a total.
+      if (s.role)
         return {
           label: s.label,
           provenance: s.provenance,
@@ -110,6 +118,18 @@ export function chartFacts(c: BuiltChart): Record<string, unknown> {
         average: fmt(total / Math.max(1, s.values.length)),
         highest: { at: t.labels[hi], value: fmt(s.values[hi] ?? 0) },
         lowest: { at: t.labels[lo], value: fmt(s.values[lo] ?? 0) },
+        ...(s.purchases
+          ? {
+              fallsDue: s.purchases.slice(0, MAX_PURCHASES).map((p) => ({
+                when: p.month,
+                item: p.item,
+                cost: roughAmount(p.value),
+              })),
+              ...(s.purchases.length > MAX_PURCHASES
+                ? { more: s.purchases.length - MAX_PURCHASES }
+                : {}),
+            }
+          : {}),
       };
     }),
   };

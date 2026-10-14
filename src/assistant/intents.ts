@@ -24,8 +24,8 @@ export type Intent =
 
 /** A chart asked for in words (ADR 0028): turned into a spec by src/viz/requests.ts. */
 export interface ChartRequest {
-  dataset: 'spending' | 'income' | 'capital';
-  groupBy: 'month' | 'quarter' | 'year' | 'category' | 'group' | 'merchant';
+  dataset: 'spending' | 'income' | 'big-purchases' | 'capital';
+  groupBy: 'month' | 'quarter' | 'year' | 'category' | 'group' | 'merchant' | 'item';
   /** "on groceries": a category, group or words to look for. */
   topic?: string;
   months?: number;
@@ -57,6 +57,25 @@ export function matchChart(t: string): ChartRequest | null {
         ? 'quarter'
         : undefined;
   if (!chartWord && !(/\bshow\b/.test(t) && (by || time) && (income || spending))) return null;
+  // "When can I make my big purchases?": the register's timeline, ahead of today.
+  if (/\b(big purchases?|big[- ]ticket|capex|replacements?)\b/.test(t) && !spending && !income) {
+    const ahead = /\b(?:next|coming)\s+(\d+)\s+(months?|years?)\b/.exec(t);
+    const groupBy: ChartRequest['groupBy'] = /\b(by|per|each) (item|thing)s?\b/.test(t)
+      ? 'item'
+      : by === 'category' || by === 'categories'
+        ? 'category'
+        : by === 'month' || by === 'quarter' || by === 'year' || by === 'group'
+          ? by
+          : (time ?? 'year');
+    return {
+      dataset: 'big-purchases',
+      groupBy,
+      ...(ahead
+        ? { months: Math.min(600, Number(ahead[1]) * (ahead[2]!.startsWith('year') ? 12 : 1)) }
+        : {}),
+      vsBudget: false,
+    };
+  }
   const groupBy: ChartRequest['groupBy'] =
     by === 'categories' || by === 'category'
       ? 'category'

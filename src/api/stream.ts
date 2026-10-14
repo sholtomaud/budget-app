@@ -309,3 +309,32 @@ class OpenAiFolder implements StreamFolder {
     };
   }
 }
+
+/** A reply that goes quiet for this long is given up on (no bytes at all). */
+export const STALL_MS = 90_000;
+
+/**
+ * Calls `onStall` once when `kick` hasn't been called for `ms`: the provider
+ * accepted the request, then went silent. Without it a dropped or stuck
+ * stream would leave "Waiting for its reply…" on screen for ever.
+ */
+export function watchdog(ms: number, onStall: () => void): { kick(): void; stop(): void } {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  let done = false;
+  const kick = () => {
+    if (done) return;
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      done = true;
+      onStall();
+    }, ms);
+  };
+  kick();
+  return {
+    kick,
+    stop: () => {
+      done = true;
+      clearTimeout(timer);
+    },
+  };
+}
