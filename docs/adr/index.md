@@ -35,6 +35,7 @@ Every deviation from the [specification](../spec.md) gets one.
 | [0028](./0028-charts-in-chat.md)                           | Charts in the chat: specs the app fills with its own data, AI-designed charts, saved charts          | Accepted            |
 | [0029](./0029-one-click-plans-and-compute.md)              | One-click plans: three different plans (NSGA-II), screen-then-confirm runs, WebGPU screening         | Accepted (part)     |
 | [0030](./0030-bank-csv-adapters.md)                        | Bank and accounting CSVs: presets, a learned column mapper that learns from corrections              | Accepted            |
+| [0036](./0036-dashboards.md)                               | Dashboards: named layouts of built-in and saved charts, drag or buttons, drawn from today's data     | Accepted            |
 | [0034](./0034-budget-categories-and-coicop.md)             | Budget lines onto standard (COICOP) categories: rules, then a structured output, then you            | Accepted            |
 | [0033](./0033-essentials-floor.md)                         | The floor: no plan, search or proposal spends less than the Secure budget                            | Accepted            |
 | [0032](./0032-run-my-plan-and-history.md)                  | Run my plan: one button, a dated history, the same run for the AI (run_my_plan, get_plan_history)    | Accepted            |

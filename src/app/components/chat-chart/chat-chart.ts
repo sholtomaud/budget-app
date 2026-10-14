@@ -49,6 +49,8 @@ export class ChatChart extends BaseComponent {
   private _item: ChartItem | null = null;
   /** Hide Save (on the Saved charts screen). */
   saveable = true;
+  /** full: everything; tile: no buttons (a dashboard); thumb: the title and the plot only. */
+  mode: 'full' | 'tile' | 'thumb' = 'full';
 
   constructor() {
     super('<figure></figure>', style);
@@ -75,6 +77,7 @@ export class ChatChart extends BaseComponent {
     fig.replaceChildren(el('p', { class: 'title' }, spec.title));
     if (spec.kind === 'table') fig.append(this.tableView(table));
     else fig.append(this.svg(spec, table));
+    if (this.mode === 'thumb') return;
     fig.append(this.legend(table, spec.kind));
     const caption = [
       spec.caption ?? '',
@@ -86,7 +89,7 @@ export class ChatChart extends BaseComponent {
       .filter(Boolean)
       .join(' ');
     if (caption) fig.append(el('figcaption', {}, caption));
-    fig.append(this.tools(c));
+    if (this.mode === 'full') fig.append(this.tools(c));
   }
 
   private legend(t: ChartTable, kind: ChartSpec['kind']): HTMLElement {

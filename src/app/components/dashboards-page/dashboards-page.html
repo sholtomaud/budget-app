@@ -1,0 +1,43 @@
+<section class="screen">
+  <h1>Dashboards</h1>
+  <p class="lede">
+    The charts you look at most, on one page. Drag a chart from the list into the dashboard, or use
+    its <strong>Add</strong> button. A dashboard redraws from today's data each time you open it,
+    and is kept on this device with the rest of your data.
+  </p>
+  <div class="bar">
+    <label
+      >Dashboard
+      <select class="pick"></select
+    ></label>
+    <button type="button" class="secondary small new">New</button>
+    <button type="button" class="secondary small rename">Rename</button>
+    <button type="button" class="secondary small copy">Duplicate</button>
+    <button type="button" class="secondary small delete">Delete</button>
+  </div>
+  <form class="rename-form" aria-label="Rename dashboard" hidden>
+    <label>Name <input type="text" name="name" maxlength="60" required /></label>
+    <button type="submit" class="small">Save name</button>
+    <button type="button" class="secondary small cancel">Cancel</button>
+  </form>
+  <p class="confirm" hidden>
+    <span class="confirm-text"></span>
+    <button type="button" class="small yes">Delete it</button>
+    <button type="button" class="secondary small no">Keep it</button>
+  </p>
+  <p class="status muted" role="status" aria-live="polite"></p>
+  <div class="layout">
+    <aside class="rail" aria-labelledby="rail-title">
+      <h2 id="rail-title">Charts</h2>
+      <h3>Built in</h3>
+      <ul class="builtin"></ul>
+      <h3>Saved</h3>
+      <ul class="saved"></ul>
+      <p class="no-saved muted" hidden>
+        Charts you save from the chat appear here. Ask for one, then choose
+        <strong>Save chart</strong>.
+      </p>
+    </aside>
+    <ol class="grid" aria-label="Charts on this dashboard"></ol>
+  </div>
+</section>

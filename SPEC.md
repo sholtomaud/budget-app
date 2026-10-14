@@ -731,6 +731,7 @@ uncertain.
 | **Scenarios** | Side-by-side comparison (up to 4); optimiser; diff of decisions. |
 | **Chat panel** (was Advisor) | Docked on the right of every screen, open by default on wide screens, a sheet on phones. Common questions and requests are answered on the device from the app's own results; others go to the optional AI provider (§13). Every reply says which. Changes are proposed as cards to Apply or Undo. ADR 0023. |
 | **Chat** (route `/chat`; M10) | A full-width chat beside Start, offered from Start and the menu; the menu on the left, a hamburger on phones. Guided setup, goals in words, charts and cards in the conversation. Start stays the default landing page until the chat setup proves itself (ADR 0027). |
+| **Dashboards** | Named layouts of charts (built-in and saved), drawn from today's data: a list of charts to drag in or add with a button, tiles to move, widen and remove; new, rename, duplicate, delete (ADR 0036). |
 | **Saved charts** (M10) | Charts saved from the chat: as they were, or with today's data; download as SVG, PNG or CSV (ADR 0028). |
 | **Engine check** (route `/kernel`; linked from Settings and Start, not in the menu) | Pinned GSSK version, commit and SHA-256 verification status. Runs GSSK's household example model in the `sim` worker as a smoke test (M0). |
 | **Settings** | Timezone, currency, CPI, period table, categories, rules, tax tables, return models, API providers and keys, encryption, export/import, delete all data. |
@@ -756,6 +757,7 @@ uncertain.
 | FR-VIZ-004 | Chart commentary: templated for built-in charts; for AI-designed charts, written from the app's redacted summary, with figures not in that summary flagged "unverified figure". |
 | FR-VIZ-005 | Any chart can be saved: spec, title, caption and a snapshot of the values with its run reference, in the encrypted vault, included in export and removed by delete-all. A saved chart shows the snapshot or re-runs on today's data. |
 | FR-VIZ-006 | Saved charts download as SVG, PNG and CSV. |
+| FR-VIZ-008 | Dashboards: named layouts of up to 12 charts, each a built-in chart, a saved chart or a chart spec, never values, drawn from today's data. Kept in the vault (exports, delete-all). Every drag has a button equivalent (keyboard, phones). A dashboard from outside the app (a template file, the AI) is checked against `DASHBOARD_SCHEMA` and each chart as a chart. ADR 0036. |
 
 ---
 

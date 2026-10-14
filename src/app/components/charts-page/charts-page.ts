@@ -4,7 +4,7 @@
  */
 import { BaseComponent, define } from '../../core/base-component.ts';
 import { buildChart, deleteChart, loadCharts, type SavedChart } from '../../charts.ts';
-import { ensureLoaded } from '../../data.ts';
+import { data, ensureLoaded } from '../../data.ts';
 import { dateTime, el } from '../../format.ts';
 import type { ChatChart } from '../chat-chart/chat-chart.ts';
 import '../chat-chart/chat-chart.ts';
@@ -44,7 +44,7 @@ export class ChartsPage extends BaseComponent {
           chart.item = c;
           status.textContent = '';
         } else {
-          const r = await buildChart(await ensureLoaded(), c.spec);
+          const r = await buildChart(data.getState().view ?? (await ensureLoaded()), c.spec);
           if (!r.ok) {
             status.textContent = r.error;
             return;

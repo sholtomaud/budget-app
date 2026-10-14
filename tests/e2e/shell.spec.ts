@@ -40,6 +40,8 @@ test('every SPEC §12 screen is reachable from the nav', async ({ page }) => {
     'Forecast',
     'Freedom',
     'Scenarios',
+    'Dashboards',
+    'Saved charts',
     'Settings',
   ];
   for (const label of labels) {
