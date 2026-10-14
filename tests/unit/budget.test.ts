@@ -8,7 +8,13 @@ import {
 } from '../../src/budget/lifetime.ts';
 import { DEFAULT_TIERS, type BudgetLine } from '../../src/budget/model.ts';
 import { perWeek } from '../../src/budget/periods.ts';
-import { detect, parseDate, parseMoney, preview } from '../../src/budget/workbook.ts';
+import {
+  detect,
+  isBudgetSheet,
+  parseDate,
+  parseMoney,
+  preview,
+} from '../../src/budget/workbook.ts';
 import { parseCsv } from '../../src/lib/csv.ts';
 import { Rng, weibullScale } from '../../src/lib/prng.ts';
 import type { Asset, Txn } from '../../src/domain/types.ts';
@@ -41,6 +47,8 @@ describe('workbook CSV import (FR-ING-010…014)', () => {
       for (const l of p.lines) expect(rows[l.source!.row - 1]![1]).toBe(l.item);
       expect(p.lines.every((l) => l.categoryId.includes('.'))).toBe(true);
       expect(p.issues).toEqual([]);
+      expect(isBudgetSheet(text)).toBe(true);
+      expect(isBudgetSheet(await file(persona, 'workbook/capex-register.csv'))).toBe(true);
     }
   );
 
