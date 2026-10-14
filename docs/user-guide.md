@@ -67,6 +67,19 @@ and **CSV** download it. A saved chart shows the values from when you saved it; 
 today's data** redraws it from what's there now. Saved charts are encrypted with the rest of your
 data, included in exports, and removed by delete-all.
 
+### Dashboards
+
+**Dashboards** in the menu puts the charts you look at most on one page. The first one, **Overview**,
+shows spending against the budget, spending by group and your savings in your plan. On the left
+are the charts you can add: the built-in ones and any you saved from the chat. Drag one onto the
+dashboard (it goes before the chart you drop it on, or at the end), or press its **Add** button.
+Each chart on a dashboard has **Earlier** and **Later** to move it (or drag it), **Wide** to give it
+the whole row, and **Remove**.
+
+Make as many dashboards as you like with **New**, and **Rename**, **Duplicate** or **Delete** them;
+the menu at the top switches between them. A dashboard always redraws from today's data. It stores
+which charts to show, never the values, and is kept, encrypted, with the rest of your data.
+
 ## Ask Crux (the chat panel)
 
 The panel on the right is there on every screen. Open or close it with **Chat** at the top, or

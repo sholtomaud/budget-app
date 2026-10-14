@@ -56,12 +56,12 @@ const api = {
   },
   /** Small settings records (provider configuration; never API keys). */
   async loadKv(
-    name: 'providers' | 'histories' | 'setup' | 'charts' | 'plan-runs'
+    name: 'providers' | 'histories' | 'setup' | 'charts' | 'plan-runs' | 'dashboards'
   ): Promise<unknown> {
     return new IdbValue<unknown>(name).get();
   },
   async saveKv(
-    name: 'providers' | 'histories' | 'setup' | 'charts' | 'plan-runs',
+    name: 'providers' | 'histories' | 'setup' | 'charts' | 'plan-runs' | 'dashboards',
     value: unknown
   ): Promise<void> {
     await new IdbValue<unknown>(name).set(value);
