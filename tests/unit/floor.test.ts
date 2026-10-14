@@ -7,7 +7,7 @@ import { describe, expect, test } from 'vitest';
 import { DEFAULT_PERIODS, perWeek } from '../../src/budget/periods.ts';
 import { DEFAULT_TIERS, weeklyRate } from '../../src/budget/model.ts';
 import { emptyBudget } from '../../src/budget/state.ts';
-import { preview } from '../../src/budget/workbook.ts';
+import { isBudgetSheet, preview } from '../../src/budget/workbook.ts';
 import type { Txn } from '../../src/domain/types.ts';
 import { essentialsFrom, minTierSpend, spendingFrom } from '../../src/sim/inputs.ts';
 
@@ -55,8 +55,8 @@ describe('a spreadsheet-export budget (FR-ING-010…014)', () => {
       'Bike',
       'Mini PC',
     ]);
-    const why = p.issues.filter((i) => !i.message.includes('#VALUE!')).map((i) => i.message);
-    expect(why).toEqual([
+    // The #VALUE! cells are all in the weekly-total columns the import doesn't read: not reported.
+    expect(p.issues.map((i) => i.message)).toEqual([
       '"25%" is not an amount; row skipped',
       'No period for "cable"; row skipped (a note or a calculation?)',
       'No period for "$315"; row skipped (a note or a calculation?)',
@@ -140,5 +140,17 @@ describe('the floor: the Secure budget (ADR 0033)', () => {
   test('with no budget, what the essentials cost stands in', () => {
     const none = { ...household(), budget: emptyBudget() };
     expect(essentialsFrom(none)).toBeUndefined();
+  });
+});
+
+describe('a budget sheet chosen on the Import screen goes to the Budget screen', () => {
+  test('tier columns make a budget sheet; bank statements are not one', () => {
+    expect(isBudgetSheet(SHEET)).toBe(true);
+    const bank = (rows: string[]) => ['# x-synthetic: bank', ...rows].join('\n');
+    expect(isBudgetSheet(bank(['01/03/2026,+2500.00,SALARY,+3500.00']))).toBe(false);
+    expect(
+      isBudgetSheet(bank(['Date,Amount,Description,Balance', '01/03/2026,-45.10,GROCER,3454.90']))
+    ).toBe(false);
+    expect(isBudgetSheet(bank(['Date,Item,Cost', '2026-03-01,Insurance,$500']))).toBe(false);
   });
 });

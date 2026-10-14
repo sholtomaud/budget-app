@@ -50,7 +50,11 @@ different categories.
 3. **The person confirms.** The Budget wizard shows every line with its category, who set it (the
    sheet, rules, AI or you) and a select to change it, with "Match the other N with AI". Setup by
    chatting shows how many lines were matched and by whom, lists the AI's matches, and imports on
-   "Import them"; the wizard remains for line-by-line changes.
+   "Import them"; the wizard remains for line-by-line changes. Without a provider and key, the AI
+   buttons are off and the wizard says how many lines (or which columns) are left, with a link
+   to set up AI in Settings; the sheet opens again when the person comes back to Budget. A budget
+   sheet chosen on the Import screen (tier columns, or most of a CAPEX or wish-list header) opens
+   in this wizard rather than the bank-CSV column mapper.
 
 The importer applies the person's per-category mapping first, then the per-line categories
 (`lineCategories`), then the sheet's own names.

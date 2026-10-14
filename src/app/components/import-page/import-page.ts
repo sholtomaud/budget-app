@@ -1,4 +1,7 @@
 import { BaseComponent, define } from '../../core/base-component.ts';
+import { navigate } from '../../core/router.ts';
+import { handOffSheets } from '../../sheet-handoff.ts';
+import { isBudgetSheet } from '../../../budget/workbook.ts';
 
 import {
   data,
@@ -106,17 +109,43 @@ export class ImportPage extends BaseComponent {
     const csvs = files.length === 1 || files.every((f) => /\.csv$/i.test(f.name));
     const mapped = csvs ? files.filter((f) => /\.csv$/i.test(f.name)) : [];
     const rest = files.filter((f) => !mapped.includes(f));
+    // A budget sheet (tier columns: Fin. Secure, Fin. Indepnt…) is not a bank
+    // statement: it goes to the Budget screen's wizard instead of the column mapper.
+    const sheets: File[] = [];
     try {
-      for (const input of await filesToInputs(mapped)) {
+      const inputs = await filesToInputs(mapped);
+      for (const [k, input] of inputs.entries()) {
         const text = new TextDecoder().decode(input.bytes);
+        if (isBudgetSheet(text)) {
+          sheets.push(mapped[k]!);
+          continue;
+        }
         const { suggestion, preview } = await suggestCsv(input.name, text);
         this.csvQueue.push({ input, text, suggestion, spec: suggestion.spec, preview });
       }
       this.renderCsv();
       if (rest.length) await importFiles(await filesToInputs(rest));
+      if (sheets.length) this.offerSheets(sheets);
     } catch (e) {
       if (!rest.length) data.setState({ error: e instanceof Error ? e.message : String(e) });
     }
+  }
+
+  /** Budget sheets: straight to the Budget screen, or a link when other files are still here. */
+  private offerSheets(sheets: File[]): void {
+    handOffSheets(sheets);
+    if (!this.csvQueue.length) {
+      navigate('/budget');
+      return;
+    }
+    const names = sheets.map((f) => f.name).join(', ');
+    const open = el('button', { type: 'button', class: 'secondary' }, 'Open on the Budget screen');
+    open.onclick = () => navigate('/budget');
+    this.$('.sheets').hidden = false;
+    this.$('.sheets').replaceChildren(
+      `${names} ${sheets.length === 1 ? 'is a budget sheet' : 'are budget sheets'}, not a bank statement. `,
+      open
+    );
   }
 
   private async updateSpec(patch: Partial<BankCsvSpec>): Promise<void> {

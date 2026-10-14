@@ -306,7 +306,7 @@ their spreadsheet program. The app does not read `.xlsx` (ADR 0003). Import goes
 
 | ID | Requirement |
 |---|---|
-| FR-ING-011 | Parse CSV as RFC 4180 text (quoted fields, embedded commas and newlines, UTF-8 with or without BOM). Values are taken as given, so no formula is ever evaluated. Report cells holding a spreadsheet error literal (`#DIV/0!`, `#REF!`, `#VALUE!`, `#N/A`) and skip them. |
+| FR-ING-011 | Parse CSV as RFC 4180 text (quoted fields, embedded commas and newlines, UTF-8 with or without BOM). Values are taken as given, so no formula is ever evaluated. Report cells holding a spreadsheet error literal (`#DIV/0!`, `#REF!`, `#VALUE!`, `#N/A`) in the columns the import reads, and skip them; error literals in columns it doesn't read (a sheet's own weekly totals, a calculator) are ignored. |
 | FR-ING-012 | Period codes are mapped through a user-editable table (`d`, `w`, `f`, `m`, `q`, `h`, `y`, `Ny` = every N years, `Nv` = N visits a year, `v` = once a year), with the per-week normaliser shown, so imported per-week figures can be checked against the sheet's own. |
 | FR-ING-013 | Every imported record keeps `source: { file, row }` so a value can be traced back to its row in the exported CSV. |
 | FR-ING-014 | The import is previewed (counts, totals per tier per week) before commit. The totals SHOULD match the CSV's own totals row within 0.5 %. A mismatch is shown, not hidden. |

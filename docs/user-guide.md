@@ -165,7 +165,9 @@ accepts Consumer Data Right (Open Banking) responses as JSON, or a ZIP of them:
 
 Choose a CSV your bank or accounting software exported, and the Import screen shows its first rows
 with what each column holds: the date, the amount (or money in and money out), the description,
-the balance, and so on. Nothing is saved until you press **Import**.
+the balance, and so on. Nothing is saved until you press **Import**. A budget spreadsheet saved as
+CSV (with tier columns such as Fin. Secure, Fin. Indepnt, Fin. Luxury) is not a bank statement:
+it opens in the Budget screen's import wizard instead.
 
 - **Where the suggestions come from.** Under each column it says **preset** (a layout it knows:
   CommBank, ANZ, Westpac, NAB, ING, a Xero bank statement or Account Transactions report, a MYOB

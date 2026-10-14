@@ -13,6 +13,8 @@ import {
 } from '../../data.ts';
 import { count, el, money, prov } from '../../format.ts';
 import { categorySelect } from '../../category-select.ts';
+import { handOffSheets, takeSheets } from '../../sheet-handoff.ts';
+import { activeProvider } from '../../egress.ts';
 import { actualVsBudget, availableMonths } from '../../../budget/actuals.ts';
 import { annualisedCapexPerWeek } from '../../../budget/capex.ts';
 import { weeklyRate } from '../../../budget/model.ts';
@@ -69,7 +71,10 @@ export class BudgetPage extends BaseComponent {
     };
     this.unsubscribe = data.subscribe((s) => this.render(s));
     this.render(data.getState());
-    void ensureLoaded();
+    // Budget sheets chosen on the Import screen open here, once the data is in.
+    void ensureLoaded().then(() => {
+      for (const f of takeSheets()) void this.openSheet(f);
+    });
   }
 
   override destroy(): void {
@@ -511,7 +516,35 @@ export class BudgetPage extends BaseComponent {
           ai.disabled = false;
         }
       };
+      // What rules and detection left undone goes to the AI; without one, say how to set it up.
+      const missing = FIELDS[p.mapping.type].some(
+        (f) => f.required && p.mapping.columns[f.key] === undefined
+      );
+      const ap = await activeProvider();
+      let aiHint: HTMLElement | null = null;
+      if (!ap.ok) {
+        ai.disabled = true;
+        matchAi.disabled = true;
+        if (missing || unmatched.length) {
+          const base = import.meta.env.BASE_URL;
+          const settings = el(
+            'a',
+            { href: `${base}settings`, 'data-route': '/settings' },
+            'Set up AI in Settings'
+          );
+          // The sheet reopens here when the person comes back.
+          settings.addEventListener('click', () => handOffSheets([file]));
+          aiHint = el(
+            'p',
+            { class: 'ai-hint', role: 'note' },
+            `${missing ? 'Some columns were not recognised' : `${count(unmatched.length)} ${unmatched.length === 1 ? 'line was' : 'lines were'} not matched to a category`}: pick them yourself below, or let the AI do it. ${ap.reason} `,
+            settings,
+            '; this sheet opens again when you come back to Budget.'
+          );
+        }
+      }
       const parts: (Node | null)[] = [
+        aiHint,
         el('p', { class: 'ai-map' }, ai, ' ', aiStatus),
         el('label', {}, 'Sheet type ', typeSel),
         el('div', { class: 'grid' }, ...fieldSelects),

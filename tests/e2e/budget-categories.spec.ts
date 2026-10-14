@@ -94,3 +94,45 @@ test('budget lines are matched to categories by rules, the rest by the AI, then 
   await expect(page.locator('table.vs tbody tr[data-category="utilities.gas"]')).toBeVisible();
   expect(bodies).toHaveLength(1);
 });
+
+test('a budget sheet chosen on Import opens on Budget; without AI, a hint to set it up keeps the sheet', async ({
+  page,
+}) => {
+  test.setTimeout(120_000);
+  await page.goto('./');
+  await page.getByLabel('Household').selectOption('default');
+  await page.getByRole('button', { name: 'Load sample household' }).click();
+  await expect(page).toHaveURL(/\/import$/);
+
+  await page.locator('.pick-files').setInputFiles({
+    name: 'my-budget.csv',
+    mimeType: 'text/csv',
+    buffer: Buffer.from(SHEET),
+  });
+  await expect(page).toHaveURL(/\/budget$/);
+  const sheet = page.locator('.wizard .sheet[data-file="my-budget.csv"]');
+  await expect(sheet.locator('.line-categories summary')).toHaveText(
+    'Categories: 3 of 4 lines matched'
+  );
+  await expect(sheet.locator('.csv-map')).toHaveCount(0);
+
+  // No AI yet: the buttons wait, and a hint says where to set it up.
+  await expect(sheet.getByRole('button', { name: 'Match the other 1 with AI' })).toBeDisabled();
+  const hint = sheet.locator('.ai-hint');
+  await expect(hint).toContainText('1 line was not matched to a category');
+  await hint.getByRole('link', { name: 'Set up AI in Settings' }).click();
+  await expect(page).toHaveURL(/\/settings$/);
+  const form = page.getByRole('form', { name: 'AI provider' });
+  await form.getByLabel('Provider').selectOption('gemini');
+  await form.getByLabel('API key, for this session only').fill('gemini-test-key');
+  await form.getByRole('button', { name: 'Save' }).click();
+  await page
+    .getByRole('navigation', { name: 'Screens' })
+    .getByRole('link', { name: 'Budget' })
+    .click();
+
+  // The sheet is back, and the AI is ready to match the rest.
+  await expect(sheet.locator('.line-categories summary')).toBeVisible();
+  await expect(sheet.locator('.ai-hint')).toHaveCount(0);
+  await expect(sheet.getByRole('button', { name: 'Match the other 1 with AI' })).toBeEnabled();
+});

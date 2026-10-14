@@ -190,6 +190,21 @@ export function detect(rows: string[][]): Mapping {
   return mappingFor(rows, best.type, best.headerRow);
 }
 
+/**
+ * Whether a CSV is a budget-workbook sheet rather than a bank statement: an
+ * OPEX sheet with tier columns (Fin. Secure, Fin. Indepnt…), or a CAPEX or
+ * wish-list sheet whose header carries most of its signature. The Import
+ * screen sends these to the Budget screen.
+ */
+export function isBudgetSheet(text: string): boolean {
+  const rows = parseCsv(text).slice(0, 40);
+  const m = detect(rows);
+  if (m.type === 'opex') return Object.keys(m.tierColumns).length >= 2;
+  if (m.type !== 'capex' && m.type !== 'wishlist') return false;
+  const headers = (rows[m.headerRow] ?? []).map(norm);
+  return SIGNATURES[m.type].filter((h) => headers.includes(h)).length >= 3;
+}
+
 export function mappingFor(rows: string[][], type: SheetType, headerRow: number): Mapping {
   const headers = (rows[headerRow] ?? []).map(norm);
   const columns: Record<string, number> = {};
@@ -305,6 +320,11 @@ export function preview(file: string, text: string, opts: PreviewOptions = {}): 
   const synthetic = opts.synthetic ?? (all[0]?.[0] ?? '').startsWith('# x-synthetic');
   const provenance = synthetic ? 'illustrative' : 'budgeted';
   let section = '';
+  // Only columns the mapping reads: a #VALUE! in a note or calculator column is not the budget's.
+  const used = new Set([
+    ...Object.values(mapping.columns),
+    ...Object.keys(mapping.tierColumns).map(Number),
+  ]);
 
   for (let i = mapping.headerRow + 1; i < rows.length; i++) {
     const r = rows[i]!;
@@ -313,7 +333,7 @@ export function preview(file: string, text: string, opts: PreviewOptions = {}): 
     // FR-ING-011: error literals are reported and skipped.
     const errorCells = r
       .map((c, j) => [c.trim(), j] as const)
-      .filter(([c]) => ERROR_LITERALS.includes(c.toUpperCase()));
+      .filter(([c, j]) => used.has(j) && ERROR_LITERALS.includes(c.toUpperCase()));
     for (const [c, j] of errorCells)
       issues.push({
         row: rowNo,
