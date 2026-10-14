@@ -49,7 +49,7 @@ const api = {
   async opex(
     history: MonthlySeries[],
     budgetMonthly: Record<string, number>,
-    opts: { horizon: number; seed: string; bayes?: boolean; checks?: boolean }
+    opts: { horizon: number; seed: string; bayes?: boolean; checks?: boolean; priorPower?: number }
   ): Promise<OpexForecast> {
     await ready;
     return forecastOpex(history, budgetMonthly, {
@@ -57,6 +57,7 @@ const api = {
       seed: BigInt(opts.seed),
       bayes: opts.bayes,
       checks: opts.checks,
+      ...(opts.priorPower !== undefined ? { priorPower: opts.priorPower } : {}),
     });
   },
   /** The Bayesian model's checks for the Forecast screen's panel (ADR 0022). */

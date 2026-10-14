@@ -21,6 +21,8 @@ export interface QueryContext {
   periods: PeriodTable;
   /** The budget tier to use: the plan's. */
   tier: string;
+  /** Savings over time from the latest full run (ADR 0032), for the capital dataset. */
+  capital?: CapitalPath;
   /** The CAPEX register, for big purchases. */
   assets?: readonly Asset[];
   tiers?: readonly Tier[];
@@ -28,6 +30,18 @@ export interface QueryContext {
   today?: string;
   /** How far ahead big purchases go (the Big purchases screen's horizon). */
   horizonYears?: number;
+}
+
+export type QuantileRole = 'p5' | 'p25' | 'p50' | 'p75' | 'p95';
+
+/** Capital in today's dollars, a point a year: months from `asOf`, and quantiles. */
+export interface CapitalPath {
+  asOf: string;
+  months: number[];
+  q: Record<QuantileRole, number[]>;
+  floor: number;
+  /** When freedom starts, YYYY-MM. */
+  start: string;
 }
 
 export type Provenance = 'actual' | 'budgeted' | 'forecast';
@@ -45,6 +59,8 @@ export interface TableSeries {
   values: number[];
   unit: 'dollars' | 'count';
   provenance: Provenance;
+  /** For a fan: which quantile of the simulated futures this series is. */
+  role?: QuantileRole;
   /** Big purchases: what falls due when, in time order. */
   purchases?: PlannedPurchase[];
 }
@@ -59,6 +75,8 @@ export interface ChartTable {
   window: { from: string; to: string } | null;
   /** Category and merchant axes show monthly averages over the window. */
   perMonth: boolean;
+  /** A line the values should stay above (the plan's floor), dollars. */
+  floor?: number;
   /** Series left out because nothing matched them, in words. */
   notes: string[];
 }
@@ -226,7 +244,49 @@ function rows(s: SeriesSpec, g: GroupBy, months: readonly string[], ctx: QueryCo
   return out;
 }
 
+const ROLE_LABEL: Record<QuantileRole, string> = {
+  p5: 'Bad case (1 in 20)',
+  p25: 'Lower (1 in 4)',
+  p50: 'Typical',
+  p75: 'Upper (1 in 4)',
+  p95: 'Good case (1 in 20)',
+};
+
+/** Savings over time: one point a year from the latest full run. */
+function capitalChart(spec: ChartSpec, c: CapitalPath | undefined): ChartResult {
+  if (!c)
+    return {
+      ok: false,
+      error:
+        'There is no full run of your plan yet. Run it (Freedom, Run my plan, or ask me to "run my plan") and I can chart your savings over time.',
+    };
+  const year0 = Number(c.asOf.slice(0, 4));
+  const startAt = Math.max(0, Number(c.start.slice(0, 4)) - year0);
+  const roles: QuantileRole[] =
+    spec.kind === 'line' ? ['p5', 'p50', 'p95'] : ['p5', 'p25', 'p50', 'p75', 'p95'];
+  const x = c.months.map((m) => String(year0 + Math.round(m / 12)));
+  return {
+    ok: true,
+    table: {
+      x,
+      labels: x.map((y, i) => (i === startAt ? `${y} (freedom)` : y)),
+      series: roles.map((r) => ({
+        label: ROLE_LABEL[r],
+        values: c.q[r].map((v) => Math.round(v)),
+        unit: 'dollars',
+        provenance: 'forecast',
+        role: r,
+      })),
+      window: { from: c.asOf, to: `${x[x.length - 1]}-12` },
+      perMonth: false,
+      notes: [],
+      floor: c.floor,
+    },
+  };
+}
+
 export function runChart(spec: ChartSpec, ctx: QueryContext): ChartResult {
+  if (spec.series.some((s) => s.dataset === 'capital')) return capitalChart(spec, ctx.capital);
   const all = coveredMonths(ctx.txns);
   const noLedger = spec.series.every(
     (s) => s.dataset === 'budget' || s.dataset === 'big-purchases'

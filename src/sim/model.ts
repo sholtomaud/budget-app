@@ -230,4 +230,19 @@ export interface SpendingInput {
    * as no spending, not negative spending; the screens point them out.
    */
   credits?: string[];
+  /**
+   * The floor spending after freedom may not go below (ADR 0033): the lowest
+   * tier's (Secure) budget, or with no budget what the essentials
+   * (data-tables/essentials.json) cost over the last 12 months. Not scaled by
+   * the spending levers. `outdated`: floor-tier groups well under what they
+   * actually cost.
+   */
+  essentials?: {
+    monthly: number;
+    source: 'actual' | 'budgeted';
+    /** The tier that sets it, when budgeted. */
+    tier?: string;
+    top: { categoryId: string; monthly: number }[];
+    outdated?: { group: string; actual: number; budgeted: number }[];
+  };
 }

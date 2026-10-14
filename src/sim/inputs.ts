@@ -5,6 +5,7 @@
  * the data cannot tell us (market value of investments, gross salary) is
  * labelled `assumed` and is editable on the Freedom screen.
  */
+import ESSENTIALS from '../../data-tables/essentials.json' with { type: 'json' };
 import type { BudgetState } from '../budget/state.ts';
 import { annualisedCapexPerWeek, inTier } from '../budget/capex.ts';
 import { weeklyRate } from '../budget/model.ts';
@@ -317,6 +318,7 @@ export function spendingFrom(
     ) as Quantiles;
   }
   const assets = d.assets.filter((a) => inTier(a, tier, d.budget.tiers));
+  const essentials = essentialsFrom(d);
   return {
     current,
     tier: hasBudget ? budget : { ...current },
@@ -325,5 +327,83 @@ export function spendingFrom(
     assets,
     capexMonthly: (annualisedCapexPerWeek(d.assets, tier, d.budget.tiers) * 52) / 12 / 100,
     ...(credits.length ? { credits } : {}),
+    ...(essentials ? { essentials } : {}),
   };
+}
+
+/** Is a category one of the essentials (ADR 0033)? */
+export const isEssential = (categoryId: string, list: readonly string[] = ESSENTIALS.categories) =>
+  list.some((e) => categoryId === e || categoryId.startsWith(`${e}.`));
+
+/** Groups compared with the floor tier's budget to spot one that is out of date (ADR 0033). */
+const CHECKED_GROUPS = ['housing', 'utilities', 'comms'];
+
+/**
+ * The floor spending after freedom may not go below (ADR 0033): the lowest
+ * tier's budget (Secure), every line at that tier's multiplier, so lines
+ * that tier leaves out (multiplier 0, luxuries) add nothing. With no budget,
+ * what the essentials (data-tables/essentials.json) cost over the last 12
+ * months stands in for it.
+ */
+export function essentialsFrom(d: HouseholdData): SpendingInput['essentials'] | undefined {
+  const lowest = d.budget.tiers[0];
+  const byCategory = (m: Map<string, number>) =>
+    [...m.entries()]
+      .sort((x, y) => y[1] - x[1])
+      .slice(0, 4)
+      .map(([categoryId, monthly]) => ({ categoryId, monthly }));
+  const total = (m: Map<string, number>) => [...m.values()].reduce((a, b) => a + b, 0);
+  const budgeted = new Map<string, number>();
+  if (lowest)
+    for (const l of d.budget.lines) {
+      if (groupOf(l.categoryId) === 'capex') continue;
+      const m = (weeklyRate(l, lowest.id, (c) => perWeek(c, d.budget.periods)) * 52) / 12 / 100;
+      if (m > 0) budgeted.set(l.categoryId, (budgeted.get(l.categoryId) ?? 0) + m);
+    }
+  const actualGroups = new Map<string, number>();
+  const actual = new Map<string, number>();
+  for (const s of monthlySeries(d.txns)) {
+    const vals = lastN(s.values, 12);
+    if (!vals.length) continue;
+    const m = Math.max(0, vals.reduce((a, b) => a + b, 0) / vals.length / 100);
+    if (m <= 0) continue;
+    const g = groupOf(s.categoryId);
+    actualGroups.set(g, (actualGroups.get(g) ?? 0) + m);
+    if (isEssential(s.categoryId)) actual.set(s.categoryId, m);
+  }
+  const b = total(budgeted);
+  if (b > 0) {
+    // A floor tier group well under what it actually costs: likely a budget out of date.
+    const outdated = CHECKED_GROUPS.flatMap((g) => {
+      const spent = actualGroups.get(g) ?? 0;
+      const planned = [...budgeted.entries()]
+        .filter(([id]) => groupOf(id) === g)
+        .reduce((a, [, m]) => a + m, 0);
+      return spent > planned * 1.15 && spent - planned > 50
+        ? [{ group: g, actual: spent, budgeted: planned }]
+        : [];
+    });
+    return {
+      monthly: b,
+      source: 'budgeted',
+      tier: lowest!.name,
+      top: byCategory(budgeted),
+      ...(outdated.length ? { outdated } : {}),
+    };
+  }
+  const a = total(actual);
+  if (a <= 0) return undefined;
+  return { monthly: a, source: 'actual', top: byCategory(actual) };
+}
+
+/**
+ * The smallest spending-after-freedom lever that still pays for the
+ * essentials: the floor every search and proposal respects (ADR 0033).
+ * `spending` has the setup's levers applied; `lever` is the one applied.
+ */
+export function minTierSpend(spending: SpendingInput, lever: number): number {
+  const e = spending.essentials?.monthly ?? 0;
+  const tier = Object.values(spending.tier).reduce((a, b) => a + b, 0) / Math.max(1e-9, lever);
+  if (e <= 0 || tier <= 0) return 0;
+  return Math.ceil((e / tier) * 100) / 100;
 }

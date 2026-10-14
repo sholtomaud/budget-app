@@ -7,7 +7,7 @@
   "properties": {
     "kind": {
       "type": "string",
-      "enum": ["line", "bar", "stacked-bar", "table"]
+      "enum": ["line", "bar", "stacked-bar", "table", "fan"]
     },
     "title": {
       "type": "string",
@@ -36,7 +36,7 @@
           },
           "dataset": {
             "type": "string",
-            "enum": ["spending", "income", "budget", "big-purchases"]
+            "enum": ["spending", "income", "budget", "big-purchases", "capital"]
           },
           "measure": {
             "type": "string",

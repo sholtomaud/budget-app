@@ -6,6 +6,8 @@ export interface Category {
   name: string;
   kind: ClassificationKind;
   custom?: boolean;
+  /** COICOP 2018 division or group (ADR 0034), for consumption categories. */
+  coicop?: string;
 }
 
 const PREFIX_KIND: Record<string, ClassificationKind> = {
@@ -27,11 +29,14 @@ export function kindOfCategory(id: string, categories?: readonly Category[]): Cl
 }
 
 export function defaultCategories(): Category[] {
-  return (table.categories as { id: string; name: string; kind?: string }[]).map((c) => ({
-    id: c.id,
-    name: c.name,
-    kind: (c.kind as ClassificationKind | undefined) ?? kindOfCategory(c.id),
-  }));
+  return (table.categories as { id: string; name: string; kind?: string; coicop?: string }[]).map(
+    (c) => ({
+      id: c.id,
+      name: c.name,
+      kind: (c.kind as ClassificationKind | undefined) ?? kindOfCategory(c.id),
+      ...(c.coicop ? { coicop: c.coicop } : {}),
+    })
+  );
 }
 
 /** A readable name for a category id that may not be in the list (e.g. from a persona). */

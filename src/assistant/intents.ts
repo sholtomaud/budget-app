@@ -8,6 +8,7 @@ import { GLOSSARY } from './phrases.ts';
 
 export type Intent =
   | { id: 'chance' }
+  | { id: 'full-run' }
   | { id: 'why' }
   | { id: 'fix' }
   | { id: 'earliest' }
@@ -23,7 +24,7 @@ export type Intent =
 
 /** A chart asked for in words (ADR 0028): turned into a spec by src/viz/requests.ts. */
 export interface ChartRequest {
-  dataset: 'spending' | 'income' | 'big-purchases';
+  dataset: 'spending' | 'income' | 'big-purchases' | 'capital';
   groupBy: 'month' | 'quarter' | 'year' | 'category' | 'group' | 'merchant' | 'item';
   /** "on groceries": a category, group or words to look for. */
   topic?: string;
@@ -34,6 +35,14 @@ export interface ChartRequest {
 /** "Chart my spending on groceries by month against the budget", and the like. */
 export function matchChart(t: string): ChartRequest | null {
   const chartWord = /\b(chart|graph|plot|visuali[sz]e|draw)\b/.test(t);
+  // Savings over time: from the plan's simulation, not the ledger.
+  if (
+    /\b(savings|capital|balance|net worth|wealth|nest egg|money left|investments)\b/.test(t) &&
+    (chartWord ||
+      /\b(over time|forecast|future|in (my |the )?(plan|freedom|scenario))\b/.test(t)) &&
+    /\b(chart|graph|plot|draw|show|see|forecast|visuali[sz]e)\b/.test(t)
+  )
+    return { dataset: 'capital', groupBy: 'year', vsBudget: false };
   const income = /\b(income|earnings|salary|wages)\b/.test(t);
   const spending = /\b(spend|spending|spent|expenses?|costs?|outgoings)\b/.test(t);
   const by =
@@ -191,6 +200,12 @@ export function matchIntent(raw: string): Intent | null {
   }
 
   // Questions the app answers from its own results.
+  if (
+    /\b(run (my|the) (whole |full |entire )?(plan|freedom)( in full)?|run everything|full (analysis|run|check)|analy[sz]e (my|the) (whole |full )?plan|check everything)\b/.test(
+      t
+    )
+  )
+    return { id: 'full-run' };
   if (
     /\b(earliest|soonest|how (soon|early) can i|when can i (retire|stop work|stop working|be free|quit)|stop working (sooner|earlier)|retire (sooner|earlier))\b/.test(
       t.replace(/[_*~]/g, ' ')

@@ -10,6 +10,9 @@ import { refresh } from './data.ts';
 import { ingest } from './workers.ts';
 import type { DataView } from '../data/service.ts';
 import type { Mapping } from '../budget/workbook.ts';
+import type { BudgetLine } from '../budget/model.ts';
+import type { Category } from '../classify/categories.ts';
+import { categoryPrompt, fromCategoryAnswer, type LineMapping } from '../budget/category-map.ts';
 import { mappingPrompt, toMapping, type MappingAnswer } from '../api/mapping-llm.ts';
 
 export async function suggestCategories(v: DataView, limit = 40): Promise<string> {
@@ -67,4 +70,34 @@ export async function suggestMapping(
   });
   const answer = parseStructured<MappingAnswer>(ap.provider, json, p.schema);
   return { mapping: toMapping(answer, rows), by: ap.provider.label };
+}
+
+/** Ask the LLM which spending category each budget line belongs to (FR-ING-019). The person confirms. */
+export async function suggestBudgetCategories(
+  lines: BudgetLine[],
+  categories: Category[],
+  fileName: string
+): Promise<{ mappings: LineMapping[]; by: string }> {
+  const ap = await activeProvider();
+  if (!ap.ok) throw new Error(ap.reason);
+  const p = categoryPrompt(lines, categories);
+  const json = await send({
+    provider: ap.provider,
+    auth: ap.provider,
+    purpose: 'budget-categories',
+    purposeLabel: `Match the lines of ${fileName} to spending categories.`,
+    note: "Only each line's row number, item name, section and sub-category are sent: no amounts, dates, notes or links.",
+    request: structuredRequest(ap.provider, {
+      system: p.system,
+      user: p.user,
+      schema: p.schema,
+      name: 'budget_categories',
+    }),
+  });
+  const answer = parseStructured<{ lines: { row: number; category: string }[] }>(
+    ap.provider,
+    json,
+    p.schema
+  );
+  return { mappings: fromCategoryAnswer(answer, lines, categories), by: ap.provider.label };
 }

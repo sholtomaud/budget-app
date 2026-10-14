@@ -156,6 +156,18 @@ export const ADVISOR_TOOLS: ToolDef[] = [
     input_schema: obj({ key: { type: 'string', enum: [...ASSUMPTION_KEYS] } }),
   },
   {
+    name: 'run_my_plan',
+    description:
+      "Run the user's plan in full, exactly as the Freedom screen's Run my plan button does, and keep it in their history: the chance of success, plan checks, the chance at each tier, what drives shortfalls, the freedom number at their target and years to reach it, the earliest freedom date with a safer and a spend-less plan (each found by searching on the same simulated futures, never below what the essentials cost), and how much the chance depends on the Bayesian spending model's starting assumptions. Also returns how far to trust the spending forecast (the model's checks). For savings over time afterwards, call make_chart with the capital dataset. Takes 20–60 seconds. Use it when asked how the plan is doing overall or to run everything; for one quick number, run_plan is faster.",
+    input_schema: obj({ runs: { type: 'integer', enum: [200, 500, 1000] } }),
+  },
+  {
+    name: 'get_plan_history',
+    description:
+      "The user's earlier full runs, newest first: when, the chance of success against the target, the tier and start date, and whether the newest is out of date (their data or settings changed since). Use it to say how their plan has changed over time.",
+    input_schema: obj({}),
+  },
+  {
     name: 'make_chart',
     description: `Draw a chart for the user from their own data (ADR 0028). You describe it; the app runs the queries on the device, shows the chart with exact values, and returns rounded facts about it for you to describe. You never supply values.
 
@@ -180,7 +192,9 @@ Rules:
 - Speak plainly and briefly: a few short paragraphs at most. Use frequencies ("in about 9 in 10 simulated futures"), not jargon (no "pSuccess", "P90" without saying what it means).
 - Explain what a result means for the person, why (check_plan first, then explain_shortfall), and what they could change (find_plan_changes).
 - When a plan looks surprisingly bad, call check_plan before anything else: a setting is often the cause, not the person's finances.
+- To check the whole plan (chance, drivers, freedom number, earliest date, the forecast's checks), call run_my_plan; get_plan_history says how it has changed.
 - To show something over time or by category, call make_chart; the chart appears in the chat. Describe it from the facts it returns. When the user asks for a chart, always try make_chart before saying a chart can't be drawn: combine datasets, groupings and filters to get as close as you can. If it returns an error, fix the spec and try again; only then say what can't be charted and what you drew instead.
+- Spending after freedom can never go below the floor: the lowest (Secure) tier's budget, the least the person can live on (essentialsPerMonth in get_plan; with no budget, what essentials like rent and groceries cost). Never suggest a plan below it; the app raises any proposal that is.
 - Changes go through the propose_ tools as cards the user applies. Never say a change was made; say it is ready for them to apply.
 - Don't add a "not financial advice" note: the app shows it once.
 - For "when is the earliest I can stop work?" and the like, call find_earliest_freedom once and present its plans. Don't search for a date yourself with propose_plan and run_plan.

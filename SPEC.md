@@ -5,7 +5,7 @@
 
 | | |
 |---|---|
-| Status | Draft 18: M0–M9, the chat panel, plan guidance, and M10's setup by chatting, charts in the chat and bank and accounting CSV import built (ADRs 0001–0013, 0019–0028, 0030); M10–M15 planned, with proposed directions in ADRs 0014, 0016–0018, 0027–0029 |
+| Status | Draft 18: M0–M9, the chat panel, plan guidance, and M10's setup by chatting, charts in the chat and bank and accounting CSV import, the earliest freedom date, and Run my plan with dated runs, the floor, prior sensitivity of pSuccess and budget lines on standard categories built (ADRs 0001–0013, 0019–0028, 0030–0034); M10–M15 planned, with proposed directions in ADRs 0014, 0016–0018, 0027–0029 |
 | Date | 2026-10-13 |
 | Kernel | [GSSK](https://github.com/energese-project/GSSK-Giannantoni), consumed as a pinned WebAssembly artefact |
 | Runtime | Browser only. Static site, no backend |
@@ -314,6 +314,7 @@ their spreadsheet program. The app does not read `.xlsx` (ADR 0003). Import goes
 | FR-ING-016 | **Learned mapper (M10).** A small in-browser model in ml-core classifies column and row roles from header tokens, value statistics and position. It is trained on synthetic budgets in many layouts and adapts to the user's own wizard corrections, kept locally. Gate: ≥ 95 % column accuracy on held-out synthetic layouts. |
 | FR-ING-017 | **LLM mapping assistant (M8, optional).** For layouts the first two tiers leave uncertain, an LLM proposes a mapping spec from the header rows and a few sampled rows, redacted with amounts bucketed (FR-API-003). It uses structured outputs: the Claude API's `output_config.format` with the JSON Schema or a `strict: true` tool, or `json_schema` response format on OpenAI-compatible providers. The response is re-validated locally. Consent and logging follow §13.1. |
 | FR-ING-018 | The wizard shows who suggested each column (rules, model or LLM) and their confidence. Every suggestion is editable. |
+| FR-ING-019 | **Budget lines onto standard categories.** Each budget line is put on one of the app's categories, which carry their COICOP 2018 code: by rules on the device (item, sub-category, section), then for the rest by the optional AI as a structured output limited to the app's category ids (sent names only, never amounts), and confirmed by the person, line by line in the wizard and in setup by chatting. ADR 0034. |
 
 ### 6.3 Bank and accounting CSVs (M10); later formats
 
@@ -574,7 +575,7 @@ in `docs/reports/`.
 | FR-BAY-005 | Inference: collapsed Metropolis on the Kalman-filter likelihood for variances, the factor's loading and persistence, with paths by forward-filtering backward-sampling. The FFBS and Kalman kernels are in ml-core with TypeScript twins and parity tests. Seeded (NFR-DET-001). |
 | FR-BAY-006 | Diagnostics per fit: split-R̂ ≤ 1.05 and effective sample size ≥ 100, with one longer retry. A failing fit falls back to the §10.1 forecaster, labelled as such. |
 | FR-BAY-007 | The Forecast screen's model panel shows the diagnostics, holdout calibration (randomised PIT on held-out months), prior sensitivity and a prior predictive check. CI gates: on the synthetic personas every fit converges, every prior predictive check passes, and pooled P10–P90 holdout coverage is 70–95 %. |
-| FR-BAY-008 | Simulation-based calibration of the sampler in CI (λ, φ, σ, τ). Prior sensitivity (power-scaling ×0.5, ×2) of next year's spending is shown in the model panel; prior sensitivity of pSuccess is deferred. |
+| FR-BAY-008 | Simulation-based calibration of the sampler in CI (λ, φ, σ, τ). Prior sensitivity (power-scaling ×0.5, ×2) of next year's spending is shown in the model panel; prior sensitivity of pSuccess is the last step of Run my plan (ADR 0032). |
 
 ---
 
@@ -707,6 +708,8 @@ differ highlighted). Every result cites its runs (inputs hash, seed, run range).
 | FR-OPT-004 | **Screen, then confirm.** Candidates are screened with 64 runs on common random numbers; only finalists (≤ about 12) get the full 1,000 runs, stopping early when the 95 % interval is clearly above or below the target. Only confirmed runs are reported. Gate: on the synthetic personas, the confirmed plans reach the target and total simulated futures fall by ≥ 10× against evaluating every candidate at 1,000. |
 | FR-OPT-005 | **WebGPU screening (optional).** When WebGPU is available, screening may run in a compute-shader batch simulator with the same seeds (NFR-DET-001). GSSK in the workers stays the reference for every reported figure (NFR-KER-001). CI checks the GPU screen and GSSK rank a fixed set of plans the same way and agree on pSuccess within a stated tolerance; without WebGPU, screening runs on the workers. |
 | FR-OPT-006 | **Earliest freedom date.** "When is the earliest I can stop work?" (chat, built in or through the AI's `find_earliest_freedom` tool) is answered by one search: a bisection over start dates on a 3-month grid, from now to 10 years after the current start, with common random numbers. It returns up to three plans as scenario cards: the earliest at the target, the earliest with a 5-point safer margin, and the earliest spending 10 % less after freedom. Each cites its runs. The AI never tests dates one at a time (ADR 0031). |
+| FR-OPT-007 | **Dated runs.** Every Run my plan is kept with its date, inputs hash, reproducibility record and results (not the simulated paths), the newest 20, in the vault. Freedom opens on the last run, marked out of date when the current inputs hash differs or a setting changes, with the change in chance since the run before; a History list opens any run. Stop keeps what finished. The AI's `run_my_plan` and `get_plan_history` tools use the same runs. ADR 0032. |
+| FR-OPT-008 | **The floor.** Spending after freedom may not fall below the lowest (Secure) tier's budget: every line at that tier's multiplier, so lines it leaves out add nothing. With no budget, what the essentials cost over the last 12 months (`data-tables/essentials.json`). A plan check flags a plan below it, with a fix, and notes a Secure budget well under what housing, utilities or phone and internet actually cost; the optimiser, the earliest-date search and the AI's proposals never go below it. ADR 0033. |
 
 ---
 
@@ -1200,7 +1203,7 @@ the spec, an ADR when it is scheduled.
 | **Lodging with tax offices** | Direct lodgement with the main tax authorities (ATO first, then others). Needs registration as a software provider and each authority's security requirements, so it waits for a business behind the app. |
 | **Recurring-charge detection** | Find subscriptions and regular bills ("you pay for 3 streaming services") and flag price rises. |
 | **Life-event scenarios** | Ready-made scenarios (a child, a sabbatical, a move, study) instead of editing budget lines by hand. |
-| **Prior sensitivity of pSuccess** | Deferred in ADR 0022: re-run the simulation with the spending priors power-scaled ×0.5 and ×2 and show how much the chance moves. |
+| **Notification relay** | A tiny server that receives a connector's webhook ("new transactions") and sends a push notification carrying no financial data, storing nothing. Plain Node, no third-party packages. The app's first server, so it needs its own ADR; only worth it for notifications (fetch-on-open needs no server). |
 | **In-browser LLM** | Parked (§20 question 7). |
 | **Monthly check-in** | "You're 3 weeks ahead of plan, and here's why": a short chat summary when new data arrives. |
 

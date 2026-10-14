@@ -48,6 +48,11 @@ export interface EarliestRequest {
   margin?: number;
   /** Spending after freedom in the third plan, as a share of today's lever. Default 0.9. */
   spendLess?: number;
+  /**
+   * The smallest spending-after-freedom lever that pays for the essentials
+   * (ADR 0033). No plan goes below it; a setup below it is searched at it.
+   */
+  minTierSpend?: number;
 }
 
 export interface EarliestResult {
@@ -79,7 +84,9 @@ export async function earliestFreedom(
   const hi = Math.round((req.laterYears ?? 10) * 12);
   // Grid of month offsets from the current start: soonest, every `step`, the current start, the latest.
   const grid = [...new Set([lo, ...range(lo, hi, step), 0, hi])].sort((a, b) => a - b);
-  const baseSpend = baseValues(setup).tierSpend;
+  const floor = req.minTierSpend ?? 0;
+  // A plan that can't pay for the essentials is no plan: search at the floor at least.
+  const baseSpend = Math.max(baseValues(setup).tierSpend, floor);
 
   const cache = new Map<string, { e: Evaluation; s: FreedomSetup }>();
   const at = async (months: number, tierSpend: number) => {
@@ -128,8 +135,9 @@ export async function earliestFreedom(
   // A safer margin can only come later; spending less can only make it sooner.
   const safer = Math.min(0.99, Math.round((target + (req.margin ?? 0.05)) * 1000) / 1000);
   const iSafer = safer > target ? await bisect(safer, baseSpend, first ?? now, last) : null;
-  const less = Math.round(baseSpend * (req.spendLess ?? 0.9) * 1000) / 1000;
-  const iLess = await bisect(target, less, 0, first ?? last);
+  const less = Math.max(floor, Math.round(baseSpend * (req.spendLess ?? 0.9) * 1000) / 1000);
+  // Spending less is no plan when the essentials already set the floor.
+  const iLess = less < baseSpend ? await bisect(target, less, 0, first ?? last) : null;
 
   // A plan on the same date as the first is no alternative.
   const differs = (i: number | null) => (i !== null && i !== first ? i : null);

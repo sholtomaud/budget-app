@@ -38,7 +38,9 @@ import { UNSURE } from '../ingest/csv/fields.ts';
 import { activeProvider, send } from './egress.ts';
 import { count, day, el } from './format.ts';
 import { planChance } from './insights.ts';
-import { suggestMapping } from './llm-actions.ts';
+import { suggestBudgetCategories, suggestMapping } from './llm-actions.ts';
+import { asLineCategories, ruleMappings } from '../budget/category-map.ts';
+import { categoryName } from '../classify/categories.ts';
 import { DEFAULT_SEED, PERSONA_LABEL } from './personas.ts';
 import { sim, synth } from './workers.ts';
 
@@ -51,6 +53,8 @@ interface Sheet {
   text: string;
   mapping: Mapping;
   rows: number;
+  /** Budget lines' categories by row (FR-ING-019). */
+  lineCategories?: Record<number, string>;
 }
 
 interface BankCsv {
@@ -399,7 +403,9 @@ export class SetupRunner {
   }
 
   private async previewBudget(files: File[]): Promise<string> {
-    const tiers = (await ensureLoaded()).budget.tiers.map((t) => t.id);
+    const v = await ensureLoaded();
+    const tiers = v.budget.tiers.map((t) => t.id);
+    const name = (id: string) => categoryName(id, v.categories);
     const found: string[] = [];
     this.sheets = [];
     await this.chat.work(async (say) => {
@@ -428,7 +434,56 @@ export class SetupRunner {
             ? `- **${f.name}**: ${SHEET_LABEL[p.mapping.type]}, ${count(n)} row${n === 1 ? '' : 's'}${p.issues.length ? ` (${count(p.issues.length)} to check)` : ''}`
             : `- **${f.name}**: I couldn’t tell what this sheet holds`
         );
-        if (n) this.sheets.push({ name: f.name, text, mapping: p.mapping, rows: n });
+        let lineCategories: Record<number, string> | undefined;
+        if (n && p.mapping.type === 'opex') {
+          // Budget lines onto the app's categories (FR-ING-019): rules, then the AI.
+          let maps = ruleMappings(p.lines, v.categories);
+          const done = new Set(maps.map((m) => m.row));
+          const rest = p.lines.filter((l) => !done.has(l.source!.row));
+          if (rest.length && (await activeProvider()).ok) {
+            try {
+              const r = await step(
+                say,
+                `Asking the AI which category ${count(rest.length)} budget line${rest.length === 1 ? '' : 's'} belong to…`,
+                (x: { by: string; mappings: unknown[] }) =>
+                  `${x.by} matched ${count(x.mappings.length)} of ${count(rest.length)}`,
+                () => suggestBudgetCategories(rest, v.categories, f.name)
+              );
+              maps = [...maps, ...r.mappings];
+            } catch {
+              // Declined or failed: those lines keep the sheet's own names.
+            }
+          }
+          lineCategories = asLineCategories(maps);
+          const by = (k: string) => maps.filter((m) => m.by === k).length;
+          const ai = maps.filter((m) => m.by === 'ai');
+          const left = p.lines.length - maps.length;
+          found.push(
+            `  Categories: ${count(maps.length)} of ${count(p.lines.length)} lines matched (${[
+              by('sheet') ? `${count(by('sheet'))} as the sheet names them` : '',
+              by('rules') ? `${count(by('rules'))} by name` : '',
+              ai.length ? `${count(ai.length)} by the AI` : '',
+            ]
+              .filter(Boolean)
+              .join(
+                ', '
+              )}).${left ? ` ${count(left)} keep the sheet's own names; set them on Budget if you like.` : ''}`,
+            ...ai
+              .slice(0, 8)
+              .map(
+                (m) =>
+                  `  - ${p.lines.find((l) => l.source?.row === m.row)?.item ?? `Row ${m.row}`} → ${name(m.categoryId)}`
+              )
+          );
+        }
+        if (n)
+          this.sheets.push({
+            name: f.name,
+            text,
+            mapping: p.mapping,
+            rows: n,
+            ...(lineCategories ? { lineCategories } : {}),
+          });
       }
     });
     const total = this.sheets.reduce((a, s) => a + s.rows, 0);
@@ -442,7 +497,10 @@ export class SetupRunner {
     await this.chat.work(async (say) => {
       for (const s of sheets)
         await step(say, `Importing ${s.name}…`, `Imported ${s.name}`, () =>
-          commitWorkbook(s.name, s.text, { mapping: s.mapping })
+          commitWorkbook(s.name, s.text, {
+            mapping: s.mapping,
+            ...(s.lineCategories ? { lineCategories: s.lineCategories } : {}),
+          })
         );
     });
     this.sheets = [];

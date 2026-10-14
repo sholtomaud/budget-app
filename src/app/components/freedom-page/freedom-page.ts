@@ -1,7 +1,18 @@
 import { BaseComponent, define } from '../../core/base-component.ts';
 import { data, ensureLoaded } from '../../data.ts';
-import { el, prov } from '../../format.ts';
-import { poolRunner, poolSize, runPool, type PoolResult } from '../../sim-pool.ts';
+import { dateTime, el, prov } from '../../format.ts';
+import { poolSize, type PoolResult, type RunRecord } from '../../sim-pool.ts';
+import {
+  currentInputsHash,
+  loadRuns,
+  PLAN_STEPS,
+  previousRun,
+  runFullPlan,
+  saveRun,
+  STEP_WORDS,
+  type PlanRun,
+  type PlanStep,
+} from '../../plan-run.ts';
 import { sim } from '../../workers.ts';
 import { inputsFor, loadHistories } from '../../freedom-inputs.ts';
 import { SETUP_CHANGED } from '../../proposals.ts';
@@ -14,19 +25,10 @@ import type { DataView } from '../../../data/service.ts';
 import { addMonths } from '../../../lib/dates.ts';
 import { defaultSetup, type FreedomSetup } from '../../../sim/inputs.ts';
 import {
-  deterministicFreedom,
-  p90Freedom,
-  projectRunway,
-  shortfallDrivers,
-  yearsToFreedom,
-} from '../../../sim/metrics.ts';
-import {
   DEFAULT_MODEL_FOR,
   type AssetClass,
   type Holding,
   type ReturnModel,
-  type Scenario,
-  type SpendingInput,
   type WithdrawalStrategy,
 } from '../../../sim/model.ts';
 import { taxProvenance, taxTable } from '../../../sim/tax.ts';
@@ -60,7 +62,11 @@ export class FreedomPage extends BaseComponent {
   /** Bootstrap models over the user's imported price histories. */
   private historyModels: ReturnModel[] = [];
   private view: DataView | null = null;
-  private main: { result: PoolResult; scenario: Scenario; spending: SpendingInput } | null = null;
+  /** The run on screen: a fresh one, or one from the history. */
+  private shown: PlanRun | null = null;
+  private history: PlanRun[] = [];
+  private running = false;
+  private stopping = false;
   private runId = 0;
   private saveTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -78,7 +84,11 @@ export class FreedomPage extends BaseComponent {
     const run = this.$<HTMLFormElement>('.run');
     run.onsubmit = (e) => {
       e.preventDefault();
-      void this.simulate();
+      void this.runAll();
+    };
+    this.$<HTMLButtonElement>('.stop').onclick = () => {
+      this.stopping = true;
+      this.$('.status').textContent = 'Stopping after this step…';
     };
     this.$<HTMLButtonElement>('.add-holding').onclick = () => {
       if (!this.setup) return;
@@ -102,9 +112,7 @@ export class FreedomPage extends BaseComponent {
       this.changed();
       this.fill();
     };
-    this.$<HTMLButtonElement>('.find-p90').onclick = () => void this.findP90();
     this.$<HTMLButtonElement>('.save-scenario').onclick = () => void this.saveScenario();
-    this.$<HTMLButtonElement>('.drivers-run').onclick = () => void this.drivers();
     this.unsubscribe = data.subscribe(() => void this.load());
     window.addEventListener(SETUP_CHANGED, this.onSetupChanged);
     void ensureLoaded().then(() => this.load());
@@ -116,7 +124,7 @@ export class FreedomPage extends BaseComponent {
     if (!s || !this.view) return;
     this.setup = s;
     this.fill();
-    if (this.main) this.$('.status').textContent = 'Inputs changed: simulate again to update.';
+    if (this.shown) this.lastRunLine(this.shown, true);
   };
 
   override destroy(): void {
@@ -136,6 +144,7 @@ export class FreedomPage extends BaseComponent {
     this.setup ??= (await sim().loadSetup()) ?? defaultSetup(v);
     this.historyModels = (await loadHistories()).map(historyModel);
     this.fill();
+    await this.showLatest();
   }
 
   private field<T extends HTMLInputElement | HTMLSelectElement>(form: string, name: string): T {
@@ -389,7 +398,7 @@ export class FreedomPage extends BaseComponent {
         void sim().saveSetup(s);
         void this.showChecks();
       }, 300);
-    if (this.main) this.$('.status').textContent = 'Inputs changed: simulate again to update.';
+    if (this.shown) this.lastRunLine(this.shown, true);
   }
 
   /**
@@ -435,7 +444,7 @@ export class FreedomPage extends BaseComponent {
             done.hidden = false;
             done.replaceChildren(
               el('span', { class: 'tag' }, 'Changed:'),
-              ` ${fix.summary}. Simulate to see the difference. `,
+              ` ${fix.summary}. Run your plan to see the difference. `,
               undo
             );
           };
@@ -446,51 +455,107 @@ export class FreedomPage extends BaseComponent {
     );
   }
 
-  private async inputs(tier: string): Promise<{ scenario: Scenario; spending: SpendingInput }> {
-    const s = this.setup!;
-    s.seed = this.field<HTMLInputElement>('.run', 'seed').value.trim() || '42';
-    return inputsFor(this.view!, s, tier);
-  }
-
-  private async simulate(): Promise<void> {
+  /** "Run my plan": every step, shown as it finishes, then kept in the history (ADR 0032). */
+  private async runAll(): Promise<void> {
     const s = this.setup;
     const v = this.view;
-    if (!s || !v) return;
+    if (!s || !v || this.running) return;
     this.readGoal();
+    s.seed = this.field<HTMLInputElement>('.run', 'seed').value.trim() || '42';
     const id = ++this.runId;
+    this.running = true;
+    this.stopping = false;
     const runs = Number(this.field<HTMLSelectElement>('.run', 'runs').value);
     const status = this.$('.status');
     const button = this.$<HTMLButtonElement>('.simulate');
+    const stop = this.$<HTMLButtonElement>('.stop');
     button.disabled = true;
+    stop.hidden = false;
+    const steps = this.$('.steps');
+    steps.hidden = false;
+    steps.replaceChildren(
+      ...PLAN_STEPS.map((k) => el('li', { 'data-step': k, 'data-state': 'todo' }, STEP_WORDS[k][0]))
+    );
+    const mark = (k: PlanStep, state: 'running' | 'done') => {
+      const li = steps.querySelector<HTMLElement>(`[data-step="${k}"]`);
+      if (!li) return;
+      li.dataset.state = state;
+      li.textContent = STEP_WORDS[k][state === 'done' ? 1 : 0];
+    };
+    mark('chance', 'running');
+    const t0 = performance.now();
     try {
-      const { scenario, spending } = await this.inputs(s.goal.tier);
-      const t0 = performance.now();
-      const result = await runPool(
-        { scenario, spending, runs, keepCapital: true },
-        (done, total) => {
-          if (id === this.runId)
-            status.textContent = `Simulating… ${done.toLocaleString('en-AU')} of ${total.toLocaleString('en-AU')} runs on ${poolSize()} workers`;
-        }
-      );
+      const full = await runFullPlan(v, s, {
+        runs,
+        stopped: () => this.stopping || id !== this.runId,
+        onProgress: (text) => {
+          if (id === this.runId) status.textContent = `${text}…`;
+        },
+        onStep: (k, state, run) => {
+          if (id !== this.runId) return;
+          mark(k, state);
+          if (state === 'done') this.show(run);
+        },
+      });
       if (id !== this.runId) return;
-      this.main = { result, scenario, spending };
-      status.textContent = `${runs.toLocaleString('en-AU')} runs of ${result.months} months in ${((performance.now() - t0) / 1000).toFixed(1)} s on ${poolSize()} workers.`;
-      this.showMain();
-      await this.showTiers(runs);
+      this.history = await saveRun(full.run);
+      this.show(full.run, full.main);
+      const secs = ((performance.now() - t0) / 1000).toFixed(1);
+      status.textContent =
+        full.run.done.length === PLAN_STEPS.length
+          ? `Done in ${secs} s on ${poolSize()} workers. Kept in History.`
+          : `Stopped after ${full.run.done.length} of ${PLAN_STEPS.length} steps. What finished is kept in History.`;
     } catch (err) {
-      status.textContent = `Simulation failed: ${err instanceof Error ? err.message : String(err)}`;
+      status.textContent = `The run failed: ${err instanceof Error ? err.message : String(err)}`;
     } finally {
-      button.disabled = false;
+      if (id === this.runId) {
+        this.running = false;
+        button.disabled = false;
+        stop.hidden = true;
+      }
     }
   }
 
-  private showMain(): void {
-    const m = this.main;
+  /** The newest kept run on opening the screen, marked if the inputs have changed since. */
+  private async showLatest(): Promise<void> {
+    this.history = await loadRuns();
+    const last = this.history.at(-1);
+    if (!last || this.running || this.shown) return;
+    this.show(last);
+    await this.checkStale();
+  }
+
+  private async checkStale(): Promise<void> {
+    const shown = this.shown;
+    if (!shown || !this.setup || !this.view) return;
+    const now = await currentInputsHash(this.view, this.setup);
+    if (shown !== this.shown) return;
+    this.lastRunLine(shown, now !== shown.inputsHash);
+  }
+
+  private lastRunLine(r: PlanRun, stale: boolean): void {
+    const line = this.$('.last-run');
+    line.dataset.stale = String(stale);
+    const prev = previousRun(this.history, r);
+    line.textContent = [
+      `Run ${dateTime(r.at)}.`,
+      prev
+        ? `Chance of success ${pct(prev.pSuccess)} → ${pct(r.pSuccess)} since the run before (${dateTime(prev.at)}).`
+        : '',
+      stale ? 'Your data or settings have changed since: run your plan again to update.' : '',
+    ]
+      .filter(Boolean)
+      .join(' ');
+  }
+
+  /** A run → the results. `main` (the full simulation) adds example futures to the fan. */
+  private show(r: PlanRun, main?: PoolResult): void {
     const v = this.view;
-    if (!m || !v) return;
-    const { result: r, scenario, spending } = m;
+    if (!v) return;
+    this.shown = r;
     this.$('.results').hidden = false;
-    const target = scenario.goal.targetProbability;
+    this.lastRunLine(r, false);
+    const target = r.goal.target;
     const ps = this.$('.psuccess');
     ps.textContent = pct(r.pSuccess);
     setPageDetail(
@@ -499,70 +564,236 @@ export class FreedomPage extends BaseComponent {
     );
     ps.className = `v psuccess ${r.pSuccess >= target ? 'ok' : 'bad'}`;
     this.$('.psuccess-note').replaceChildren(
-      `of ${(r.runs - r.invalidRuns).toLocaleString('en-AU')} futures keep capital above ${aud.format(dollars(scenario.goal.floor))} and always meet the ${this.tierName(scenario.goal.tier)} tier, for ${scenario.goal.horizonYears} years from ${scenario.goal.start.slice(0, 7)}. Target ${pct(target)}. `,
+      `of ${r.validRuns.toLocaleString('en-AU')} futures keep capital above ${aud.format(r.goal.floor)} and always meet the ${this.tierName(r.goal.tier)} tier, for ${r.goal.horizonYears} years from ${r.goal.start}. Target ${pct(target)}. `,
       r.invalidRuns
         ? `${r.invalidRuns} runs failed the money-balance check and are excluded. `
         : '',
       prov('forecast')
     );
 
-    const d = deterministicFreedom(scenario, spending);
-    this.$('.fn-det').textContent = aud.format(d.freedomNumber);
-    this.$('.fn-det-note').replaceChildren(
-      `${aud.format(d.annualNeed)} a year of spending, ${aud.format(d.grossWithdrawal)} before tax, at a ${(d.withdrawalRate * 100).toFixed(1)} % withdrawal rate. `,
-      prov(d.provenance)
+    // Tiers.
+    this.$('.tiers tbody').replaceChildren(
+      ...v.budget.tiers.map((t) => {
+        const x = r.tiers?.find((y) => y.id === t.id);
+        const text =
+          t.id === r.goal.tier
+            ? pct(r.pSuccess)
+            : x
+              ? `${pct(x.pSuccess)}${x.runs < r.record.runs ? ` (${x.runs} runs)` : ''}`
+              : '…';
+        return el('tr', {}, el('th', { scope: 'row' }, t.name), el('td', { class: 'num' }, text));
+      })
     );
-    this.$('.fn-p90').textContent = `At ${pct(target)}: not yet calculated.`;
-    this.$('.fn-p90-note').textContent = '';
-    this.$('.ytf').textContent = '–';
-    this.$('.ytf-note').textContent = 'Find the freedom number at your target first.';
 
-    const runway = projectRunway(scenario, spending);
-    this.$('.runway').textContent = Number.isFinite(runway)
-      ? `${(runway / 12).toFixed(1)} years`
-      : 'unlimited';
+    // Freedom number and years to freedom.
+    const f = r.freedomNumber;
+    this.$('.fn-det').textContent = f ? aud.format(f.deterministic) : '…';
+    this.$('.fn-det-note').replaceChildren(
+      ...(f
+        ? [
+            `${aud.format(f.annualNeed)} a year of spending at a ${(f.withdrawalRate * 100).toFixed(1)} % withdrawal rate. `,
+            prov('assumed'),
+          ]
+        : [])
+    );
+    this.$('.fn-p90').textContent = !f
+      ? `At ${pct(target)}: …`
+      : f.atTarget === null
+        ? `At ${pct(target)}: not reachable below $1 billion.`
+        : `At ${pct(target)}: ${aud.format(f.atTarget)}`;
+    this.$('.fn-p90-note').replaceChildren(
+      ...(f?.atTarget != null
+        ? [
+            `Smallest starting capital, in today's mix of holdings, that succeeds in ${pct(f.atTargetChance ?? 0)} of ${f.atTargetRuns} futures. `,
+            prov('forecast'),
+          ]
+        : [])
+    );
+    const y = r.yearsToFreedom;
+    this.$('.ytf').textContent = y ? years(y.p50) : f ? '–' : '…';
+    this.$('.ytf-note').replaceChildren(
+      ...(y && f?.atTarget != null
+        ? [
+            `Until capital first reaches ${aud.format(f.atTarget)} if you keep working and saving as now. 80 % range ${years(y.p10)} to ${years(y.p90)}; reached in ${pct(y.reached)} of futures. `,
+            prov('forecast'),
+          ]
+        : [])
+    );
+    const runway = r.runwayMonths;
+    this.$('.runway').textContent =
+      runway === undefined
+        ? '…'
+        : Number.isFinite(runway)
+          ? `${(runway / 12).toFixed(1)} years`
+          : 'unlimited';
     this.$('.runway-note').replaceChildren(
       'Of fully funded chosen work at this tier, from money you can reach today (not super or property). ',
       prov('forecast')
     );
 
-    const months = Array.from({ length: r.months + 1 }, (_, i) =>
-      addMonths(`${scenario.asOf}-01`, i).slice(0, 7)
-    );
-    const toMinor = (xs: number[]) => xs.map((x) => x * 100);
+    // The capital fan: monthly with example futures from a fresh run, yearly from a kept one.
+    const startMonth = r.goal.start;
+    const at = (i: number) => addMonths(`${r.asOf}-01`, i).slice(0, 7);
+    const toMinor = (xs: readonly number[]) => xs.map((x) => x * 100);
+    const q = main ? main.capital : r.capital.q;
+    const idx = main ? main.capital.p50.map((_, i) => i) : r.capital.months;
+    const months = idx.map(at);
     this.$<FanChart>('fan-chart.capital').data = {
       label: "Capital in today's dollars",
       history: { months: [], values: [] },
       months,
       quantiles: {
-        p5: toMinor(r.capital.p5),
-        p25: toMinor(r.capital.p25),
-        p50: toMinor(r.capital.p50),
-        p75: toMinor(r.capital.p75),
-        p95: toMinor(r.capital.p95),
+        p5: toMinor(q.p5),
+        p25: toMinor(q.p25),
+        p50: toMinor(q.p50),
+        p75: toMinor(q.p75),
+        p95: toMinor(q.p95),
       },
-      floor: dollars(scenario.goal.floor) * 100,
-      paths: r.examples.map((e) => toMinor(e.capital)),
+      floor: r.goal.floor * 100,
+      paths: main ? main.examples.map((e) => toMinor(e.capital)) : [],
       axis: 'years',
       unit: '',
-      caption: `Median with 50 % and 90 % bands, ${r.examples.length} example futures, and the floor. Freedom starts at year ${(Math.max(0, months.indexOf(scenario.goal.start.slice(0, 7))) / 12).toFixed(0)}. `,
+      caption: `Median with 50 % and 90 % bands${main ? `, ${main.examples.length} example futures,` : ''} and the floor.`,
       provenance: 'forecast',
     };
     this.$('.capital-note').textContent =
-      `Bank and holdings, after tax and spending. Spending before freedom is your current average; after, the ${this.tierName(scenario.goal.tier)} tier (${spending.tierSource === 'budgeted' ? 'from your budget' : 'your current spending: no budget lines yet'}), plus capital purchases from the CAPEX register.`;
-    this.$('.drivers').hidden = true;
-    this.record(r);
+      `Bank and holdings, after tax and spending, for the ${this.tierName(r.goal.tier)} tier from ${startMonth}.`;
+
+    // Drivers.
+    const table = this.$('.drivers');
+    table.hidden = !r.drivers;
+    this.$('.drivers-wait').hidden = !!r.drivers;
+    this.$('.drivers tbody').replaceChildren(
+      ...(r.drivers ?? []).map((x) =>
+        el(
+          'tr',
+          {},
+          el('th', { scope: 'row' }, x.label),
+          el('td', { class: 'num' }, pct(x.pSuccess)),
+          el(
+            'td',
+            { class: 'num' },
+            `${x.delta >= 0 ? '+' : '−'}${Math.abs(x.delta * 100).toFixed(1)} pts`
+          )
+        )
+      )
+    );
+
+    this.showPriors(r);
+    this.showPlans(r);
+    this.showHistory();
+    this.record(r.record, main?.maxDrift);
   }
 
-  private record(r: PoolResult): void {
+  private showPriors(r: PlanRun): void {
+    const p = r.priors;
+    const box = this.$('.priors-text');
+    if (!p) {
+      box.textContent = 'Worked out when you run your plan.';
+      return;
+    }
+    if ('unavailable' in p) {
+      box.textContent = p.unavailable;
+      return;
+    }
+    const lo = Math.min(p.weaker, p.stronger, p.baseline);
+    const hi = Math.max(p.weaker, p.stronger, p.baseline);
+    box.replaceChildren(
+      `As built: ${pct(p.baseline)}. Weaker assumptions: ${pct(p.weaker)}. Stronger: ${pct(p.stronger)} (each on the same ${p.runs} futures). `,
+      el(
+        'strong',
+        {},
+        hi - lo <= 0.05
+          ? "The model's assumptions don't change this number."
+          : 'The model’s assumptions move this number: more months of data would narrow it.'
+      ),
+      ' ',
+      prov('calibrated')
+    );
+  }
+
+  private showPlans(r: PlanRun): void {
+    const e = r.earliest;
+    const note = this.$('.plans-note');
+    const list = this.$('.plan-list');
+    if (!e) {
+      note.textContent =
+        r.done.length === PLAN_STEPS.length ? '' : 'Worked out when you run your plan.';
+      list.replaceChildren();
+      return;
+    }
+    const what = (p: NonNullable<PlanRun['earliest']>['plans'][number]) =>
+      p.id === 'target'
+        ? `Earliest at your ${pct(p.target)} target`
+        : p.id === 'safer'
+          ? `A safer margin (${pct(p.target)})`
+          : `Spend ${pct(1 - p.tierSpend)} less after freedom`;
+    note.textContent = e.plans.length
+      ? `Searched ${e.simulations} start dates on the same simulated futures. Your current start is ${e.current.start} (${pct(e.current.pSuccess)}).`
+      : `Searched ${e.simulations} start dates: even starting in ${e.latest?.start ?? e.current.start}, the plan works in ${pct(e.latest?.pSuccess ?? e.current.pSuccess)} of futures, short of the target. Spending less after freedom, project income or a lower tier could close the gap.`;
+    list.replaceChildren(
+      ...e.plans.map((p) => {
+        const use = el('button', { type: 'button', class: 'secondary small use' }, 'Use this plan');
+        use.onclick = () => {
+          this.setup = structuredClone(p.setup);
+          this.fill();
+          this.changed();
+          use.disabled = true;
+          use.textContent = 'In your plan: run it to update';
+        };
+        const save = el('button', { type: 'button', class: 'secondary small' }, 'Save as scenario');
+        save.onclick = async () => {
+          save.disabled = true;
+          await addScenario(`${what(p)}: ${p.start}`, p.setup, 'optimiser', p.runId);
+          save.textContent = 'Saved to Scenarios';
+        };
+        return el(
+          'li',
+          { 'data-plan': p.id },
+          el('strong', {}, `${what(p)}:`),
+          ` start ${p.start}, works in ${pct(p.pSuccess)} of futures.`,
+          use,
+          save
+        );
+      })
+    );
+  }
+
+  private showHistory(): void {
+    const list = this.$('.run-list');
+    list.replaceChildren(
+      ...this.history
+        .slice()
+        .reverse()
+        .map((r) => {
+          const b = el('button', { type: 'button', class: 'secondary small' }, 'Show');
+          b.onclick = () => {
+            this.show(r);
+            void this.checkStale();
+          };
+          const li = el(
+            'li',
+            { 'data-run': r.id },
+            `${dateTime(r.at)}: ${pct(r.pSuccess)} (target ${pct(r.goal.target)}), ${this.tierName(r.goal.tier)} tier from ${r.goal.start}${r.done.length < PLAN_STEPS.length ? ', stopped early' : ''}.`,
+            b
+          );
+          if (r.id === this.shown?.id) li.setAttribute('aria-current', 'true');
+          return li;
+        })
+    );
+  }
+
+  private record(r: RunRecord, maxDrift?: number): void {
     const rows: [string, string][] = [
-      ['GSSK version', r.record.gsskVersion],
-      ['gssk.wasm SHA-256', r.record.wasmSha256],
-      ['Model hash', r.record.modelHash],
-      ['Inputs hash', r.record.inputsHash],
-      ['Seed', r.record.seed],
-      ['Runs', String(r.record.runs)],
-      ['Largest money-balance error', r.maxDrift.toExponential(2)],
+      ['GSSK version', r.gsskVersion],
+      ['gssk.wasm SHA-256', r.wasmSha256],
+      ['Model hash', r.modelHash],
+      ['Inputs hash', r.inputsHash],
+      ['Seed', r.seed],
+      ['Runs', String(r.runs)],
+      ...(maxDrift !== undefined
+        ? ([['Largest money-balance error', maxDrift.toExponential(2)]] as [string, string][])
+        : []),
     ];
     this.$('.record dl').replaceChildren(
       ...rows.flatMap(([k, v]) => [el('dt', {}, k), el('dd', {}, v)])
@@ -571,97 +802,6 @@ export class FreedomPage extends BaseComponent {
 
   private tierName(id: string): string {
     return this.view?.budget.tiers.find((t) => t.id === id)?.name ?? id;
-  }
-
-  private async showTiers(runs: number): Promise<void> {
-    const v = this.view!;
-    const m = this.main!;
-    const id = this.runId;
-    const body = this.$('.tiers tbody');
-    const rows = new Map<string, HTMLTableCellElement>();
-    body.replaceChildren(
-      ...v.budget.tiers.map((t) => {
-        const cell = el(
-          'td',
-          { class: 'num' },
-          t.id === m.scenario.goal.tier ? pct(m.result.pSuccess) : '…'
-        );
-        rows.set(t.id, cell);
-        return el('tr', {}, el('th', { scope: 'row' }, t.name), cell);
-      })
-    );
-    const n = Math.min(runs, 200);
-    for (const t of v.budget.tiers) {
-      if (t.id === m.scenario.goal.tier) continue;
-      const { scenario, spending } = await this.inputs(t.id);
-      const r = await poolRunner({ scenario, spending, runs: n, keepCapital: false });
-      if (id !== this.runId) return;
-      rows.get(t.id)!.textContent = `${pct(r.pSuccess)}${n < runs ? ` (${n} runs)` : ''}`;
-    }
-  }
-
-  private async findP90(): Promise<void> {
-    const m = this.main;
-    if (!m) return;
-    const id = this.runId;
-    const button = this.$<HTMLButtonElement>('.find-p90');
-    button.disabled = true;
-    const target = m.scenario.goal.targetProbability;
-    this.$('.fn-p90').textContent = 'Searching…';
-    try {
-      const f = await p90Freedom(m.scenario, m.spending, poolRunner, { runs: 200, target });
-      if (id !== this.runId) return;
-      if (f.capital === null) {
-        this.$('.fn-p90').textContent = `At ${pct(target)}: not reachable below $1 billion.`;
-        return;
-      }
-      this.$('.fn-p90').textContent = `At ${pct(target)}: ${aud.format(f.capital)}`;
-      this.$('.fn-p90-note').replaceChildren(
-        `Smallest starting capital, in today's mix of holdings, that succeeds in ${pct(f.pSuccess ?? 0)} of ${f.runs} futures (bisection, ${f.iterations} simulations). `,
-        prov('forecast')
-      );
-      this.$('.ytf').textContent = 'Simulating…';
-      const y = await yearsToFreedom(m.scenario, m.spending, f.capital, poolRunner, { runs: 200 });
-      if (id !== this.runId) return;
-      this.$('.ytf').textContent = years(y.p50);
-      this.$('.ytf-note').replaceChildren(
-        `Until capital first reaches ${aud.format(f.capital)} if you keep working and saving as now. 80 % range ${years(y.p10)} to ${years(y.p90)}; reached in ${pct(y.reached)} of futures. `,
-        prov('forecast')
-      );
-    } finally {
-      button.disabled = false;
-    }
-  }
-
-  private async drivers(): Promise<void> {
-    const m = this.main;
-    if (!m) return;
-    const id = this.runId;
-    const button = this.$<HTMLButtonElement>('.drivers-run');
-    button.disabled = true;
-    try {
-      const d = await shortfallDrivers(m.scenario, m.spending, m.result, poolRunner, { runs: 200 });
-      if (id !== this.runId) return;
-      const table = this.$('.drivers');
-      table.hidden = false;
-      this.$('.drivers tbody').replaceChildren(
-        ...d.map((x) =>
-          el(
-            'tr',
-            {},
-            el('th', { scope: 'row' }, x.label),
-            el('td', { class: 'num' }, pct(x.pSuccess)),
-            el(
-              'td',
-              { class: 'num' },
-              `${x.delta >= 0 ? '+' : '−'}${Math.abs(x.delta * 100).toFixed(1)} pts`
-            )
-          )
-        )
-      );
-    } finally {
-      button.disabled = false;
-    }
   }
 }
 

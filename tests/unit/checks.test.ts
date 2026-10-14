@@ -4,7 +4,15 @@ import { MemoryStateStore } from '../../src/classify/service.ts';
 import { DataService } from '../../src/data/service.ts';
 import { MemoryImportStore } from '../../src/ingest/service.ts';
 import { checkPlan } from '../../src/sim/checks.ts';
-import { asOfFor, defaultSetup, spendingFrom, type FreedomSetup } from '../../src/sim/inputs.ts';
+import {
+  applySpendingLevers,
+  asOfFor,
+  defaultSetup,
+  isEssential,
+  minTierSpend,
+  spendingFrom,
+  type FreedomSetup,
+} from '../../src/sim/inputs.ts';
 import { cdrInputs, synth } from '../helpers/synth.ts';
 
 async function household() {
@@ -83,5 +91,46 @@ describe('plan checks (ADR 0026)', () => {
     const h = await household();
     const problems = checkPlan(h.setup, h.spending, h.asOf).filter((c) => c.level === 'problem');
     expect(problems).toEqual([]);
+  });
+
+  test('spending after freedom below what the essentials cost (ADR 0033)', async () => {
+    const h0 = await household();
+    expect(h0.spending.essentials!.monthly).toBeGreaterThan(0);
+    expect(h0.spending.essentials!.top[0]!.categoryId).toMatch(
+      /^(housing|food|utilities|comms|health|transport|fees)/
+    );
+    // Rent of $3,000 a month, as in a household whose rent is categorised.
+    const tierTotal = Object.values(h0.spending.tier).reduce((a, b) => a + b, 0);
+    const e = {
+      monthly: tierTotal * 0.8,
+      source: 'actual' as const,
+      top: [{ categoryId: 'housing.rent', monthly: tierTotal * 0.7 }],
+    };
+    const h = { ...h0, spending: { ...h0.spending, essentials: e } };
+    // At 63 % of the tier, the plan can't pay for them.
+    const lever = 0.63;
+    const low = { ...h.setup, levers: { tierSpend: lever, currentSpend: 1 } };
+    const spending = applySpendingLevers(h.spending, low.levers);
+    const c = checkPlan(low, spending, h.asOf).find((x) => x.id === 'below-essentials');
+    expect(c?.level).toBe('problem');
+    expect(c?.text).toContain('essentials');
+    expect(c?.text).toContain('rent');
+    // The fix spends exactly enough, and with it the check is gone.
+    const need = minTierSpend(spending, lever);
+    expect(c?.fix?.setup.levers?.tierSpend).toBe(need);
+    const fixed = applySpendingLevers(h.spending, c!.fix!.setup.levers);
+    expect(Object.values(fixed.tier).reduce((a, b) => a + b, 0)).toBeGreaterThanOrEqual(
+      e.monthly * 0.99
+    );
+    expect(checkPlan(c!.fix!.setup, fixed, h.asOf).map((x) => x.id)).not.toContain(
+      'below-essentials'
+    );
+  });
+
+  test('essentials: rent and groceries count, cafes do not; the larger of actual and the lowest budget', () => {
+    expect(isEssential('housing.rent')).toBe(true);
+    expect(isEssential('food.groceries')).toBe(true);
+    expect(isEssential('food.cafe')).toBe(false);
+    expect(isEssential('leisure.travel')).toBe(false);
   });
 });

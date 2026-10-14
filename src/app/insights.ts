@@ -4,6 +4,7 @@
  * rounded facts for the AI's tools. The text is written here, from
  * templates; every number in it is the app's.
  */
+import { minTierSpend } from '../sim/inputs.ts';
 import { roughAmount } from '../api/redact.ts';
 import {
   againstTarget,
@@ -197,6 +198,9 @@ export async function findChanges(
   // the check's own fix (start now) is offered instead (ADR 0026).
   const checks = await planChecks(v, setup);
   const noPay = checks.some((c) => c.id === 'no-pay');
+  // Never below what the essentials cost (ADR 0033).
+  const floor = minTierSpend((await inputsFor(v, setup)).spending, base.tierSpend);
+  const hi = Math.max(base.tierSpend, floor);
   const result: OptimiseResult = await optimise(
     {
       setup,
@@ -204,8 +208,8 @@ export async function findChanges(
         ...(noPay ? [] : [{ id: 'start' as const, lo: 0, hi: 8 }]),
         {
           id: 'tierSpend' as const,
-          lo: Math.min(noPay ? 0.5 : 0.7, base.tierSpend),
-          hi: base.tierSpend,
+          lo: Math.min(hi, Math.max(floor, Math.min(noPay ? 0.5 : 0.7, base.tierSpend))),
+          hi,
         },
       ],
       target,
@@ -303,7 +307,12 @@ export async function earliestDate(
   const target = setup.goal.targetProbability;
   const { scenario, spending } = await inputsFor(v, setup);
   const r = await earliestFreedom(
-    { setup, target, soonest: scenario.asOf },
+    {
+      setup,
+      target,
+      soonest: scenario.asOf,
+      minTierSpend: minTierSpend(spending, baseValues(setup).tierSpend),
+    },
     { evaluate: evaluator(v, 200), onProgress: (d) => onProgress?.(d) }
   );
   const problems = (await planChecks(v, setup)).filter((c) => c.level === 'problem');

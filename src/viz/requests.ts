@@ -35,6 +35,13 @@ const GROUP_WORDS: Record<ChartRequest['groupBy'], string> = {
 };
 
 export function specFromRequest(r: ChartRequest, categories: readonly Category[]): ChartSpec {
+  if (r.dataset === 'capital')
+    return {
+      kind: 'fan',
+      title: "Your savings in your plan, in today's dollars",
+      groupBy: 'year',
+      series: [{ label: 'Savings', dataset: 'capital' }],
+    };
   if (r.dataset === 'big-purchases')
     return {
       kind: 'bar',

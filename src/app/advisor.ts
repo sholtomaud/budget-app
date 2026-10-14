@@ -38,7 +38,17 @@ import {
   describe,
   type Proposal,
 } from './proposals.ts';
+import { percent } from '../assistant/phrases.ts';
+import { minTierSpend } from '../sim/inputs.ts';
 import { buildChart, chartFacts, type BuiltChart } from './charts.ts';
+import {
+  currentInputsHash,
+  loadRuns,
+  runFacts,
+  runFullPlan,
+  saveRun,
+  STEP_WORDS,
+} from './plan-run.ts';
 import { withoutNulls } from '../viz/spec.ts';
 import { topicCategories } from '../viz/requests.ts';
 import { SCREEN_WORDS } from '../assistant/intents.ts';
@@ -98,6 +108,42 @@ export async function runTool(
     });
   };
   switch (name) {
+    case 'run_my_plan': {
+      const runs = [200, 500, 1000].includes(Number(input.runs)) ? Number(input.runs) : 500;
+      const tierName = (id: string) => v.budget.tiers.find((t) => t.id === id)?.name ?? id;
+      const full = await runFullPlan(v, setup, {
+        runs,
+        onStep: (k, state) => {
+          if (state === 'running') sink?.onProgress?.(`${STEP_WORDS[k][0]}…`);
+        },
+      });
+      await saveRun(full.run);
+      const trust = await forecastConfidence(v);
+      if (sink) sink.chart = { kind: 'chance', p: full.run.pSuccess, target: full.run.goal.target };
+      sink?.links.push({ label: 'Open Freedom', path: '/freedom' });
+      return JSON.stringify({
+        ...runFacts(full.run, tierName),
+        spendingForecast: trust.facts,
+        shown: 'Kept in the History on the Freedom screen, with the full results.',
+      });
+    }
+    case 'get_plan_history': {
+      const list = (await loadRuns()).slice().reverse().slice(0, 10);
+      const latest = list[0];
+      const stale = latest ? (await currentInputsHash(v, setup)) !== latest.inputsHash : false;
+      return JSON.stringify({
+        runs: list.map((r) => ({
+          ranAt: r.at,
+          chance: percent(r.pSuccess),
+          target: percent(r.goal.target),
+          freedomStarts: r.goal.start,
+          tier: v.budget.tiers.find((t) => t.id === r.goal.tier)?.name ?? r.goal.tier,
+          runId: r.runId,
+        })),
+        newestOutOfDate: stale,
+        ...(list.length ? {} : { note: 'No full runs yet: run_my_plan makes one.' }),
+      });
+    }
     case 'make_chart': {
       const spec = withoutNulls(input) as { series?: { filter?: { categories?: string[] } }[] };
       // Plain names become category ids (the AI sees names, not every id).
@@ -204,6 +250,34 @@ export async function runTool(
         targetProbability: pct(setup.goal.targetProbability),
         floor: rough(setup.goal.floor),
         spendingAfterFreedom: `${pct(setup.levers?.tierSpend ?? 1)} of the tier`,
+        ...(await (async () => {
+          const sp = (await inputsFor(v, setup)).spending;
+          const e = sp.essentials;
+          const lever = setup.levers?.tierSpend ?? 1;
+          const tier = Object.values(sp.tier).reduce((a, b) => a + b, 0);
+          return {
+            spendingAfterFreedomPerMonth: rough(BigInt(Math.round(tier * 100))),
+            tierBudgetPerMonth: rough(BigInt(Math.round((tier / Math.max(1e-9, lever)) * 100))),
+            ...(e
+              ? {
+                  essentialsPerMonth: rough(BigInt(Math.round(e.monthly * 100))),
+                  essentialsFrom:
+                    e.source === 'budgeted'
+                      ? `the ${e.tier ?? 'lowest'} tier's budget: the least the plan can live on`
+                      : 'what the essentials cost over the last 12 months (there is no budget yet)',
+                  ...(e.outdated?.length
+                    ? {
+                        budgetMayBeOutOfDate: e.outdated.map(
+                          (o) =>
+                            `${o.group}: about ${rough(BigInt(Math.round(o.actual * 100)))} a month actually spent, ${rough(BigInt(Math.round(o.budgeted * 100)))} budgeted`
+                        ),
+                      }
+                    : {}),
+                  lowestSpendingAfterFreedom: `${pct(minTierSpend(sp, lever))} of the tier: below this the plan can't pay for its floor`,
+                }
+              : {}),
+          };
+        })()),
         spendingNow: `${pct(setup.levers?.currentSpend ?? 1)} of today's`,
         projectIncomePerYear: rough(setup.goal.projectIncome ?? 0n),
         takeHomePayPerMonth: rough(setup.decisions.netPayMonthly ?? 0n),
@@ -277,11 +351,27 @@ export async function runTool(
             withdrawal: withdrawalOf(input.withdrawal as never, next),
           },
         };
+      // Never below what the essentials cost (ADR 0033).
+      const lever = next.levers?.tierSpend ?? 1;
+      const nextSpending = (await inputsFor(v, next)).spending;
+      const floor = minTierSpend(nextSpending, lever);
+      const raised = lever < floor;
+      if (raised)
+        next = {
+          ...next,
+          levers: { tierSpend: floor, currentSpend: next.levers?.currentSpend ?? 1 },
+        };
       const saved = await addScenario(String(input.name || 'Advisor proposal'), next, 'advisor');
       return JSON.stringify({
         scenarioId: saved.id,
         name: saved.name,
         freedomStarts: next.goal.start.slice(0, 7),
+        spendingAfterFreedom: `${pct(next.levers?.tierSpend ?? 1)} of the tier`,
+        ...(raised
+          ? {
+              raised: `Spending after freedom was raised from ${pct(lever)} to ${pct(floor)} of the tier: lower can't pay for the essentials (about ${rough(BigInt(Math.round((nextSpending.essentials?.monthly ?? 0) * 100)))} a month).`,
+            }
+          : {}),
         note: 'Saved for the user to review on the Scenarios screen.',
       });
     }
@@ -367,6 +457,10 @@ export function toolActivity(name: string, input: Record<string, unknown>): [str
       return ['Finding that screen…', 'Offered a button to open it'];
     case 'make_chart':
       return ['Drawing the chart from your data…', 'Drew the chart'];
+    case 'run_my_plan':
+      return ['Running your plan in full…', 'Ran your plan in full and kept it in History'];
+    case 'get_plan_history':
+      return ['Reading your earlier runs…', 'Read your earlier runs'];
     default:
       return [`Running ${name}…`, `Ran ${name}`];
   }

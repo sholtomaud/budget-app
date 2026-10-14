@@ -67,7 +67,7 @@ test('plan checks: no pay before freedom and $700,000 kept in the bank are found
   await expect(card).toContainText('moved from the bank buffer to a savings holding');
   await card.getByRole('button', { name: 'Change my plan' }).click();
   await expect(card.locator('.result')).toHaveText(
-    'Your plan is changed. Simulate on Freedom to see it.'
+    'Your plan is changed. Run it on Freedom to see the difference.'
   );
   // The Freedom screen shows the change made from the chat.
   await expect(freedom.getByLabel('Cash kept in the bank ($)', { exact: true })).not.toHaveValue(

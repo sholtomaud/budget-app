@@ -413,7 +413,7 @@ export class Conversation {
       p0.kind === 'scenario'
         ? 'Saved to Scenarios. Your plan is unchanged.'
         : p0.kind === 'setup'
-          ? 'Your plan is changed. Simulate on Freedom to see it.'
+          ? 'Your plan is changed. Run it on Freedom to see the difference.'
           : 'Applied.';
     const apply = el('button', { type: 'button', class: 'small apply' }, verb);
     const discard = el('button', { type: 'button', class: 'secondary small discard' }, 'Discard');

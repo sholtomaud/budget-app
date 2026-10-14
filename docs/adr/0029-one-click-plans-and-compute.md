@@ -1,6 +1,6 @@
 # ADR 0029 — One-click plans: three different plans that work, found with less compute
 
-- Status: proposed (milestone M11)
+- Status: accepted in part (M11): the one button is built (ADR 0032); the multi-objective search, screen-then-confirm runs and WebGPU screening are still proposed
 - Date: 2026-10-13
 - SPEC: §11.4, FR-OPT-002…005, FR-SIM-005, NFR-DET-001, NFR-KER-001
 - Builds on: ADR 0012 (simulation and the worker pool), ADR 0013 (optimiser), ADR 0026 (plan
