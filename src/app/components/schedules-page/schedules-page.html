@@ -1,0 +1,72 @@
+<section class="screen">
+  <h1>Schedules</h1>
+  <p class="lede">
+    Things Crux does on its own at set times: check your budget each morning, run your plan each
+    week, remind you to import. They run while Crux is open in a tab; anything that fell due while
+    it was closed runs once when you open it. A schedule asks the chat, so you see what it did, and
+    it never changes your data: any change is a card for you to apply.
+  </p>
+
+  <section class="card switches" aria-labelledby="sw-title">
+    <h2 id="sw-title">Settings</h2>
+    <label class="check"
+      ><input type="checkbox" class="allow-ai" /> Let schedules call the AI on their own</label
+    >
+    <p class="muted small">
+      Off: a schedule that needs the AI is skipped, and the AI is only called when you ask. On: it
+      calls your AI provider without asking each time, with amounts redacted as always, and each
+      call is in the call log, marked as scheduled. Your API key is only kept until the app reloads,
+      so after a reload these are skipped until you enter it again (a local model needs none).
+    </p>
+    <label class="check"
+      ><input type="checkbox" class="notify" /> Notify me when a schedule runs while Crux is in the
+      background</label
+    >
+    <p class="notify-status muted small" role="status"></p>
+  </section>
+
+  <section class="card" aria-labelledby="list-title">
+    <h2 id="list-title">Your schedules</h2>
+    <p class="empty muted" hidden>
+      No schedules yet. Add one below, or ask the chat ("check my budget every morning").
+    </p>
+    <ul class="list"></ul>
+  </section>
+
+  <section class="card" aria-labelledby="add-title">
+    <h2 id="add-title">Add a schedule</h2>
+    <p class="presets"></p>
+    <form class="add" aria-label="Schedule">
+      <input type="hidden" name="id" />
+      <div class="grid">
+        <label>Name <input type="text" name="name" maxlength="60" required /></label>
+        <label
+          >What it does
+          <select name="action"></select
+        ></label>
+        <label
+          >How often
+          <select name="every">
+            <option value="day">Every day</option>
+            <option value="week">Every week</option>
+            <option value="month">Every month</option>
+          </select></label
+        >
+        <label class="weekday"
+          >On
+          <select name="weekday"></select
+        ></label>
+        <label class="monthday"
+          >Day of the month <input type="number" name="monthday" min="1" max="28" value="1"
+        /></label>
+        <label>At <input type="time" name="at" value="08:00" required /></label>
+      </div>
+      <label class="note">Remind me to <input type="text" name="note" maxlength="200" /></label>
+      <p class="actions">
+        <button type="submit" class="save">Add schedule</button>
+        <button type="button" class="secondary cancel" hidden>Cancel</button>
+        <span class="form-status" role="status"></span>
+      </p>
+    </form>
+  </section>
+</section>

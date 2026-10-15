@@ -4,7 +4,8 @@
  * conversation, as you move between screens. Conversations live in memory for
  * the session only; the open/closed state and width are kept as preferences.
  */
-import { CHAT_ASK } from '../../chat-ask.ts';
+import { CHAT_ASK, type ChatAsk } from '../../chat-ask.ts';
+import { withStandingConsent } from '../../egress.ts';
 import { BaseComponent, define } from '../../core/base-component.ts';
 import { ROUTE_EVENT } from '../../core/router.ts';
 import type { PageContext } from '../../assistant.ts';
@@ -51,9 +52,20 @@ export class ChatPanel extends BaseComponent {
     this.setOpen(want ?? this.dataset.open !== 'true');
   };
   private readonly onAsk = (e: Event) => {
-    const q = (e as CustomEvent<string>).detail;
+    const a = (e as CustomEvent<ChatAsk>).detail;
+    const c = this.conversation!;
+    if (c.isBusy()) {
+      a.accepted?.(false);
+      return;
+    }
+    a.accepted?.(true);
     this.setOpen(true);
-    void this.ask(q);
+    if (a.note) {
+      c.notice(a.label ?? 'Reminder', a.question);
+      return;
+    }
+    const run = () => c.ask(a.question, a.label);
+    void (a.standing ? withStandingConsent(run) : run());
   };
   private readonly onKey = (e: KeyboardEvent) => {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'j') {

@@ -42,6 +42,8 @@ import { percent } from '../assistant/phrases.ts';
 import { minTierSpend } from '../sim/inputs.ts';
 import { buildChart, chartFacts, loadCharts, type BuiltChart } from './charts.ts';
 import { loadDashboards } from './dashboards.ts';
+import { loadSchedules } from './schedules.ts';
+import { checkSchedule, whenText, type Schedule } from '../sched/schedule.ts';
 import { budgetReview } from './budget-review.ts';
 import {
   currentInputsHash,
@@ -168,6 +170,54 @@ export async function runTool(
         summary: i.text,
         note: 'Each change is shown to the user as a card. Nothing has changed until they apply it.',
       });
+    }
+    case 'list_schedules': {
+      const st = await loadSchedules();
+      return JSON.stringify({
+        allowAI: st.allowAI,
+        schedules: st.list.map((s) => ({
+          id: s.id,
+          name: s.name,
+          action: s.action,
+          when: whenText(s),
+          on: s.enabled,
+          ...(s.note ? { note: s.note } : {}),
+          lastRun: s.lastRun ?? null,
+          lastResult: s.lastResult ?? null,
+        })),
+      });
+    }
+    case 'propose_schedule': {
+      const st = await loadSchedules();
+      const id = (input.scheduleId as string | null) ?? null;
+      const old = id ? st.list.find((s) => s.id === id) : undefined;
+      if (id && !old) return JSON.stringify({ error: `No schedule has the id "${id}".` });
+      if (input.remove === true) {
+        if (!old) return JSON.stringify({ error: 'To remove a schedule, pass its scheduleId.' });
+        return offered({ kind: 'schedule', schedule: old, change: 'remove' });
+      }
+      const s: Schedule = {
+        ...(old ?? {
+          id: `sched-${Date.now().toString(36)}`,
+          enabled: true,
+          createdBy: 'ai' as const,
+          createdAt: new Date().toISOString(),
+        }),
+        name: String(input.name).trim().slice(0, 60),
+        action: input.action as Schedule['action'],
+        every: input.every as Schedule['every'],
+        at: String(input.at),
+        ...(input.every === 'week' ? { weekday: Number(input.weekday) } : {}),
+        ...(input.every === 'month' ? { monthday: Number(input.monthday) } : {}),
+        ...(input.action === 'reminder' ? { note: String(input.note ?? '').slice(0, 200) } : {}),
+      };
+      if (s.every !== 'week') delete s.weekday;
+      if (s.every !== 'month') delete s.monthday;
+      if (s.action !== 'reminder') delete s.note;
+      const bad = checkSchedule(s);
+      if (bad) return JSON.stringify({ error: bad });
+      sink?.links.push({ label: 'Open Schedules', path: '/schedules' });
+      return offered({ kind: 'schedule', schedule: s, change: old ? 'change' : 'add' });
     }
     case 'list_dashboards': {
       const [{ list, open }, saved] = await Promise.all([loadDashboards(), loadCharts()]);
@@ -497,6 +547,10 @@ export function toolActivity(name: string, input: Record<string, unknown>): [str
       return ['Drawing the chart from your data…', 'Drew the chart'];
     case 'list_dashboards':
       return ['Reading your dashboards…', 'Read your dashboards'];
+    case 'list_schedules':
+      return ['Reading your schedules…', 'Read your schedules'];
+    case 'propose_schedule':
+      return ['Preparing a schedule…', 'Prepared a schedule for you to check'];
     case 'review_budget':
       return ['Reviewing your budget against your spending…', 'Reviewed your budget'];
     case 'propose_dashboard':

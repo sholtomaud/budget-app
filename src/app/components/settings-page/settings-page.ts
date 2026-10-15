@@ -298,7 +298,7 @@ export class SettingsPage extends BaseComponent {
             {},
             el('td', {}, new Date(x.at).toLocaleString('en-AU')),
             el('td', {}, x.provider),
-            el('td', {}, x.purpose),
+            el('td', {}, x.scheduled ? `${x.purpose} (scheduled)` : x.purpose),
             el('td', { class: 'num' }, x.bytes.toLocaleString('en-AU')),
             el('td', {}, x.status === null ? 'failed' : String(x.status)),
             el('td', { class: 'hash' }, x.sha256.slice(0, 16) + '…')

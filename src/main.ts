@@ -23,6 +23,8 @@ document.body.append(document.createElement('lock-screen'));
 // NFR-STO-002: screens wait for the vault (data.ts) before reading anything.
 void initVault();
 void router.render();
+// ADR 0041: schedules run while the app is open.
+void import('./app/schedules.ts').then((m) => m.startScheduler());
 
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   // NFR-STO-005: works offline after first load.

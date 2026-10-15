@@ -110,14 +110,42 @@ export class Conversation {
     }
   }
 
-  async ask(question: string): Promise<void> {
+  isBusy(): boolean {
+    return this.busy;
+  }
+
+  /** A note in the conversation, not a question: a scheduled reminder (ADR 0041). */
+  notice(label: string, text: string): void {
+    this.els.log.append(
+      el(
+        'li',
+        { class: 'msg reply notice' },
+        el('span', { class: 'who' }, label),
+        el('p', {}, text)
+      )
+    );
+    this.scrollDown(true);
+  }
+
+  /** Ask a question; `label` marks one a schedule asked (shown in place of the person). */
+  async ask(question: string, label?: string): Promise<void> {
     if (!question || this.busy) return;
     this.busy = true;
     this.stopped = false;
     this.controller = new AbortController();
     const { status, stop, send } = this.els;
     this.els.input.value = '';
-    this.els.log.append(el('li', { class: 'msg user' }, question));
+    this.els.log.append(
+      label
+        ? el(
+            'li',
+            { class: 'msg user scheduled' },
+            el('span', { class: 'who' }, `Scheduled · ${label}`),
+            ' ',
+            question
+          )
+        : el('li', { class: 'msg user' }, question)
+    );
     this.showSuggestions([]);
     this.scrollDown(true);
     send.disabled = true;
@@ -424,7 +452,11 @@ export class Conversation {
             ? 'Save dashboard'
             : p0.kind === 'budget-change'
               ? 'Change budget'
-              : 'Apply';
+              : p0.kind === 'schedule'
+                ? p0.change === 'remove'
+                  ? 'Remove schedule'
+                  : 'Save schedule'
+                : 'Apply';
     const doneText =
       p0.kind === 'scenario'
         ? 'Saved to Scenarios. Your plan is unchanged.'
@@ -434,7 +466,9 @@ export class Conversation {
             ? 'Saved. It opens on the Dashboards screen.'
             : p0.kind === 'budget-change'
               ? 'Budget changed. Run your plan to see what it does to your chance.'
-              : 'Applied.';
+              : p0.kind === 'schedule'
+                ? 'Saved. See it on the Schedules screen.'
+                : 'Applied.';
     const apply = el('button', { type: 'button', class: 'small apply' }, verb);
     const discard = el('button', { type: 'button', class: 'secondary small discard' }, 'Discard');
     const note = el('span', { class: 'muted small result', role: 'status' });

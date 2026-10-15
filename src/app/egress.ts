@@ -34,11 +34,29 @@ export interface EgressLogEntry {
   sha256: string;
   bytes: number;
   status: number | null;
+  /** Made by a schedule the person allowed to call the AI on its own (ADR 0041). */
+  scheduled?: true;
 }
 
 /** API keys, in memory for this session only. */
 const keys = new Map<string, string>();
 const remembered = new Set<string>();
+/** True only while a schedule allowed to call the AI runs: its calls skip the dialog, and are logged. */
+let standing = false;
+
+/**
+ * Run a scheduled job with standing consent: the person allowed schedules to
+ * call the AI on their own (ADR 0041). Calls are still checked, redacted and
+ * logged, marked as scheduled.
+ */
+export async function withStandingConsent<T>(fn: () => Promise<T>): Promise<T> {
+  standing = true;
+  try {
+    return await fn();
+  } finally {
+    standing = false;
+  }
+}
 
 export const setKey = (providerId: string, key: string) => {
   if (key.trim()) keys.set(providerId, key.trim());
@@ -96,7 +114,8 @@ async function prepare(opts: SendOptions) {
   const method = opts.method ?? 'POST';
   const body = method === 'POST' ? JSON.stringify(req.body) : undefined;
   const key = `${opts.provider.id}|${opts.purpose}`;
-  if (!remembered.has(key)) {
+  const scheduled = standing;
+  if (!remembered.has(key) && !scheduled) {
     const answer = await askConsent({
       provider: opts.provider.label,
       purpose: opts.purposeLabel,
@@ -123,6 +142,7 @@ async function prepare(opts: SendOptions) {
     sha256: await sha256Hex(body ?? req.url),
     bytes: new TextEncoder().encode(body ?? '').length,
     status: null,
+    ...(scheduled ? { scheduled: true as const } : {}),
   };
   return { method, body, headers, entry };
 }
