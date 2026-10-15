@@ -44,5 +44,9 @@ from their IP address so they need not enter it, and for less on the Freedom scr
 - The plan's length has a reason a person can check, and the hardest number on the Freedom screen
   is no longer theirs to guess.
 - The table is short. Countries are added with a sourced figure in a PR; until then, own figures.
+- The curve assumes most deaths come at old ages. Where many people die young (South Africa, life
+  expectancy at birth in the 60s), a curve fitted to the figure at birth sets the planning age for
+  a 40-year-old several years too early, the dangerous direction. Such countries are left out of
+  the table until the model takes life expectancy at the person's age, not at birth.
 - A Gompertz curve ignores deaths in youth and the flattening of mortality at very old ages; both
   move the planning age by well under a year from 40 on, against a margin of several years.

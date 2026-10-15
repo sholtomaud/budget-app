@@ -64,6 +64,11 @@ const ZONE_COUNTRY: [RegExp, string][] = [
   [/^Europe\/(Berlin|Busingen)$/, 'DE'],
   [/^Europe\/Paris$/, 'FR'],
   [/^(Asia\/Tokyo|Japan)$/, 'JP'],
+  [/^(Asia\/Singapore|Singapore)$/, 'SG'],
+  [
+    /^(America\/(Sao_Paulo|Fortaleza|Recife|Bahia|Belem|Manaus|Cuiaba|Campo_Grande|Porto_Velho|Boa_Vista|Rio_Branco|Eirunepe|Araguaina|Maceio|Noronha|Santarem)|Brazil\/.*)$/,
+    'BR',
+  ],
   [
     /^(America\/(Toronto|Vancouver|Edmonton|Winnipeg|Halifax|St_Johns|Regina|Montreal|Moncton|Glace_Bay|Goose_Bay|Whitehorse|Dawson|Dawson_Creek|Fort_Nelson|Creston|Iqaluit|Rankin_Inlet|Resolute|Cambridge_Bay|Inuvik|Swift_Current|Atikokan|Blanc-Sablon)|Canada\/.*)$/,
     'CA',

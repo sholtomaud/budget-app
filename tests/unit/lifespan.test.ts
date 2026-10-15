@@ -25,6 +25,8 @@ describe('the country comes from the device, not the network', () => {
     expect(countryFromDevice('Australia/Sydney', ['en-US'])).toBe('AU');
     expect(countryFromDevice('America/Toronto', ['en-US'])).toBe('CA');
     expect(countryFromDevice('America/Chicago', [])).toBe('US');
+    expect(countryFromDevice('America/Sao_Paulo', [])).toBe('BR');
+    expect(countryFromDevice('Asia/Singapore', [])).toBe('SG');
     expect(countryFromDevice('UTC', ['en-NZ', 'en'])).toBe('NZ');
     expect(countryFromDevice('Europe/Madrid', ['es-ES'])).toBe('EU');
     expect(countryFromDevice('Asia/Kolkata', ['hi-IN'])).toBeUndefined();

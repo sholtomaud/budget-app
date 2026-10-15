@@ -1,5 +1,5 @@
 {
-  "$comment": "Life expectancy at birth by country and sex (ADR 0043), years. Period figures: what a baby born that year would live on average if that year's death rates held. Crux uses them only to model how long a person of a given age is likely to live (a Gompertz curve fitted to each figure). Editable; a country not listed takes the person's own figures.",
+  "$comment": "Life expectancy at birth by country and sex (ADR 0043), years. Period figures: what a baby born that year would live on average if that year's death rates held. Crux uses them only to model how long a person of a given age is likely to live (a Gompertz curve fitted to each figure). Editable; a country not listed takes the person's own figures. A country is added only with a sourced figure, and only where most deaths come at old ages, since the Gompertz curve assumes that: where many die young, it would set the planning age too early.",
   "countries": [
     {
       "code": "AU",
@@ -72,6 +72,22 @@
       "male": 81.09,
       "female": 87.13,
       "source": "Japan Ministry of Health, Labour and Welfare, life tables 2024"
+    },
+    {
+      "code": "SG",
+      "name": "Singapore",
+      "year": 2024,
+      "male": 81.2,
+      "female": 85.6,
+      "source": "Singapore Department of Statistics, Complete Life Tables 2023-2024 (residents)"
+    },
+    {
+      "code": "BR",
+      "name": "Brazil",
+      "year": 2023,
+      "male": 73.1,
+      "female": 79.7,
+      "source": "IBGE, population projections 2024"
     },
     {
       "code": "EU",
