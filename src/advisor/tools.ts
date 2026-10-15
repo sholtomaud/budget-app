@@ -184,6 +184,12 @@ kind: line (needs groupBy month, quarter or year), bar, stacked-bar, or table. U
     input_schema: CHART_TOOL_SCHEMA,
   },
   {
+    name: 'review_budget',
+    description:
+      "Review the budget against the last months of spending (ADR 0038): alerts on the floor, the plan's chance and the cash buffer, then per category whether it is within its usual range, and cards to raise essentials that cost more, lower discretionary categories that cost less, or choose for discretionary ones that cost more. Changes go half way and are cards the user applies. Use it when asked whether the budget is right or to review or adjust it.",
+    input_schema: obj({}),
+  },
+  {
     name: 'list_dashboards',
     description:
       "The user's dashboards (named pages of charts, ADR 0036): each one's id, name, whether it is open, and its charts in order (a built-in id, a saved chart id, or a chart spec, and whether it is wide). Also the built-in charts and the saved charts that can go on a dashboard, by id and title. Call it before propose_dashboard.",

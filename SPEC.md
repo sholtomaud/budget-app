@@ -492,6 +492,10 @@ Pipeline, first confident answer wins. Each stage records `by` and `confidence`.
 For a chosen period and tier: per category, budget, actual (posted, excluding transfers), variance,
 variance %, and a trailing 3/6/12-month run rate. Drill down to transactions.
 
+| ID | Requirement |
+|---|---|
+| FR-BUD-002 | **Budget review** (ADR 0038): on request ("Review my budget", the Budget screen, the AI's `review_budget`), alerts on the floor, the plan's chance against its target and the cash buffer (3 months of Secure); then per category with 6+ months of spending, the last 3 months against the budget at the plan's tier, with a deadband (the model's 80 % range, or the recent level ± its usual monthly movement). Outside it, a change half way to what it costs, as a card with Undo: essentials only up, discretionary down or a choice (raise, or raise and take from another). A category changed in the last 2 months is held. Never applied without the person. |
+
 ### 9.3 CAPEX register (FR-CAP)
 
 | ID | Requirement |

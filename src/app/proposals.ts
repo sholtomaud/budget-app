@@ -15,6 +15,8 @@ import { addAsset, clearLabel, correct, deleteAsset, deleteLine, upsertLine } fr
 import { addScenario, loadScenarios, saveScenarios } from './scenarios.ts';
 import { sim } from './workers.ts';
 import { putDashboard } from './dashboards.ts';
+import { applyBudgetChange } from './review-log.ts';
+import type { ReviewLogEntry } from '../budget/review.ts';
 import type { Dashboard } from '../viz/dashboard.ts';
 
 export type Proposal =
@@ -25,7 +27,18 @@ export type Proposal =
   /** A change to the current plan on the Freedom screen (a plan check's fix, ADR 0026). */
   | { kind: 'setup'; label: string; setup: FreedomSetup; from: FreedomSetup; summary: string }
   /** A dashboard to make or change (ADR 0037): the whole layout, its charts' titles. */
-  | { kind: 'dashboard'; dashboard: Dashboard; isNew: boolean; titles: string[] };
+  | { kind: 'dashboard'; dashboard: Dashboard; isNew: boolean; titles: string[] }
+  /** A budget review's change to a category's lines (ADR 0038). */
+  | BudgetChange;
+
+export interface BudgetChange {
+  kind: 'budget-change';
+  label: string;
+  summary: string;
+  after: BudgetLine[];
+  before: BudgetLine[];
+  entries: ReviewLogEntry[];
+}
 
 /** Fired when the current plan is changed from outside the Freedom screen. */
 export const SETUP_CHANGED = 'app:setup-changed';
@@ -185,6 +198,8 @@ export function describe(p: Proposal, v: DataView): string {
       return `Save as a scenario to compare, without changing your plan: ${p.summary}`;
     case 'setup':
       return `${p.label}: ${p.summary}.`;
+    case 'budget-change':
+      return `${p.label}. ${p.summary}`;
     case 'dashboard':
       return `${p.isNew ? 'Make a dashboard' : 'Change the dashboard'} “${p.dashboard.name}” with ${p.titles.length} chart${p.titles.length === 1 ? '' : 's'}: ${p.titles.join('; ')}.`;
   }
@@ -218,5 +233,7 @@ export async function applyProposal(p: Proposal): Promise<() => Promise<void>> {
     }
     case 'dashboard':
       return putDashboard(p.dashboard);
+    case 'budget-change':
+      return applyBudgetChange(p.after, p.before, p.entries);
   }
 }

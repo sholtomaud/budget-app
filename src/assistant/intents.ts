@@ -14,6 +14,7 @@ export type Intent =
   | { id: 'earliest' }
   | { id: 'sure' }
   | { id: 'spending' }
+  | { id: 'review' }
   | { id: 'page' }
   | { id: 'define'; text: string }
   | { id: 'navigate'; path: string; label: string }
@@ -233,6 +234,12 @@ export function matchIntent(raw: string): Intent | null {
     )
   )
     return { id: 'sure' };
+  if (
+    /\b((review|check|adjust|tune|update|correct) (my|the|our) budget|budget review|is (my|the|our) budget (right|realistic|ok|okay|still right))\b/.test(
+      t
+    )
+  )
+    return { id: 'review' };
   if (
     /\b(where does (my|the|our) money go|biggest (spend|spending|cost|expense)s?|what do (i|we) spend (the )?most on|spending summary|where('s| is) my money going)\b/.test(
       t

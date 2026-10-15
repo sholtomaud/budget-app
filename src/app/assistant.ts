@@ -12,6 +12,7 @@
  * Every reply says which: "Crux" or "Crux + <provider>". Conversations live
  * in memory for the session only.
  */
+import { budgetReview } from './budget-review.ts';
 import { glossaryEntry, matchIntent, STARTERS, type Intent } from '../assistant/intents.ts';
 import { dollars } from '../assistant/phrases.ts';
 import type { DataView } from '../data/service.ts';
@@ -80,7 +81,7 @@ const PAGE_SUGGESTIONS: Record<string, string[]> = {
   '/': ['How likely is my plan to work?', 'Where does my money go?'],
   '/import': ['What does reconciliation mean?', 'Show me the transactions'],
   '/ledger': ['Categorise the cafe ones as Cafes', 'Where does my money go?'],
-  '/budget': ['I pay $45 a month for the gym', 'Where does my money go?'],
+  '/budget': ['Review my budget', 'I pay $45 a month for the gym', 'Where does my money go?'],
   '/capex': ['My car is 6 years old', 'What is a big purchase?'],
   '/forecast': ['How sure is the forecast?', 'What does P90 mean?'],
   '/freedom': ['How likely is my plan to work?', 'Why is it low?', 'What would make it work?'],
@@ -267,6 +268,15 @@ export class Assistant {
             "Checking the forecast model's checks…",
             "Read the forecast model's checks",
             () => forecastConfidence(v)
+          )
+        );
+      case 'review':
+        return fromInsight(
+          await step(
+            say,
+            'Reviewing your budget against the last months of spending…',
+            'Reviewed your budget',
+            () => budgetReview(v)
           )
         );
       case 'spending': {

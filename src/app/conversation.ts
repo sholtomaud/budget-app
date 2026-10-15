@@ -422,7 +422,9 @@ export class Conversation {
           ? 'Change my plan'
           : p0.kind === 'dashboard'
             ? 'Save dashboard'
-            : 'Apply';
+            : p0.kind === 'budget-change'
+              ? 'Change budget'
+              : 'Apply';
     const doneText =
       p0.kind === 'scenario'
         ? 'Saved to Scenarios. Your plan is unchanged.'
@@ -430,7 +432,9 @@ export class Conversation {
           ? 'Your plan is changed. Run it on Freedom to see the difference.'
           : p0.kind === 'dashboard'
             ? 'Saved. It opens on the Dashboards screen.'
-            : 'Applied.';
+            : p0.kind === 'budget-change'
+              ? 'Budget changed. Run your plan to see what it does to your chance.'
+              : 'Applied.';
     const apply = el('button', { type: 'button', class: 'small apply' }, verb);
     const discard = el('button', { type: 'button', class: 'secondary small discard' }, 'Discard');
     const note = el('span', { class: 'muted small result', role: 'status' });

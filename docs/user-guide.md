@@ -252,6 +252,29 @@ it ends. For each category you see the budget, what you actually spent (net of r
 transfers), the variance, and 3-, 6- and 12-month run rates. Click a category to see its
 transactions. The budget total adds annualised capital spend to operating spend.
 
+### Review my budget
+
+A budget drifts from what things cost. **Review my budget** (on the Budget screen, or ask the chat)
+compares each category with your last three months of spending and suggests changes, for you to
+apply or not:
+
+- **Alerts first**, when something that matters is off: your Secure budget is below what the
+  essentials cost, your plan's chance is under its target (or hasn't been run), or you have less
+  than 3 months of Secure spending in the bank.
+- **Ups and downs that are normal are left alone.** A category is only changed when its budget is
+  outside the usual range of what it costs.
+- **Half way at a time.** A change moves the budget half way to what you've been spending, so one
+  odd month can't swing it; the next reviews take it the rest of the way if the spending holds.
+  A category you just changed is left for two months.
+- **Essentials only go up.** A Secure line that costs more is raised; one that costs less is
+  pointed out, never cut. A discretionary category that costs more is your choice: raise it,
+  raise it and take the same from a category that's under budget, or discard the cards and aim
+  to spend less.
+- Categories with less than 6 months of spending aren't reviewed yet.
+
+Each change is a card: **Change budget** applies it to every line in the category (keeping their
+shares), and **Undo** puts it back. Run your plan afterwards to see what it does to your chance.
+
 ## CAPEX register
 
 Every capital item — confirmed from the Ledger, imported from your CAPEX sheet, or added by
