@@ -61,6 +61,48 @@ test('import the budget workbook and see actual vs budget by tier (FR-ING-010…
   await expect(page.locator('table.lines tbody tr')).toHaveCount(7);
 });
 
+test('edit the budget like a spreadsheet: change, add and delete items (FR-BUD-003)', async ({
+  page,
+}) => {
+  await loadDefault(page);
+  await importSheets(page);
+  const total = page.locator('.opex-budget');
+  const before = await total.textContent();
+  const groceries = page.locator('table.vs tr[data-category="food.groceries"]');
+  await groceries.getByRole('button', { name: /Show items in/ }).click();
+  const line = page.locator('table.vs tr.line[data-line]', {
+    has: page.getByRole('textbox', { name: 'Item name' }),
+  });
+  await expect(line).toHaveCount(1);
+  await expect(line.getByLabel('Item name')).toHaveValue('Groceries');
+
+  // A bad amount is refused and nothing is saved.
+  const amount = line.getByLabel('Amount for Groceries');
+  await amount.fill('lots');
+  await amount.press('Tab');
+  await expect(page.locator('.edit-status')).toContainText('not an amount');
+  await expect(total).toHaveText(before!);
+
+  // A good one saves and the totals follow.
+  await amount.fill('200');
+  await amount.press('Enter');
+  await expect(total).not.toHaveText(before!);
+  await expect(line.getByLabel('Amount for Groceries')).toHaveValue('200.00');
+
+  // Add an item under the same category.
+  const add = page.locator('table.vs tr.add-item[data-add="food.groceries"]');
+  await add.getByLabel(/^New item in/).fill('Farmers market');
+  await add.getByLabel('Amount for the new item').fill('30');
+  await add.getByRole('button', { name: 'Add' }).click();
+  await expect(page.locator('table.vs tr.line[data-line]')).toHaveCount(2);
+
+  // Delete it, then bring it back.
+  await page.getByRole('button', { name: 'Delete Farmers market' }).click();
+  await expect(page.locator('table.vs tr.line[data-line]')).toHaveCount(1);
+  await page.locator('.edit-status').getByRole('button', { name: 'Undo' }).click();
+  await expect(page.locator('table.vs tr.line[data-line]')).toHaveCount(2);
+});
+
 test('CAPEX register: replacement windows, sinking fund, tiers, wish-list decisions (FR-CAP-001…005)', async ({
   page,
 }) => {

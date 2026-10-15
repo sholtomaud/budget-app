@@ -119,3 +119,85 @@
 :host details summary h2 {
   display: inline;
 }
+:host .vs .toggle {
+  border: 0;
+  background: none;
+  color: var(--text-muted);
+  padding: 0 var(--space-1) 0 0;
+  min-width: 1.25rem;
+  cursor: pointer;
+  font: inherit;
+}
+:host .vs .toggle-gap {
+  display: inline-block;
+  width: 1.25rem;
+}
+:host .vs .n-items {
+  font-weight: 400;
+  font-size: 0.75rem;
+}
+:host .vs tr.line th,
+:host .vs tr.line td {
+  background: var(--surface-2, transparent);
+  font-weight: 400;
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+:host .vs tr.line th {
+  padding-left: calc(1.25rem + var(--space-3));
+}
+:host .vs tr.line input,
+:host .vs tr.line select {
+  font: inherit;
+  font-size: 0.875rem;
+  border: 1px solid transparent;
+  background: transparent;
+  color: inherit;
+  padding: 2px 4px;
+  border-radius: 4px;
+  min-width: 0;
+}
+:host .vs tr.line input:hover,
+:host .vs tr.line select:hover {
+  border-color: var(--border);
+}
+:host .vs tr.line input:focus,
+:host .vs tr.line select:focus {
+  border-color: var(--accent);
+  background: var(--surface, transparent);
+  outline: none;
+}
+:host .vs tr.line input[aria-invalid='true'] {
+  border-color: var(--bad);
+}
+:host .vs tr.line th input {
+  width: 100%;
+}
+:host .vs tr.add-item input {
+  border-color: var(--border);
+  border-style: dashed;
+}
+:host .vs .line-cells {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+:host .vs .line-cells label {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+:host .vs .line-cells input.num {
+  width: 6.5rem;
+  text-align: right;
+}
+:host .vs .line-cells input.share {
+  width: 3.5rem;
+}
+:host .edit-status:empty {
+  display: none;
+}
+:host .vs .line-cells select {
+  max-width: 12rem;
+}

@@ -51,6 +51,10 @@
     <p class="no-budget muted" hidden>
       No budget lines yet. Import your budget CSV below, or add lines. Actuals still show.
     </p>
+    <p class="muted edit-hint">
+      Open a category (▸) to see its items. Click a cell to change it; Enter saves and moves down,
+      Escape puts it back.
+    </p>
     <div class="scroll">
       <table class="vs">
         <thead>
@@ -75,6 +79,21 @@
         <tfoot></tfoot>
       </table>
     </div>
+    <p class="edit-status" role="status" aria-live="polite"></p>
+    <form class="add-line">
+      <h3>Add a line</h3>
+      <label>Item <input name="item" required /></label>
+      <label
+        >Category
+        <select name="categoryId"></select
+      ></label>
+      <label>Cost <input name="cost" inputmode="decimal" required size="8" /></label>
+      <label
+        >Per
+        <select name="period"></select
+      ></label>
+      <button type="submit">Add</button>
+    </form>
     <p class="muted legend"></p>
   </article>
 
@@ -103,19 +122,5 @@
         <tbody></tbody>
       </table>
     </div>
-    <form class="add-line">
-      <h3>Add a line</h3>
-      <label>Item <input name="item" required /></label>
-      <label
-        >Category
-        <select name="categoryId"></select
-      ></label>
-      <label>Cost <input name="cost" inputmode="decimal" required size="8" /></label>
-      <label
-        >Per
-        <select name="period"></select
-      ></label>
-      <button type="submit">Add</button>
-    </form>
   </details>
 </section>
