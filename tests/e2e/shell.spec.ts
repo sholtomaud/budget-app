@@ -123,6 +123,8 @@ test('the menu: wide with names or a rail of icons, remembered; on phones a draw
 
 test.describe('a screen that will not load', () => {
   test.use({
+    // The file is missing from the server: the service worker's cache must not answer for it.
+    serviceWorkers: 'block',
     // One pattern: Playwright would read a second array element as fixture options.
     allowErrors: [
       /scenarios-page|dynamically imported module|Could not load the Scenarios screen|Failed to load resource/,
