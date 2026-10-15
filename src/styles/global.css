@@ -130,6 +130,22 @@ h2 {
   margin: 0 0 var(--space-2);
 }
 
+/* The menu docks on the left (ADR 0040): wide with names, or a rail of icons. */
+body {
+  --nav-wide: 13rem;
+  --nav-w: var(--nav-wide);
+  padding-left: var(--nav-w);
+}
+body[data-nav='rail'] {
+  --nav-w: 3.5rem;
+}
+@media (max-width: 56rem) {
+  body,
+  body[data-nav='rail'] {
+    padding-left: 0;
+  }
+}
+
 /* The chat panel docks on the right of wide screens (ADR 0023). */
 body.chat-open {
   padding-right: var(--chat-w, 24rem);
@@ -138,7 +154,6 @@ body.chat-open {
 body.chat-home {
   padding-right: 0;
 }
-body.chat-home app-nav,
 body.chat-home guide-bar,
 body.chat-home chat-panel {
   display: none;

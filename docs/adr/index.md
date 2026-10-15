@@ -36,6 +36,7 @@ Every deviation from the [specification](../spec.md) gets one.
 | [0029](./0029-one-click-plans-and-compute.md)              | One-click plans: three different plans (NSGA-II), screen-then-confirm runs, WebGPU screening          | Accepted (part)     |
 | [0030](./0030-bank-csv-adapters.md)                        | Bank and accounting CSVs: presets, a learned column mapper that learns from corrections               | Accepted            |
 | [0041](./0041-schedules.md)                                | Schedules: run while open, catch up once, the AI only when allowed; set by hand or by the AI          | Accepted            |
+| [0040](./0040-sidebar-menu-and-route-recovery.md)          | One menu on the left (wide, rail, phone drawer); a screen that can't load reloads once, then says so  | Accepted            |
 | [0039](./0039-dashboard-templates.md)                      | Dashboard templates: a file with the layout and chart specs, never the data; checked on import        | Accepted            |
 | [0038](./0038-self-correcting-budget.md)                   | A self-correcting budget: a monthly review with a model deadband, a gain, Secure lines only up        | Accepted            |
 | [0037](./0037-dashboards-by-ai.md)                         | The AI lays out dashboards: a whole layout, checked on the device, saved on a card with Undo          | Accepted            |

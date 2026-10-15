@@ -723,6 +723,13 @@ Plain, fast, keyboard-friendly. Light and dark themes. Colour-blind-safe series 
 labels provenance (NFR-HON-001) and shows quantile bands, not single lines, wherever a value is
 uncertain.
 
+**The menu** (ADR 0040) is the same on every screen: a sidebar on the left with an icon and a name
+for each screen, pinned wide or as a rail of icons that opens over the page on hover or keyboard
+focus (remembered on the device), and a drawer behind a Menu button on phones. Chat and the
+theme are at its foot. A screen whose code can't load (a new version deployed since the page
+loaded, or offline) reloads the page once onto that screen, then says so with a Reload button;
+a click on the menu never does nothing.
+
 | Screen | Contents |
 |---|---|
 | **Start** | The default landing page: what Crux does in plain words, how it works in four steps, "Try it with a sample household" or "Use my own data", the privacy promise. When data exists, "Welcome back" with the next step. A getting-started guide under the menu walks through the screens in order (ADR 0020). |
@@ -734,7 +741,7 @@ uncertain.
 | **Freedom** | Goal editor; one **Run my plan** button (FR-OPT-002); pSuccess gauge per tier; capital fan chart in real terms with floor line; example paths; years to freedom; project runway; shortfall drivers. |
 | **Scenarios** | Side-by-side comparison (up to 4); optimiser; diff of decisions. |
 | **Chat panel** (was Advisor) | Docked on the right of every screen, open by default on wide screens, a sheet on phones. Common questions and requests are answered on the device from the app's own results; others go to the optional AI provider (§13). Every reply says which. Changes are proposed as cards to Apply or Undo. ADR 0023. |
-| **Chat** (route `/chat`; M10) | A full-width chat beside Start, offered from Start and the menu; the menu on the left, a hamburger on phones. Guided setup, goals in words, charts and cards in the conversation. Start stays the default landing page until the chat setup proves itself (ADR 0027). |
+| **Chat** (route `/chat`; M10) | A full-width chat beside Start, offered from Start and the menu; the setup steps beside it (behind a Steps button on phones). Guided setup, goals in words, charts and cards in the conversation. Start stays the default landing page until the chat setup proves itself (ADR 0027). |
 | **Dashboards** | Named layouts of charts (built-in and saved), drawn from today's data: a list of charts to drag in or add with a button, tiles to move, widen and remove; new, rename, duplicate, delete (ADR 0036). |
 | **Schedules** | Things Crux does on its own at set times while it is open (review the budget, run the plan, a review by the AI, a reminder): add, change, pause, run now, delete; whether schedules may call the AI on their own (off by default); notifications (ADR 0041). |
 | **Saved charts** (M10) | Charts saved from the chat: as they were, or with today's data; download as SVG, PNG or CSV (ADR 0028). |

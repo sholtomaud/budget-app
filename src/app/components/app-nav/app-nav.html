@@ -1,8 +1,30 @@
-<a class="brand" href="/" data-route="/">Crux</a>
-<nav aria-label="Screens">
-  <ul class="links"></ul>
-</nav>
-<button type="button" class="secondary small chat" aria-pressed="false" title="Chat (Ctrl+J)">
-  Chat
-</button>
-<button type="button" class="theme" aria-label="Toggle colour theme"></button>
+<div class="bar">
+  <button
+    type="button"
+    class="secondary small burger"
+    aria-expanded="false"
+    aria-controls="app-side"
+    aria-label="Menu"
+  ></button>
+  <a class="brand" href="/" data-route="/">Crux</a>
+</div>
+<div class="scrim" hidden></div>
+<aside class="side" id="app-side">
+  <div class="top">
+    <a class="brand" href="/" data-route="/"
+      ><span class="logo" aria-hidden="true">C</span><span class="label">Crux</span></a
+    >
+    <button type="button" class="pin" aria-pressed="true" aria-label="Keep the menu open"></button>
+  </div>
+  <nav aria-label="Screens">
+    <ul class="links"></ul>
+  </nav>
+  <div class="bottom">
+    <button type="button" class="tool chat" aria-pressed="false" title="Chat (Ctrl+J)">
+      <span class="label">Chat</span>
+    </button>
+    <button type="button" class="tool theme" aria-label="Toggle colour theme">
+      <span class="label"></span>
+    </button>
+  </div>
+</aside>
