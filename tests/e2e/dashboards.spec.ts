@@ -113,3 +113,125 @@ test('named dashboards: new, rename, duplicate, switch, delete', async ({ page }
   await page.reload();
   await expect(pick.locator('option')).toHaveText(['Overview', 'Monthly check-in']);
 });
+
+test('the AI lays out a dashboard: a card to check and save, shown on Dashboards, undone in one click', async ({
+  page,
+}) => {
+  test.setTimeout(180_000);
+  const bodies: Record<string, unknown>[] = [];
+  const chunk = (d: unknown) => `data: ${JSON.stringify(d)}\n\n`;
+  const call = (id: string, name: string, args: unknown) =>
+    chunk({
+      model: 'gemini-3.8-flash',
+      choices: [
+        {
+          delta: {
+            tool_calls: [
+              {
+                index: 0,
+                id,
+                type: 'function',
+                function: { name, arguments: JSON.stringify(args) },
+              },
+            ],
+          },
+          finish_reason: 'tool_calls',
+        },
+      ],
+    });
+  const tile = (t: Record<string, unknown>) => ({
+    builtin: null,
+    saved: null,
+    chart: null,
+    wide: false,
+    ...t,
+  });
+  await page.route('https://generativelanguage.googleapis.com/**', async (route) => {
+    bodies.push(route.request().postDataJSON() as Record<string, unknown>);
+    const sse =
+      bodies.length === 1
+        ? call('c1', 'list_dashboards', {})
+        : bodies.length === 2
+          ? call('c2', 'propose_dashboard', {
+              dashboardId: null,
+              name: 'Monthly check-in',
+              tiles: [
+                tile({ builtin: 'spending-vs-budget', wide: true }),
+                tile({ builtin: 'top-merchants' }),
+                tile({
+                  chart: {
+                    kind: 'bar',
+                    title: 'Income by quarter',
+                    caption: null,
+                    groupBy: 'quarter',
+                    series: [
+                      {
+                        label: 'Income',
+                        dataset: 'income',
+                        measure: null,
+                        splitBy: null,
+                        hue: null,
+                        look: null,
+                        filter: null,
+                      },
+                    ],
+                  },
+                }),
+              ],
+            })
+          : chunk({
+              choices: [
+                {
+                  delta: { content: 'Here is a monthly check-in dashboard for you to save.' },
+                  finish_reason: 'stop',
+                },
+              ],
+            });
+    await route.fulfill({ contentType: 'text/event-stream', body: `${sse}data: [DONE]\n\n` });
+  });
+
+  await open(page);
+  const nav = page.getByRole('navigation', { name: 'Screens' });
+  await nav.getByRole('link', { name: 'Settings' }).click();
+  const form = page.getByRole('form', { name: 'AI provider' });
+  await form.getByLabel('Provider').selectOption('gemini');
+  await form.getByLabel('API key, for this session only').fill('gemini-test-key');
+  await form.getByRole('button', { name: 'Save' }).click();
+  await nav.getByRole('link', { name: 'Dashboards', exact: true }).click();
+  const pick = page.getByRole('combobox', { name: 'Dashboard', exact: true });
+  await expect(pick.locator('option')).toHaveText(['Overview']);
+
+  const panel = page.locator('chat-panel');
+  await panel.getByLabel('Your message').fill('I need a dashboard for my monthly check-in');
+  await panel.getByRole('button', { name: 'Send' }).click();
+  const dialog = page.getByRole('dialog');
+  await dialog.getByLabel("Don't ask again for this until the app reloads").check();
+  await dialog.getByRole('button', { name: 'Send', exact: true }).click();
+
+  const reply = panel.locator('.msg.reply').last();
+  await expect(reply).toHaveAttribute('data-done', 'true', { timeout: 60_000 });
+  await expect(reply).toContainText(
+    'Make a dashboard “Monthly check-in” with 3 charts: Spending against the budget, by month; Where the money goes: top merchants, last 12 months; Income by quarter.'
+  );
+  // Nothing is saved until the person says so.
+  await expect(pick.locator('option')).toHaveText(['Overview']);
+  await reply.getByLabel('Dashboard name').fill('My check-in');
+  await reply.getByRole('button', { name: 'Save dashboard' }).click();
+  await expect(reply.locator('.result')).toHaveText('Saved. It opens on the Dashboards screen.');
+
+  // The screen behind the chat shows it at once, opened.
+  await expect(pick.locator('option')).toHaveText(['Overview', 'My check-in']);
+  await expect(pick.locator('option:checked')).toHaveText('My check-in');
+  await expect(tiles(page)).toHaveCount(3);
+  await expect(titles(page).last()).toHaveText('Income by quarter');
+
+  await reply.getByRole('button', { name: 'Undo' }).click();
+  await expect(pick.locator('option')).toHaveText(['Overview']);
+
+  // The AI saw titles and ids, never a value.
+  const listed = (bodies[1]!.messages as { role: string; content: string }[]).find(
+    (m) => m.role === 'tool'
+  )!.content;
+  expect(listed).toContain('"builtIn"');
+  expect(listed).not.toMatch(/\$\d/);
+});

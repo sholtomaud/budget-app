@@ -405,16 +405,32 @@ export class Conversation {
         read = () => ({ ...p0, name: name.value.trim() || p0.name });
         break;
       }
+      case 'dashboard': {
+        const name = input('Dashboard name', p0.dashboard.name);
+        read = () => ({
+          ...p0,
+          dashboard: { ...p0.dashboard, name: name.value.trim() || p0.dashboard.name },
+        });
+        break;
+      }
     }
     // Say what the button does: saving a scenario doesn't change the plan.
     const verb =
-      p0.kind === 'scenario' ? 'Save scenario' : p0.kind === 'setup' ? 'Change my plan' : 'Apply';
+      p0.kind === 'scenario'
+        ? 'Save scenario'
+        : p0.kind === 'setup'
+          ? 'Change my plan'
+          : p0.kind === 'dashboard'
+            ? 'Save dashboard'
+            : 'Apply';
     const doneText =
       p0.kind === 'scenario'
         ? 'Saved to Scenarios. Your plan is unchanged.'
         : p0.kind === 'setup'
           ? 'Your plan is changed. Run it on Freedom to see the difference.'
-          : 'Applied.';
+          : p0.kind === 'dashboard'
+            ? 'Saved. It opens on the Dashboards screen.'
+            : 'Applied.';
     const apply = el('button', { type: 'button', class: 'small apply' }, verb);
     const discard = el('button', { type: 'button', class: 'secondary small discard' }, 'Discard');
     const note = el('span', { class: 'muted small result', role: 'status' });

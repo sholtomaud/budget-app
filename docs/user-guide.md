@@ -80,6 +80,11 @@ Make as many dashboards as you like with **New**, and **Rename**, **Duplicate** 
 the menu at the top switches between them. A dashboard always redraws from today's data. It stores
 which charts to show, never the values, and is kept, encrypted, with the rest of your data.
 
+With an AI provider on, ask for one in the chat: "I need a dashboard for my monthly check-in", or
+"add my groceries chart to Overview and make the timeline wide". The AI lays it out from the
+built-in charts, your saved charts and charts it designs, and shows a card listing them. Change the
+name if you like, then **Save dashboard**; **Undo** takes it back. Nothing is saved until you do.
+
 ## Ask Crux (the chat panel)
 
 The panel on the right is there on every screen. Open or close it with **Chat** at the top, or
