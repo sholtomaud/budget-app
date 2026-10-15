@@ -743,6 +743,7 @@ a click on the menu never does nothing.
 | **Chat panel** (was Advisor) | Docked on the right of every screen, open by default on wide screens, a sheet on phones. Common questions and requests are answered on the device from the app's own results; others go to the optional AI provider (§13). Every reply says which. Changes are proposed as cards to Apply or Undo. ADR 0023. |
 | **Chat** (route `/chat`; M10) | A full-width chat beside Start, offered from Start and the menu; the setup steps beside it (behind a Steps button on phones). Guided setup, goals in words, charts and cards in the conversation. Start stays the default landing page until the chat setup proves itself (ADR 0027). |
 | **Dashboards** | Named layouts of charts (built-in and saved), drawn from today's data: a list of charts to drag in or add with a button, tiles to move, widen and remove; new, rename, duplicate, delete (ADR 0036). |
+| **Schedules** | Things Crux does on its own at set times while it is open (review the budget, run the plan, a review by the AI, a reminder): add, change, pause, run now, delete; whether schedules may call the AI on their own (off by default); notifications (ADR 0041). |
 | **Saved charts** (M10) | Charts saved from the chat: as they were, or with today's data; download as SVG, PNG or CSV (ADR 0028). |
 | **Engine check** (route `/kernel`; linked from Settings and Start, not in the menu) | Pinned GSSK version, commit and SHA-256 verification status. Runs GSSK's household example model in the `sim` worker as a smoke test (M0). |
 | **Settings** | Timezone, currency, CPI, period table, categories, rules, tax tables, return models, API providers and keys, encryption, export/import, delete all data. |
@@ -772,6 +773,14 @@ a click on the menu never does nothing.
 | FR-VIZ-008 | Dashboards: named layouts of up to 12 charts, each a built-in chart, a saved chart or a chart spec, never values, drawn from today's data. Kept in the vault (exports, delete-all). Every drag has a button equivalent (keyboard, phones). A dashboard from outside the app (a template file, the AI) is checked against `DASHBOARD_SCHEMA` and each chart as a chart. ADR 0036. |
 | FR-VIZ-009 | The AI can make or change a dashboard: it lists the dashboards, built-in and saved charts (ids and titles, no values), then proposes a whole layout (built-in, saved or designed charts), checked on the device like any dashboard and shown as a card to save, with Undo. ADR 0037. |
 | FR-VIZ-010 | A dashboard can be exported as a template file (`schemas/dashboard-template.schema.json`): its name and charts as built-in ids or chart specs, no ids and no values, after showing every word in it that someone wrote. A template file can be imported: checked like any dashboard, refused in words if it fails, otherwise added as a new dashboard. ADR 0039. |
+
+### 12.2 Schedules (ADR 0041)
+
+| ID | Requirement |
+|---|---|
+| FR-SCHED-001 | A schedule runs a named action (review the budget, run the plan, where the money goes, a review by the AI, a reminder) every day, week (a weekday) or month (day 1–28) at a local time, while the app is open; a time missed while it was closed runs once when it opens. It asks the chat its question, labelled as scheduled, or shows the reminder; it never changes data (changes stay cards). |
+| FR-SCHED-002 | Schedules may call the AI on their own only when the person turns that on (off by default). Then scheduled calls skip the consent dialog but are redacted as always and logged, marked as scheduled; without a provider and key in the session they are skipped and say why. |
+| FR-SCHED-003 | The AI can list schedules and propose one to add, change or remove, as a card the person saves; it cannot change the AI switch. Schedules are kept in the vault (export, delete-all). |
 
 ---
 

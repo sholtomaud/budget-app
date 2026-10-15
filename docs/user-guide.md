@@ -92,6 +92,28 @@ then **Download template**. Someone else (or you, on another device) chooses **I
 and gets the same dashboard drawn from their own data. A file that isn't a template, or that has
 anything in it a template can't, is refused and nothing changes.
 
+## Schedules
+
+**Schedules** in the menu lets Crux do things on its own at set times: check your budget every
+morning, run your plan every week, give you a review from the AI on Sundays, or remind you to
+import your bank data on the 1st. Pick a ready-made one or fill in the form (what it does, how
+often, what time). Each schedule can be paused, run now, edited or deleted, and shows when it
+last ran and what happened.
+
+- **It runs while Crux is open in a tab.** A web page can't wake itself up, so if it was closed
+  at the time, the schedule runs once when you next open Crux.
+- **You see everything it does.** A schedule asks the chat its question, marked "Scheduled", or
+  shows its reminder there. It never changes your data: any change is a card for you to apply.
+- **The AI only if you say so.** **Let schedules call the AI on their own** is off at first; a
+  schedule that needs the AI is skipped and says why. Turned on, it calls your AI provider without
+  asking each time (amounts are still hidden as ranges, and every call is in **Calls made**,
+  marked "scheduled"). Your API key is only kept until the app reloads, so after a reload these
+  are skipped until you enter it again; a model on your own computer needs no key.
+- **Notifications** (optional): tick **Notify me** and allow notifications in the browser to get one
+  when a schedule runs while Crux is in the background.
+- **Ask the chat** ("check my budget every morning", "remind me to import on the 1st"): with an
+  AI provider on, it sets the schedule up as a card for you to save.
+
 ## Ask Crux (the chat panel)
 
 The panel on the right is there on every screen. Open or close it with **Chat** at the top, or

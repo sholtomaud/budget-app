@@ -22,6 +22,7 @@ export const screens: Screen[] = [
   { path: '/charts', nav: 'Saved charts', title: 'Saved charts', component: 'charts-page' },
   // The advisor lives in the chat panel (ADR 0023); this route opens it.
   { path: '/advisor', nav: 'Advisor', title: 'Advisor', component: 'advisor-page', hidden: true },
+  { path: '/schedules', nav: 'Schedules', title: 'Schedules', component: 'schedules-page' },
   { path: '/settings', nav: 'Settings', title: 'Settings', component: 'settings-page' },
   {
     path: '/kernel',

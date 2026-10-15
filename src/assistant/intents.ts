@@ -117,6 +117,7 @@ export const SCREEN_WORDS: { words: RegExp; path: string; label: string }[] = [
   { words: /^(scenarios|compare plans)$/, path: '/scenarios', label: 'Scenarios' },
   { words: /^(dashboards?|my dashboards?)$/, path: '/dashboards', label: 'Dashboards' },
   { words: /^(saved charts|my charts|charts)$/, path: '/charts', label: 'Saved charts' },
+  { words: /^(schedules?|my schedules?)$/, path: '/schedules', label: 'Schedules' },
   { words: /^settings$/, path: '/settings', label: 'Settings' },
 ];
 

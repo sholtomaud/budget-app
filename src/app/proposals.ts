@@ -16,6 +16,8 @@ import { addScenario, loadScenarios, saveScenarios } from './scenarios.ts';
 import { sim } from './workers.ts';
 import { putDashboard } from './dashboards.ts';
 import { applyBudgetChange } from './review-log.ts';
+import { putSchedule, removeSchedule } from './schedules.ts';
+import { whenText, ACTION_INFO, type Schedule } from '../sched/schedule.ts';
 import type { ReviewLogEntry } from '../budget/review.ts';
 import type { Dashboard } from '../viz/dashboard.ts';
 
@@ -29,7 +31,9 @@ export type Proposal =
   /** A dashboard to make or change (ADR 0037): the whole layout, its charts' titles. */
   | { kind: 'dashboard'; dashboard: Dashboard; isNew: boolean; titles: string[] }
   /** A budget review's change to a category's lines (ADR 0038). */
-  | BudgetChange;
+  | BudgetChange
+  /** A schedule to add, change or remove (ADR 0041). */
+  | { kind: 'schedule'; schedule: Schedule; change: 'add' | 'change' | 'remove' };
 
 export interface BudgetChange {
   kind: 'budget-change';
@@ -200,6 +204,16 @@ export function describe(p: Proposal, v: DataView): string {
       return `${p.label}: ${p.summary}.`;
     case 'budget-change':
       return `${p.label}. ${p.summary}`;
+    case 'schedule': {
+      const s = p.schedule;
+      const what =
+        s.action === 'reminder'
+          ? `remind you: "${s.note ?? ''}"`
+          : ACTION_INFO[s.action].label.toLowerCase();
+      return p.change === 'remove'
+        ? `Remove the schedule “${s.name}” (${whenText(s).toLowerCase()}).`
+        : `${p.change === 'add' ? 'Add' : 'Change'} the schedule “${s.name}”: ${whenText(s).toLowerCase()}, ${what}${ACTION_INFO[s.action].ai ? ' (calls the AI, if schedules are allowed to)' : ''}.`;
+    }
     case 'dashboard':
       return `${p.isNew ? 'Make a dashboard' : 'Change the dashboard'} “${p.dashboard.name}” with ${p.titles.length} chart${p.titles.length === 1 ? '' : 's'}: ${p.titles.join('; ')}.`;
   }
@@ -235,5 +249,7 @@ export async function applyProposal(p: Proposal): Promise<() => Promise<void>> {
       return putDashboard(p.dashboard);
     case 'budget-change':
       return applyBudgetChange(p.after, p.before, p.entries);
+    case 'schedule':
+      return p.change === 'remove' ? removeSchedule(p.schedule.id) : putSchedule(p.schedule);
   }
 }

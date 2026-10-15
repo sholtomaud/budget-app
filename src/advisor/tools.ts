@@ -13,6 +13,7 @@ import { CATALOGUE, CATALOGUE_NOTE, CHART_TOOL_SCHEMA, DATASETS } from '../viz/s
 import { DASHBOARD_TOOL_SCHEMA } from '../viz/dashboard-ai.ts';
 import { LIBRARY } from '../viz/library.ts';
 import { MAX_TILES } from '../viz/dashboard.ts';
+import { ACTIONS, ACTION_INFO, EVERY } from '../sched/schedule.ts';
 
 const obj = (properties: Record<string, Schema>, required = Object.keys(properties)): Schema => ({
   type: 'object',
@@ -149,6 +150,7 @@ export const ADVISOR_TOOLS: ToolDef[] = [
           'Scenarios',
           'Dashboards',
           'Saved charts',
+          'Schedules',
           'Settings',
         ],
       },
@@ -190,6 +192,27 @@ kind: line (needs groupBy month, quarter or year), bar, stacked-bar, or table. U
     input_schema: obj({}),
   },
   {
+    name: 'list_schedules',
+    description:
+      "The user's schedules (ADR 0041): things Crux does on its own while it is open, each with its id, name, what it does, when, whether it is on, when it last ran and what happened; and whether schedules may call the AI on their own (the user's switch). Call it before propose_schedule to change or remove one.",
+    input_schema: obj({}),
+  },
+  {
+    name: 'propose_schedule',
+    description: `Offer the user a card to add, change or remove a schedule. Nothing changes until they click Save schedule. A schedule runs while Crux is open (missed times run once when it opens) and asks the chat a question, or shows a reminder; it never changes data. Actions: ${ACTIONS.map((a) => `${a} (${ACTION_INFO[a].label}${ACTION_INFO[a].ai ? '; calls the AI, only if the user allowed schedules to' : ''})`).join(', ')}. every: day, week (weekday 0 = Sunday … 6) or month (monthday 1–28); at: local time 'HH:MM'. note: the reminder's words (reminder only). To change or remove one, pass its scheduleId from list_schedules; remove: true removes it. You cannot turn on the AI switch: only the user can, on the Schedules screen.`,
+    input_schema: obj({
+      scheduleId: nullable({ type: 'string' }),
+      remove: { type: 'boolean' },
+      name: { type: 'string' },
+      action: { type: 'string', enum: [...ACTIONS] },
+      every: { type: 'string', enum: [...EVERY] },
+      at: { type: 'string' },
+      weekday: nullable({ type: 'integer' }),
+      monthday: nullable({ type: 'integer' }),
+      note: nullable({ type: 'string' }),
+    }),
+  },
+  {
     name: 'list_dashboards',
     description:
       "The user's dashboards (named pages of charts, ADR 0036): each one's id, name, whether it is open, and its charts in order (a built-in id, a saved chart id, or a chart spec, and whether it is wide). Also the built-in charts and the saved charts that can go on a dashboard, by id and title. Call it before propose_dashboard.",
@@ -217,6 +240,7 @@ Rules:
 - Explain what a result means for the person, why (check_plan first, then explain_shortfall), and what they could change (find_plan_changes).
 - When a plan looks surprisingly bad, call check_plan before anything else: a setting is often the cause, not the person's finances.
 - To check the whole plan (chance, drivers, freedom number, earliest date, the forecast's checks), call run_my_plan; get_plan_history says how it has changed.
+- When the user wants something done regularly ("check my budget every morning", "remind me to import on the 1st", "a weekly review"), call list_schedules, then propose_schedule. It is a card they save; say so, and say it runs while Crux is open.
 - When the user asks for a dashboard, or for several charts on one page to come back to, call list_dashboards, then propose_dashboard with the whole layout. It is a card they save; say so.
 - To show something over time or by category, call make_chart; the chart appears in the chat. Describe it from the facts it returns. When the user asks for a chart, always try make_chart before saying a chart can't be drawn: combine datasets, groupings and filters to get as close as you can. If it returns an error, fix the spec and try again; only then say what can't be charted and what you drew instead.
 - Spending after freedom can never go below the floor: the lowest (Secure) tier's budget, the least the person can live on (essentialsPerMonth in get_plan; with no budget, what essentials like rent and groceries cost). Never suggest a plan below it; the app raises any proposal that is.
