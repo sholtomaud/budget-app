@@ -676,6 +676,14 @@ Outputs per scenario:
 | **Project runway** | months of fully funded project work available now, at the chosen tier |
 | **Shortfall drivers** | variance attribution: re-run with each stochastic input frozen at its median and report the change in pSuccess |
 
+How long to plan for (ADR 0043):
+
+| ID | Requirement |
+|---|---|
+| FR-GOAL-020 | The profile keeps an age in whole years with the date it was given (so it moves on), never a date of birth; a country; optionally a sex for the life table and a partner. The country is taken from the device's time zone, else its language region, on the device: never from an IP address or any lookup (NFR-PRIV-003). |
+| FR-GOAL-021 | Life expectancy at birth by country and sex is a shipped, editable table with its sources (`data-tables/life-expectancy.json`); a country not in it takes the person's own figures. A Gompertz curve (dispersion 10 years, assumed) fitted to each figure gives survival from the person's age; for a couple, until the last of them. The plan runs to the age that 1 in 4 live past (or 1 in 2, or 1 in 10), labelled `assumed`. |
+| FR-GOAL-022 | Unless switched off, the plan's years of freedom are the plan-to age less the person's age when freedom starts, and follow the start date. |
+
 ### 11.4 Optimiser (FR-OPT-001)
 
 "What would make this 90 % likely?" The optimiser searches the levers the user unlocks, inside the
@@ -739,7 +747,7 @@ a click on the menu never does nothing.
 | **Budget** | Lines by category with tier columns; actual vs budget; run-rate; period switch (wk/mth/yr). |
 | **Big purchases** (route `/capex`; the CAPEX register) | Asset register; replacement timeline (P10–P90 bars); sinking fund; wish-list decisions. |
 | **Forecast** | Per-category fan charts; method and backtest score per series; CAPEX fan; totals. |
-| **Freedom** | Goal editor; one **Run my plan** button (FR-OPT-002); pSuccess gauge per tier; capital fan chart in real terms with floor line; example paths; years to freedom; project runway; shortfall drivers. |
+| **Freedom** | Goal editor (tier, freedom date, years of freedom, pay; the rest under More settings); one **Run my plan** button (FR-OPT-002); pSuccess gauge per tier; capital fan chart in real terms with floor line; example paths; years to freedom; project runway; shortfall drivers. |
 | **Scenarios** | Side-by-side comparison (up to 4); optimiser; diff of decisions. |
 | **Chat panel** (was Advisor) | Docked on the right of every screen, open by default on wide screens, a sheet on phones. Common questions and requests are answered on the device from the app's own results; others go to the optional AI provider (§13). Every reply says which. Changes are proposed as cards to Apply or Undo. ADR 0023. |
 | **Chat** (route `/chat`; M10) | A full-width chat beside Start, offered from Start and the menu; the setup steps beside it (behind a Steps button on phones). Guided setup, goals in words, charts and cards in the conversation. Start stays the default landing page until the chat setup proves itself (ADR 0027). |
@@ -747,6 +755,7 @@ a click on the menu never does nothing.
 | **Schedules** | Things Crux does on its own at set times while it is open (review the budget, run the plan, a review by the AI, a reminder): add, change, pause, run now, delete; whether schedules may call the AI on their own (off by default); notifications (ADR 0041). |
 | **Saved charts** (M10) | Charts saved from the chat: as they were, or with today's data; download as SVG, PNG or CSV (ADR 0028). |
 | **Engine check** (route `/kernel`; linked from Settings and Start, not in the menu) | Pinned GSSK version, commit and SHA-256 verification status. Runs GSSK's household example model in the `sim` worker as a smoke test (M0). |
+| **Profile** | A rough age (never a date of birth), a country from the device's time zone and language, a sex for the life table if the person says, an optional partner; how long to plan for and the timeline that follows (years to work, years to fund). It sets Freedom's years of freedom unless switched off (ADR 0043, FR-GOAL-020…022). |
 | **Settings** | Timezone, currency, CPI, period table, categories, rules, tax tables, return models, API providers and keys, encryption, export/import, delete all data. |
 
 ---

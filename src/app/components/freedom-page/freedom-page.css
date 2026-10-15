@@ -162,3 +162,23 @@
 :host .run-list li[aria-current='true'] {
   font-weight: 600;
 }
+:host details.more {
+  margin-top: var(--space-3);
+  border-top: 1px solid var(--border);
+  padding-top: var(--space-2);
+}
+:host details.more > summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+:host details.more[open] > summary {
+  margin-bottom: var(--space-2);
+}
+:host .horizon-note:empty {
+  display: none;
+}
+:host input[readonly] {
+  background: var(--surface-2);
+  color: var(--text-muted);
+}

@@ -35,6 +35,7 @@ Every deviation from the [specification](../spec.md) gets one.
 | [0028](./0028-charts-in-chat.md)                           | Charts in the chat: specs the app fills with its own data, AI-designed charts, saved charts            | Accepted            |
 | [0029](./0029-one-click-plans-and-compute.md)              | One-click plans: three different plans (NSGA-II), screen-then-confirm runs, WebGPU screening           | Accepted (part)     |
 | [0030](./0030-bank-csv-adapters.md)                        | Bank and accounting CSVs: presets, a learned column mapper that learns from corrections                | Accepted            |
+| [0043](./0043-profile-and-plan-length.md)                  | A profile (rough age, country from the device) sets how long the plan runs; a shorter Freedom form     | Accepted            |
 | [0042](./0042-budget-editing-and-batch-cards.md)           | Edit the budget in place; several changes on one card with Select all; spending, income, savings chart | Accepted            |
 | [0041](./0041-schedules.md)                                | Schedules: run while open, catch up once, the AI only when allowed; set by hand or by the AI           | Accepted            |
 | [0040](./0040-sidebar-menu-and-route-recovery.md)          | One menu on the left (wide, rail, phone drawer); a screen that can't load reloads once, then says so   | Accepted            |

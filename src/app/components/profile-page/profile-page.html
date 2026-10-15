@@ -1,0 +1,81 @@
+<section class="screen">
+  <h1>Profile</h1>
+  <p class="lede">
+    Just enough about you to work out how long your money has to last. No name and no date of birth:
+    a rough age and a country. It stays on this device, encrypted with the rest.
+  </p>
+
+  <form class="profile" aria-label="Profile">
+    <section class="card" aria-labelledby="you-title">
+      <h2 id="you-title">You</h2>
+      <div class="grid">
+        <label
+          >Country
+          <select name="country"></select
+        ></label>
+        <label>Age (years) <input name="age" type="number" min="16" max="110" step="1" /></label>
+        <label
+          >For the life table
+          <select name="sex" aria-label="Your sex, for the life table">
+            <option value="unspecified">Prefer not to say (average of both)</option>
+            <option value="female">Female</option>
+            <option value="male">Male</option>
+          </select></label
+        >
+      </div>
+      <p class="muted small country-note"></p>
+      <div class="grid own" hidden>
+        <label
+          >Life expectancy at birth, men
+          <input name="ownMale" type="number" min="40" max="100" step="0.1"
+        /></label>
+        <label
+          >Life expectancy at birth, women
+          <input name="ownFemale" type="number" min="40" max="100" step="0.1"
+        /></label>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="partner-title">
+      <h2 id="partner-title">Partner</h2>
+      <label class="check"
+        ><input type="checkbox" name="hasPartner" /> Plan for a partner too (the money lasts until
+        the last of you)</label
+      >
+      <div class="grid partner" hidden>
+        <label
+          >Partner's age (years) <input name="partnerAge" type="number" min="16" max="110" step="1"
+        /></label>
+        <label
+          >For the life table
+          <select name="partnerSex" aria-label="Partner's sex, for the life table">
+            <option value="unspecified">Prefer not to say (average of both)</option>
+            <option value="female">Female</option>
+            <option value="male">Male</option>
+          </select></label
+        >
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="plan-title">
+      <h2 id="plan-title">How long to plan for</h2>
+      <fieldset class="plan-for">
+        <legend>Plan for</legend>
+      </fieldset>
+      <p class="result" role="status" aria-live="polite"></p>
+      <p class="muted small explain"></p>
+      <label class="check"
+        ><input type="checkbox" name="setsHorizon" /> Set my Freedom plan's years of freedom from
+        this</label
+      >
+    </section>
+  </form>
+
+  <section class="card timeline" aria-labelledby="timeline-title" hidden>
+    <h2 id="timeline-title">Your timeline</h2>
+    <dl class="facts"></dl>
+    <p class="muted small">
+      Change when freedom starts on the <a href="/freedom" data-route="/freedom">Freedom</a> screen.
+    </p>
+  </section>
+</section>

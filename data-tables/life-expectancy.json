@@ -1,0 +1,85 @@
+{
+  "$comment": "Life expectancy at birth by country and sex (ADR 0043), years. Period figures: what a baby born that year would live on average if that year's death rates held. Crux uses them only to model how long a person of a given age is likely to live (a Gompertz curve fitted to each figure). Editable; a country not listed takes the person's own figures.",
+  "countries": [
+    {
+      "code": "AU",
+      "name": "Australia",
+      "year": 2023,
+      "male": 82.1,
+      "female": 85.7,
+      "source": "INED, from OECD data"
+    },
+    {
+      "code": "NZ",
+      "name": "New Zealand",
+      "year": 2023,
+      "male": 80.4,
+      "female": 83.8,
+      "source": "INED, from OECD data"
+    },
+    {
+      "code": "GB",
+      "name": "United Kingdom",
+      "year": 2023,
+      "male": 79.4,
+      "female": 83.2,
+      "source": "INED, from OECD data"
+    },
+    {
+      "code": "IE",
+      "name": "Ireland",
+      "year": 2023,
+      "male": 80.9,
+      "female": 84.2,
+      "source": "INED, from Eurostat data"
+    },
+    {
+      "code": "CA",
+      "name": "Canada",
+      "year": 2023,
+      "male": 80.4,
+      "female": 84.8,
+      "source": "INED, from OECD data"
+    },
+    {
+      "code": "DE",
+      "name": "Germany",
+      "year": 2023,
+      "male": 78.3,
+      "female": 83.0,
+      "source": "INED, from Eurostat data"
+    },
+    {
+      "code": "FR",
+      "name": "France",
+      "year": 2023,
+      "male": 80.1,
+      "female": 85.9,
+      "source": "INED"
+    },
+    {
+      "code": "US",
+      "name": "United States",
+      "year": 2023,
+      "male": 76.9,
+      "female": 81.8,
+      "source": "UN World Population Prospects 2024"
+    },
+    {
+      "code": "JP",
+      "name": "Japan",
+      "year": 2024,
+      "male": 81.09,
+      "female": 87.13,
+      "source": "Japan Ministry of Health, Labour and Welfare, life tables 2024"
+    },
+    {
+      "code": "EU",
+      "name": "European Union (average)",
+      "year": 2023,
+      "male": 78.9,
+      "female": 84.2,
+      "source": "INED, from Eurostat data (provisional)"
+    }
+  ]
+}

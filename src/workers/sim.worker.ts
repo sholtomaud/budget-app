@@ -65,6 +65,7 @@ const api = {
       | 'dashboards'
       | 'budget-review'
       | 'schedules'
+      | 'profile'
   ): Promise<unknown> {
     return new IdbValue<unknown>(name).get();
   },
@@ -77,7 +78,8 @@ const api = {
       | 'plan-runs'
       | 'dashboards'
       | 'budget-review'
-      | 'schedules',
+      | 'schedules'
+      | 'profile',
     value: unknown
   ): Promise<void> {
     await new IdbValue<unknown>(name).set(value);
