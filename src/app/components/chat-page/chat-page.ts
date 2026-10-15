@@ -1,18 +1,16 @@
 /**
  * The chat screen (route /chat, ADR 0027): a full-width conversation with the
- * menu on the left (behind a Menu button on phones). It walks through setup
+ * setup steps beside it (behind a Steps button on phones); the app's menu is
+ * the same as on every screen (ADR 0040). It walks through setup
  * (your data, your budget, your plan) with buttons, reads typed answers, and
  * answers questions like the chat panel. Start stays the landing page until
  * this has proved itself.
  */
 import { BaseComponent, define } from '../../core/base-component.ts';
 import { ROUTE_EVENT } from '../../core/router.ts';
-import { publicPath } from '../../core/routes.ts';
 import { Conversation } from '../../conversation.ts';
 import { activeProvider } from '../../egress.ts';
-import { screens } from '../../screens.ts';
 import { SetupRunner } from '../../setup-runner.ts';
-import { currentTheme, setTheme } from '../../theme.ts';
 import type { Section } from '../../../assistant/flows/engine.ts';
 import { SETUP } from '../../../assistant/flows/setup.ts';
 import template from './chat-page.html?raw';
@@ -31,29 +29,6 @@ export class ChatPage extends BaseComponent {
 
   override init(): void {
     document.body.classList.add('chat-home');
-    const base = import.meta.env.BASE_URL;
-    this.$<HTMLAnchorElement>('.brand').href = publicPath('/', base);
-    this.$('.side .links').replaceChildren(
-      ...screens
-        .filter((s) => !s.hidden && s.path !== '/chat')
-        .map((s) => {
-          const li = document.createElement('li');
-          const a = document.createElement('a');
-          a.href = publicPath(s.path, base);
-          a.dataset.route = s.path;
-          a.textContent = s.nav;
-          li.append(a);
-          return li;
-        })
-    );
-    const theme = this.$<HTMLButtonElement>('.theme');
-    const label = () =>
-      (theme.textContent = currentTheme() === 'dark' ? 'Light theme' : 'Dark theme');
-    label();
-    theme.onclick = () => {
-      setTheme(currentTheme() === 'dark' ? 'light' : 'dark');
-      label();
-    };
     this.$<HTMLButtonElement>('.menu').onclick = () =>
       this.menu(!this.$('.side').classList.contains('open'));
     window.addEventListener(ROUTE_EVENT, this.closeMenu);
