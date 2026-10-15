@@ -123,3 +123,19 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+:host .export-panel dl {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: var(--space-1) var(--space-3);
+  margin: 0;
+}
+:host .export-panel dt {
+  font-weight: 600;
+}
+:host .export-panel dd {
+  margin: 0;
+}
+:host .bar label.button {
+  cursor: pointer;
+}

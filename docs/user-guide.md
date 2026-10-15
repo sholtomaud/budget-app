@@ -85,6 +85,13 @@ With an AI provider on, ask for one in the chat: "I need a dashboard for my mont
 built-in charts, your saved charts and charts it designs, and shows a card listing them. Change the
 name if you like, then **Save dashboard**; **Undo** takes it back. Nothing is saved until you do.
 
+**Share a dashboard as a template.** **Export as template** shows what the file will hold: the
+dashboard's name, its charts' titles and labels, and any words a chart looks for in your
+transactions (a merchant's name, say). It never holds amounts, transactions or accounts. Read it,
+then **Download template**. Someone else (or you, on another device) chooses **Import a template**
+and gets the same dashboard drawn from their own data. A file that isn't a template, or that has
+anything in it a template can't, is refused and nothing changes.
+
 ## Ask Crux (the chat panel)
 
 The panel on the right is there on every screen. Open or close it with **Chat** at the top, or

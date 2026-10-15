@@ -23,6 +23,12 @@ import {
   type TileSource,
 } from '../../../viz/dashboard.ts';
 import { LIBRARY, libraryChart } from '../../../viz/library.ts';
+import {
+  fromTemplate,
+  templateFileName,
+  templateWords,
+  toTemplate,
+} from '../../../viz/template.ts';
 import type { ChartSpec } from '../../../viz/spec.ts';
 import type { ChatChart } from '../chat-chart/chat-chart.ts';
 import '../chat-chart/chat-chart.ts';
@@ -91,6 +97,15 @@ export class DashboardsPage extends BaseComponent {
         this.renderAll();
         this.say(`Deleted ${d.name}.`);
       });
+    };
+    this.$<HTMLButtonElement>('.export').onclick = () => this.showExport();
+    this.$<HTMLButtonElement>('.export-panel .close').onclick = () =>
+      (this.$('.export-panel').hidden = true);
+    this.$<HTMLInputElement>('.import').onchange = (e) => {
+      const input = e.target as HTMLInputElement;
+      const file = input.files?.[0];
+      input.value = '';
+      if (file) void this.importFile(file);
     };
     const form = this.$<HTMLFormElement>('.rename-form');
     form.onsubmit = (e) => {
@@ -178,6 +193,63 @@ export class DashboardsPage extends BaseComponent {
     form.hidden = false;
     input.focus();
     input.select();
+  }
+
+  /** What the template file will hold, in words, before it is downloaded. */
+  private showExport(): void {
+    const d = this.current();
+    if (!d) return;
+    const panel = this.$('.export-panel');
+    if (!d.tiles.length) {
+      this.say('This dashboard is empty: add a chart before sharing it.');
+      return;
+    }
+    const { template, left } = toTemplate(d, this.saved);
+    const w = templateWords(template);
+    this.$('.export-name').textContent = template.name;
+    const row = (term: string, items: string[]) =>
+      items.length ? [el('dt', {}, term), el('dd', {}, items.join('; '))] : [];
+    this.$('.export-words').replaceChildren(
+      ...row('Name', [template.name]),
+      ...row('Charts', w.titles),
+      ...row('Series', w.labels),
+      ...row('Words it looks for', w.searches)
+    );
+    this.$('.export-note').textContent = left
+      ? `${left} chart${left === 1 ? ' was' : 's were'} a saved chart that has been deleted, so ${left === 1 ? "it isn't" : "they aren't"} in the file.`
+      : '';
+    this.$<HTMLButtonElement>('.export-panel .download').onclick = () => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(
+        new Blob([JSON.stringify(template, null, 2)], { type: 'application/json' })
+      );
+      a.download = templateFileName(template);
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+      panel.hidden = true;
+      this.say(`Downloaded “${template.name}” as a template.`);
+    };
+    panel.hidden = false;
+    this.$<HTMLButtonElement>('.export-panel .download').focus();
+  }
+
+  /** A template file from outside: checked, then added as a new dashboard and opened. */
+  private async importFile(file: File): Promise<void> {
+    const r = fromTemplate(
+      await file.text(),
+      this.list.map((d) => d.name)
+    );
+    if (!r.ok) {
+      this.say(r.error);
+      return;
+    }
+    this.list = [...this.list, r.dashboard];
+    this.openId = r.dashboard.id;
+    await this.persist();
+    this.renderAll();
+    this.say(
+      `Imported “${r.dashboard.name}”: ${r.dashboard.tiles.length} charts, drawn from your data.`
+    );
   }
 
   private renderAll(): void {

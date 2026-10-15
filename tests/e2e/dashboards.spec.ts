@@ -235,3 +235,50 @@ test('the AI lays out a dashboard: a card to check and save, shown on Dashboards
   expect(listed).toContain('"builtIn"');
   expect(listed).not.toMatch(/\$\d/);
 });
+
+test('a dashboard shared as a template: what the file holds is shown first; imported, it opens as a new dashboard', async ({
+  page,
+}) => {
+  test.setTimeout(120_000);
+  await open(page);
+  const pick = page.getByRole('combobox', { name: 'Dashboard', exact: true });
+  await expect(tiles(page)).toHaveCount(3);
+
+  await page.getByRole('button', { name: 'Export as template' }).click();
+  const panel = page.getByRole('region', { name: 'Share “Overview” as a template' });
+  await expect(panel).toContainText('It holds no amounts, transactions or accounts.');
+  await expect(panel.locator('dl')).toContainText('Spending against the budget, by month');
+  const [download] = await Promise.all([
+    page.waitForEvent('download'),
+    panel.getByRole('button', { name: 'Download template' }).click(),
+  ]);
+  expect(download.suggestedFilename()).toBe('overview.crux-dashboard.json');
+  const path = await download.path();
+  const text = (await import('node:fs')).readFileSync(path!, 'utf8');
+  const file = JSON.parse(text) as { kind: string; tiles: unknown[] };
+  expect(file.kind).toBe('crux-dashboard-template');
+  expect(file.tiles).toHaveLength(3);
+  expect(text).not.toMatch(/dash-|tile-|SYN-|\$\d/);
+
+  const importer = page.locator('dashboards-page input.import');
+  await importer.setInputFiles({
+    name: 'overview.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(text),
+  });
+  await expect(pick.locator('option')).toHaveText(['Overview', 'Overview (imported)']);
+  await expect(pick.locator('option:checked')).toHaveText('Overview (imported)');
+  await expect(tiles(page)).toHaveCount(3);
+  await expect(tiles(page).first()).toHaveClass(/wide/);
+
+  // A file that isn't a template is refused in words; nothing is added.
+  await importer.setInputFiles({
+    name: 'notes.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from('{"a":1}'),
+  });
+  await expect(page.locator('dashboards-page .status')).toHaveText(
+    "That file isn't a Crux dashboard template."
+  );
+  await expect(pick.locator('option')).toHaveCount(2);
+});
