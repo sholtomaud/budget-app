@@ -36,7 +36,7 @@
           },
           "dataset": {
             "type": "string",
-            "enum": ["spending", "income", "budget", "big-purchases", "capital"]
+            "enum": ["spending", "income", "saved", "budget", "big-purchases", "capital"]
           },
           "measure": {
             "type": "string",

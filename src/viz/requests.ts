@@ -34,7 +34,27 @@ const GROUP_WORDS: Record<ChartRequest['groupBy'], string> = {
   item: 'by item',
 };
 
+const FLOW_LABEL = { spending: 'Spending', income: 'Income', saved: 'Saved' } as const;
+
 export function specFromRequest(r: ChartRequest, categories: readonly Category[]): ChartSpec {
+  if (r.dataset === 'flows') {
+    const flows = r.flows?.length ? r.flows : (['spending', 'income', 'saved'] as const);
+    const names = flows.map((f) => FLOW_LABEL[f].toLowerCase());
+    const what = `${names.slice(0, -1).join(', ')} and ${names.at(-1)}`;
+    return {
+      kind: 'line',
+      title: `${what.charAt(0).toUpperCase()}${what.slice(1)} ${GROUP_WORDS[r.groupBy]}`,
+      ...(flows.includes('saved')
+        ? { caption: 'Saved is income minus day-to-day spending in each period.' }
+        : {}),
+      groupBy: r.groupBy,
+      series: flows.map((f) => ({
+        label: FLOW_LABEL[f],
+        dataset: f,
+        ...(r.months ? { filter: { lastMonths: r.months } } : {}),
+      })),
+    };
+  }
   if (r.dataset === 'capital')
     return {
       kind: 'fan',

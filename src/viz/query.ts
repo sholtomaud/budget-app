@@ -246,8 +246,10 @@ function rows(s: SeriesSpec, g: GroupBy, months: readonly string[], ctx: QueryCo
     const c = t.classification;
     if (!c) continue;
     let v = 0;
+    const earned = c.kind === 'income' && !t.supersededBy && !t.transferPairId;
     if (s.dataset === 'spending') v = spend(t);
-    else if (c.kind === 'income' && !t.supersededBy && !t.transferPairId) v = Number(t.amount);
+    else if (s.dataset === 'saved') v = (earned ? Number(t.amount) : 0) - spend(t);
+    else if (earned) v = Number(t.amount);
     if (!v) continue;
     if (!inCategories(c.categoryId, f?.categories)) continue;
     const merchant = t.merchantName || t.description;
