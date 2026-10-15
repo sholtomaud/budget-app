@@ -42,6 +42,7 @@ import { percent } from '../assistant/phrases.ts';
 import { minTierSpend } from '../sim/inputs.ts';
 import { buildChart, chartFacts, loadCharts, type BuiltChart } from './charts.ts';
 import { loadDashboards } from './dashboards.ts';
+import { budgetReview } from './budget-review.ts';
 import {
   currentInputsHash,
   loadRuns,
@@ -158,6 +159,15 @@ export async function runTool(
       if (!r.ok) return JSON.stringify({ error: r.error });
       sink?.charts.push(r.chart);
       return JSON.stringify(chartFacts(r.chart));
+    }
+    case 'review_budget': {
+      const i = await budgetReview(v);
+      for (const p of i.proposals ?? []) sink?.proposals.push(p);
+      return JSON.stringify({
+        ...i.facts,
+        summary: i.text,
+        note: 'Each change is shown to the user as a card. Nothing has changed until they apply it.',
+      });
     }
     case 'list_dashboards': {
       const [{ list, open }, saved] = await Promise.all([loadDashboards(), loadCharts()]);
@@ -487,6 +497,8 @@ export function toolActivity(name: string, input: Record<string, unknown>): [str
       return ['Drawing the chart from your data…', 'Drew the chart'];
     case 'list_dashboards':
       return ['Reading your dashboards…', 'Read your dashboards'];
+    case 'review_budget':
+      return ['Reviewing your budget against your spending…', 'Reviewed your budget'];
     case 'propose_dashboard':
       return ['Laying out the dashboard…', 'Prepared a dashboard for you to check'];
     case 'run_my_plan':

@@ -4,6 +4,7 @@
  * conversation, as you move between screens. Conversations live in memory for
  * the session only; the open/closed state and width are kept as preferences.
  */
+import { CHAT_ASK } from '../../chat-ask.ts';
 import { BaseComponent, define } from '../../core/base-component.ts';
 import { ROUTE_EVENT } from '../../core/router.ts';
 import type { PageContext } from '../../assistant.ts';
@@ -48,6 +49,11 @@ export class ChatPanel extends BaseComponent {
   private readonly onToggle = (e: Event) => {
     const want = (e as CustomEvent<boolean | undefined>).detail;
     this.setOpen(want ?? this.dataset.open !== 'true');
+  };
+  private readonly onAsk = (e: Event) => {
+    const q = (e as CustomEvent<string>).detail;
+    this.setOpen(true);
+    void this.ask(q);
   };
   private readonly onKey = (e: KeyboardEvent) => {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'j') {
@@ -106,6 +112,7 @@ export class ChatPanel extends BaseComponent {
     this.resizable();
     window.addEventListener(ROUTE_EVENT, this.onRoute);
     window.addEventListener(CHAT_TOGGLE, this.onToggle);
+    window.addEventListener(CHAT_ASK, this.onAsk);
     window.addEventListener('keydown', this.onKey);
     this.unsubscribe = pageDetails.subscribe(() => this.showContext());
     this.showContext();
@@ -116,6 +123,7 @@ export class ChatPanel extends BaseComponent {
   override destroy(): void {
     window.removeEventListener(ROUTE_EVENT, this.onRoute);
     window.removeEventListener(CHAT_TOGGLE, this.onToggle);
+    window.removeEventListener(CHAT_ASK, this.onAsk);
     window.removeEventListener('keydown', this.onKey);
     this.unsubscribe?.();
   }

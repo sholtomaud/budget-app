@@ -14,6 +14,7 @@ import {
 import { count, el, money, prov } from '../../format.ts';
 import { categorySelect } from '../../category-select.ts';
 import { handOffSheets, takeSheets } from '../../sheet-handoff.ts';
+import { askChat } from '../../chat-ask.ts';
 import { activeProvider } from '../../egress.ts';
 import { actualVsBudget, availableMonths } from '../../../budget/actuals.ts';
 import { annualisedCapexPerWeek } from '../../../budget/capex.ts';
@@ -45,6 +46,7 @@ export class BudgetPage extends BaseComponent {
   }
 
   override init(): void {
+    this.$<HTMLButtonElement>('.review').onclick = () => askChat('Review my budget');
     const controls = this.$<HTMLFormElement>('.controls');
     controls.onchange = () => this.renderReport(data.getState().view);
     this.$<HTMLInputElement>('.pick-csv').onchange = (e) => {

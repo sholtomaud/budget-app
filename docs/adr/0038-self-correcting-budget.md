@@ -1,6 +1,6 @@
 # ADR 0038 — A self-correcting budget: a feedback loop with a deadband, a gain and a floor
 
-- Status: proposed
+- Status: accepted (built 2026-10-15; see Implementation)
 - Date: 2026-10-15
 - SPEC: §9.2 (FR-BUD-001), §11.4, §13.3, NFR-MISSION-001; new requirements on acceptance
 - Builds on: ADR 0023 (proposals as cards), ADR 0026 (plan checks), ADR 0032 (Run my plan), ADR 0033
@@ -89,11 +89,45 @@ of the line are dropped.
   variety; the gain and the hysteresis keep the loop stable.
 - The floor rises when essentials cost more, and never falls to make a plan fit.
 - People decide everything that touches their values; the review decides only what it may measure.
-- **Open questions** for implementation: whether `k` should depend on how sure the model is (a
-  narrower band, a larger gain); per-line versus per-category review where lines share a category;
-  how the review treats a new line with no history; the buffer's default and where cash on hand is
-  read from.
 - **Tests on acceptance:** unit tests for the deadband (inside, outside, no fit, too little data),
   the gain and rounding, hysteresis, the Secure-only-up rule, feed-forward exclusions and each
   alert; a simulated household whose rent steps up, checking that the budget converges within
   three reviews without overshoot; e2e for "Review my budget", a choice card and an undo.
+
+## Implementation (2026-10-15)
+
+The open questions, decided:
+
+- **Gain:** fixed at 0.5. A gain that grows with the model's confidence would converge faster on
+  steady categories, but the deadband already does the work of confidence (a narrow band reacts
+  sooner) and a fixed gain is easier to explain ("half way").
+- **Per category, not per line.** Actual spending is known by category, not by line, so the review
+  compares a category's budget (all its lines at the plan's tier) with its spending, and a change
+  scales every line in the category by the same factor: shares, periods and tier multipliers stay
+  as they were. A category is essential when any of its lines is in the Secure tier.
+- **New categories:** under 6 months since a category's first spending, it is not reviewed, and
+  the review says so.
+- **The buffer:** cash on hand is the plan's own bank buffer (`decisions.bankBuffer`, from the
+  bank balances), against 3 months of the Secure budget (`BUFFER_MONTHS`).
+
+What was built (`src/budget/review.ts`, `src/app/budget-review.ts`, `src/app/review-log.ts`):
+
+- **The band without the model:** the last three months' average, give or take 1.28 times the
+  month's usual movement, estimated from month-to-month changes with a median (MAD), so a step
+  change (rent going up) is one outlier, not a wider band. The 10th to 90th percentile of the last
+  12 months, first planned, hid a step change for up to a year; the test with a rent rise caught
+  it. The model's 80 % range is used when it is passed in (`modelBands`); wiring the Bayesian fit
+  into the review is a follow-up, since the fit runs in a worker on its own schedule.
+- **Rules:** raise essentials over their band; lower discretionary ones under it; discretionary
+  ones over it get two cards, raise it, or raise it and take the same from a discretionary
+  category with room (the total stays the same); discarding both keeps the budget. Essentials
+  under budget for 6 months (at least 15 % under) are said, not cut. Changes under $5 a month or
+  2 % are dropped; at most 5 changes per review, largest first.
+- **Hysteresis:** a category changed in the last 2 review months is left, and said.
+- **Where:** "Review my budget" in the chat (on the device), the Budget screen's **Review my
+  budget** button and its suggestion chip, and the AI's `review_budget` tool, which shows the same
+  cards. **Change budget** applies a card and logs it (vault, `budget-review`); **Undo** puts the
+  lines and the log back.
+- **Not yet:** marking a transaction as a one-off (feed-forward beyond big purchases, which are
+  already outside spending); each choice's effect on the chance and the date (the card says to
+  run the plan after applying).
