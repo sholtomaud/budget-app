@@ -10,6 +10,9 @@
 import type { ToolDef } from '../api/llm.ts';
 import type { Schema } from '../lib/jsonschema.ts';
 import { CATALOGUE, CATALOGUE_NOTE, CHART_TOOL_SCHEMA, DATASETS } from '../viz/spec.ts';
+import { DASHBOARD_TOOL_SCHEMA } from '../viz/dashboard-ai.ts';
+import { LIBRARY } from '../viz/library.ts';
+import { MAX_TILES } from '../viz/dashboard.ts';
 
 const obj = (properties: Record<string, Schema>, required = Object.keys(properties)): Schema => ({
   type: 'object',
@@ -144,6 +147,7 @@ export const ADVISOR_TOOLS: ToolDef[] = [
           'Forecast',
           'Freedom',
           'Scenarios',
+          'Dashboards',
           'Saved charts',
           'Settings',
         ],
@@ -179,6 +183,20 @@ ${CATALOGUE_NOTE}
 kind: line (needs groupBy month, quarter or year), bar, stacked-bar, or table. Up to 6 series, all grouped the same way. For "when are my big purchases" or "what is coming up", use big-purchases grouped by month, quarter or year (a bar chart reads best); for the future against today's spending, put big-purchases and spending on the same time axis. filter.categories takes category ids ('food.groceries'), group ids ('food'), or plain names ('groceries'). filter.text looks for words in the merchant, description or item. from/to are 'YYYY-MM'; lastMonths counts back from the latest complete month; nextMonths counts forward from this month (big purchases only). Keep the title under 80 characters and labels under 40.`,
     input_schema: CHART_TOOL_SCHEMA,
   },
+  {
+    name: 'list_dashboards',
+    description:
+      "The user's dashboards (named pages of charts, ADR 0036): each one's id, name, whether it is open, and its charts in order (a built-in id, a saved chart id, or a chart spec, and whether it is wide). Also the built-in charts and the saved charts that can go on a dashboard, by id and title. Call it before propose_dashboard.",
+    input_schema: obj({}),
+  },
+  {
+    name: 'propose_dashboard',
+    description: `Offer the user a card to make a dashboard or change one: a named page of up to ${MAX_TILES} charts the app draws from today's data. Nothing changes until they click Save dashboard. Give the whole layout, in order: to change a dashboard, pass its dashboardId and every chart it should have, including the ones to keep (from list_dashboards); to make one, dashboardId null. Each chart is exactly one of: builtin (an id below), saved (a saved chart's id from list_dashboards), or chart (a chart spec as for make_chart, for anything else). wide gives a chart the whole row; use it for timelines. Prefer built-in and saved charts; design a chart only when none fits.
+
+Built-in charts:
+${LIBRARY.map((c) => `- ${c.id}: ${c.spec.title}`).join('\n')}`,
+    input_schema: DASHBOARD_TOOL_SCHEMA,
+  },
 ];
 
 export const ADVISOR_SYSTEM = `You are the advisor inside Crux, a private household budget and freedom planner. Crux's mission is to help people move out of financial stress and towards a life they choose; you serve that and nothing else.
@@ -193,6 +211,7 @@ Rules:
 - Explain what a result means for the person, why (check_plan first, then explain_shortfall), and what they could change (find_plan_changes).
 - When a plan looks surprisingly bad, call check_plan before anything else: a setting is often the cause, not the person's finances.
 - To check the whole plan (chance, drivers, freedom number, earliest date, the forecast's checks), call run_my_plan; get_plan_history says how it has changed.
+- When the user asks for a dashboard, or for several charts on one page to come back to, call list_dashboards, then propose_dashboard with the whole layout. It is a card they save; say so.
 - To show something over time or by category, call make_chart; the chart appears in the chat. Describe it from the facts it returns. When the user asks for a chart, always try make_chart before saying a chart can't be drawn: combine datasets, groupings and filters to get as close as you can. If it returns an error, fix the spec and try again; only then say what can't be charted and what you drew instead.
 - Spending after freedom can never go below the floor: the lowest (Secure) tier's budget, the least the person can live on (essentialsPerMonth in get_plan; with no budget, what essentials like rent and groceries cost). Never suggest a plan below it; the app raises any proposal that is.
 - Changes go through the propose_ tools as cards the user applies. Never say a change was made; say it is ready for them to apply.

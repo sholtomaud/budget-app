@@ -36,6 +36,7 @@ Every deviation from the [specification](../spec.md) gets one.
 | [0029](./0029-one-click-plans-and-compute.md)              | One-click plans: three different plans (NSGA-II), screen-then-confirm runs, WebGPU screening          | Accepted (part)     |
 | [0030](./0030-bank-csv-adapters.md)                        | Bank and accounting CSVs: presets, a learned column mapper that learns from corrections               | Accepted            |
 | [0038](./0038-self-correcting-budget.md)                   | A self-correcting budget: a monthly review with a model deadband, a gain, Secure lines only up        | Proposed            |
+| [0037](./0037-dashboards-by-ai.md)                         | The AI lays out dashboards: a whole layout, checked on the device, saved on a card with Undo          | Accepted            |
 | [0036](./0036-dashboards.md)                               | Dashboards: named layouts of built-in and saved charts, drag or buttons, drawn from today's data      | Accepted            |
 | [0035](./0035-chart-encodings.md)                          | Chart encodings: split by category, colour by meaning (hue), light and dashed shades; our own grammar | Accepted            |
 | [0034](./0034-budget-categories-and-coicop.md)             | Budget lines onto standard (COICOP) categories: rules, then a structured output, then you             | Accepted            |

@@ -5,7 +5,7 @@
  */
 import { BaseComponent, define } from '../../core/base-component.ts';
 import { buildChart, loadCharts, type BuiltChart, type SavedChart } from '../../charts.ts';
-import { loadDashboards, saveDashboards } from '../../dashboards.ts';
+import { DASHBOARDS_CHANGED, loadDashboards, saveDashboards } from '../../dashboards.ts';
 import { data, ensureLoaded } from '../../data.ts';
 import { el } from '../../format.ts';
 import type { DataView } from '../../../data/service.ts';
@@ -106,12 +106,24 @@ export class DashboardsPage extends BaseComponent {
       (e.target as Element).closest?.('li')?.classList.remove('over')
     );
     grid.addEventListener('drop', (e) => this.drop(e));
+    window.addEventListener(DASHBOARDS_CHANGED, this.onChanged);
     void this.load();
   }
 
   override destroy(): void {
     this.unsubscribe?.();
+    window.removeEventListener(DASHBOARDS_CHANGED, this.onChanged);
   }
+
+  /** A dashboard saved or undone from the chat: show the list as stored now. */
+  private readonly onChanged = () => {
+    void Promise.all([loadDashboards(), loadCharts()]).then(([stored, saved]) => {
+      this.list = stored.list;
+      this.openId = stored.open ?? stored.list[0]?.id ?? null;
+      this.saved = saved;
+      this.renderAll();
+    });
+  };
 
   private async load(): Promise<void> {
     const [stored, saved, view] = await Promise.all([

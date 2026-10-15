@@ -759,6 +759,7 @@ uncertain.
 | FR-VIZ-006 | Saved charts download as SVG, PNG and CSV. |
 | FR-VIZ-007 | On a time axis, a series can be split by category or group (the biggest few and "Everything else"); series can share a colour (`hue`, or the same category when split) and be drawn `light` or `dashed`, so a budget pairs with its spending in one colour per category. The AI names hues, never colour values. ADR 0035. |
 | FR-VIZ-008 | Dashboards: named layouts of up to 12 charts, each a built-in chart, a saved chart or a chart spec, never values, drawn from today's data. Kept in the vault (exports, delete-all). Every drag has a button equivalent (keyboard, phones). A dashboard from outside the app (a template file, the AI) is checked against `DASHBOARD_SCHEMA` and each chart as a chart. ADR 0036. |
+| FR-VIZ-009 | The AI can make or change a dashboard: it lists the dashboards, built-in and saved charts (ids and titles, no values), then proposes a whole layout (built-in, saved or designed charts), checked on the device like any dashboard and shown as a card to save, with Undo. ADR 0037. |
 
 ---
 

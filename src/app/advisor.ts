@@ -40,7 +40,8 @@ import {
 } from './proposals.ts';
 import { percent } from '../assistant/phrases.ts';
 import { minTierSpend } from '../sim/inputs.ts';
-import { buildChart, chartFacts, type BuiltChart } from './charts.ts';
+import { buildChart, chartFacts, loadCharts, type BuiltChart } from './charts.ts';
+import { loadDashboards } from './dashboards.ts';
 import {
   currentInputsHash,
   loadRuns,
@@ -50,7 +51,13 @@ import {
   STEP_WORDS,
 } from './plan-run.ts';
 import { withoutNulls } from '../viz/spec.ts';
-import { topicCategories } from '../viz/requests.ts';
+import {
+  dashboardFromAnswer,
+  resolveCategories,
+  tileTitle,
+  type DashboardAnswer,
+} from '../viz/dashboard-ai.ts';
+import { LIBRARY } from '../viz/library.ts';
 import { SCREEN_WORDS } from '../assistant/intents.ts';
 import { sim } from './workers.ts';
 
@@ -145,26 +152,47 @@ export async function runTool(
       });
     }
     case 'make_chart': {
-      const spec = withoutNulls(input) as { series?: { filter?: { categories?: string[] } }[] };
       // Plain names become category ids (the AI sees names, not every id).
-      for (const s of spec.series ?? []) {
-        const f = s.filter;
-        if (!f?.categories) continue;
-        f.categories = [
-          ...new Set(
-            f.categories.flatMap((c) =>
-              v.categories.some((x) => x.id === c || x.id.startsWith(`${c}.`))
-                ? [c]
-                : topicCategories(c, v.categories)
-            )
-          ),
-        ];
-        if (!f.categories.length) delete f.categories;
-      }
+      const spec = resolveCategories(withoutNulls(input), v.categories);
       const r = await buildChart(v, spec);
       if (!r.ok) return JSON.stringify({ error: r.error });
       sink?.charts.push(r.chart);
       return JSON.stringify(chartFacts(r.chart));
+    }
+    case 'list_dashboards': {
+      const [{ list, open }, saved] = await Promise.all([loadDashboards(), loadCharts()]);
+      return JSON.stringify({
+        dashboards: list.map((d) => ({
+          id: d.id,
+          name: d.name,
+          open: d.id === open,
+          charts: d.tiles.map((t) => ({
+            title: tileTitle(t, saved),
+            ...(t.source.kind === 'spec'
+              ? { chart: t.source.spec }
+              : { [t.source.kind]: t.source.id }),
+            wide: t.wide,
+          })),
+        })),
+        builtIn: LIBRARY.map((c) => ({ id: c.id, title: c.spec.title })),
+        saved: saved.map((c) => ({ id: c.id, title: c.spec.title })),
+      });
+    }
+    case 'propose_dashboard': {
+      const [{ list }, saved] = await Promise.all([loadDashboards(), loadCharts()]);
+      const r = dashboardFromAnswer(input as unknown as DashboardAnswer, {
+        categories: v.categories,
+        savedIds: saved.map((c) => c.id),
+        existing: list,
+      });
+      if (!r.ok) return JSON.stringify({ error: r.error });
+      sink?.links.push({ label: 'Open Dashboards', path: '/dashboards' });
+      return offered({
+        kind: 'dashboard',
+        dashboard: r.dashboard,
+        isNew: !r.replaces,
+        titles: r.dashboard.tiles.map((t) => tileTitle(t, saved)),
+      });
     }
     case 'check_plan': {
       const checks = await planChecks(v, setup);
@@ -457,6 +485,10 @@ export function toolActivity(name: string, input: Record<string, unknown>): [str
       return ['Finding that screen…', 'Offered a button to open it'];
     case 'make_chart':
       return ['Drawing the chart from your data…', 'Drew the chart'];
+    case 'list_dashboards':
+      return ['Reading your dashboards…', 'Read your dashboards'];
+    case 'propose_dashboard':
+      return ['Laying out the dashboard…', 'Prepared a dashboard for you to check'];
     case 'run_my_plan':
       return ['Running your plan in full…', 'Ran your plan in full and kept it in History'];
     case 'get_plan_history':
