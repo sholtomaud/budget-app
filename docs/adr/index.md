@@ -35,6 +35,7 @@ Every deviation from the [specification](../spec.md) gets one.
 | [0028](./0028-charts-in-chat.md)                           | Charts in the chat: specs the app fills with its own data, AI-designed charts, saved charts           | Accepted            |
 | [0029](./0029-one-click-plans-and-compute.md)              | One-click plans: three different plans (NSGA-II), screen-then-confirm runs, WebGPU screening          | Accepted (part)     |
 | [0030](./0030-bank-csv-adapters.md)                        | Bank and accounting CSVs: presets, a learned column mapper that learns from corrections               | Accepted            |
+| [0039](./0039-dashboard-templates.md)                      | Dashboard templates: a file with the layout and chart specs, never the data; checked on import        | Accepted            |
 | [0038](./0038-self-correcting-budget.md)                   | A self-correcting budget: a monthly review with a model deadband, a gain, Secure lines only up        | Proposed            |
 | [0037](./0037-dashboards-by-ai.md)                         | The AI lays out dashboards: a whole layout, checked on the device, saved on a card with Undo          | Accepted            |
 | [0036](./0036-dashboards.md)                               | Dashboards: named layouts of built-in and saved charts, drag or buttons, drawn from today's data      | Accepted            |

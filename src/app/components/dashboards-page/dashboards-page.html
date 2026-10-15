@@ -14,6 +14,10 @@
     <button type="button" class="secondary small rename">Rename</button>
     <button type="button" class="secondary small copy">Duplicate</button>
     <button type="button" class="secondary small delete">Delete</button>
+    <button type="button" class="secondary small export">Export as template</button>
+    <label class="button secondary small"
+      >Import a template<input type="file" class="import" accept=".json,application/json" hidden
+    /></label>
   </div>
   <form class="rename-form" aria-label="Rename dashboard" hidden>
     <label>Name <input type="text" name="name" maxlength="60" required /></label>
@@ -25,6 +29,20 @@
     <button type="button" class="small yes">Delete it</button>
     <button type="button" class="secondary small no">Keep it</button>
   </p>
+  <section class="card export-panel" aria-labelledby="export-title" hidden>
+    <h2 id="export-title">Share “<span class="export-name"></span>” as a template</h2>
+    <p>
+      The file says which charts are on this dashboard and how they're laid out, so someone else can
+      open it with their own data. It holds no amounts, transactions or accounts. It does hold these
+      words; read them before you share it:
+    </p>
+    <dl class="export-words"></dl>
+    <p class="export-note muted"></p>
+    <p class="actions">
+      <button type="button" class="small download">Download template</button>
+      <button type="button" class="secondary small close">Cancel</button>
+    </p>
+  </section>
   <p class="status muted" role="status" aria-live="polite"></p>
   <div class="layout">
     <aside class="rail" aria-labelledby="rail-title">
