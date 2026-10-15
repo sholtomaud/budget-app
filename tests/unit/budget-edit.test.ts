@@ -1,6 +1,13 @@
 /** Editing budget lines in place (FR-BUD-003, ADR 0042). */
 import { describe, expect, test } from 'vitest';
-import { editLine, linesIn, newLine } from '../../src/budget/edit.ts';
+import {
+  editLine,
+  linesIn,
+  mergeReimport,
+  newLine,
+  rowOf,
+  withSheet,
+} from '../../src/budget/edit.ts';
 import { DEFAULT_TIERS, type BudgetLine } from '../../src/budget/model.ts';
 import { DEFAULT_PERIODS } from '../../src/budget/periods.ts';
 
@@ -71,5 +78,46 @@ describe('adding an item to a category', () => {
         { tiers: DEFAULT_TIERS, periods: DEFAULT_PERIODS, id: 'n1' }
       )
     ).toMatchObject({ ok: false });
+  });
+});
+
+describe('re-importing a sheet keeps changes made here (unless the sheet changed)', () => {
+  const imported = (row: number, item: string, cents: bigint): BudgetLine => ({
+    ...line,
+    id: `opex.csv#${row}`,
+    item,
+    cost: cents,
+    source: { file: 'opex.csv', row },
+  });
+  const rent = imported(4, 'Rent', 62000n);
+  const food = imported(5, 'Groceries', 14000n);
+  const other: BudgetLine = { ...line, id: 'manual-1', item: 'Gym' };
+
+  test('the first change remembers what the sheet said; going back forgets it', () => {
+    const changed = withSheet(rent, { ...rent, cost: 65000n });
+    expect(changed.sheet).toEqual(rowOf(rent));
+    // A second change keeps the sheet's values, not the first change's.
+    expect(withSheet(changed, { ...changed, cost: 66000n }).sheet).toEqual(rowOf(rent));
+    expect(withSheet(changed, { ...rent }).sheet).toBeUndefined();
+    // Lines added here have no sheet.
+    expect(withSheet(other, { ...other, cost: 1n }).sheet).toBeUndefined();
+  });
+
+  test('an unchanged sheet keeps the edit and the deletion', () => {
+    const edited = withSheet(rent, { ...rent, cost: 65000n });
+    const m = mergeReimport([edited, other], [food], 'opex.csv', [rent, food]);
+    expect(m.lines).toEqual([other, edited]);
+    expect(m.removed).toEqual([food]);
+    expect(m.kept).toBe(2);
+  });
+
+  test('a row the sheet itself changed takes the sheet’s new values', () => {
+    const edited = withSheet(rent, { ...rent, cost: 65000n });
+    const newRent = { ...rent, cost: 70000n };
+    const newFood = { ...food, cost: 15000n };
+    const m = mergeReimport([edited], [food], 'opex.csv', [newRent, newFood]);
+    expect(m.lines).toEqual([newRent, newFood]);
+    expect(m.removed).toEqual([]);
+    expect(m.kept).toBe(0);
   });
 });

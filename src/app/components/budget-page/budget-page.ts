@@ -267,7 +267,12 @@ export class BudgetPage extends BaseComponent {
     const tierName = v.budget.tiers.find((t) => t.id === this.tier)?.name ?? this.tier;
     const rate = weeklyRate(l, this.tier, (c) => perWeek(c, v.budget.periods)) * weeks;
     const item = this.cell(l, 'item', l.item, `Item name`);
-    item.title = l.source ? `From ${l.source.file}, row ${l.source.row}` : 'Added here';
+    item.title = l.sheet
+      ? `Changed here. ${l.source!.file}, row ${l.source!.row} says ${l.sheet.item}, ${money(l.sheet.cost, l.ccy)} ${v.budget.periods[l.sheet.period]?.label ?? l.sheet.period}; re-importing it unchanged keeps your change.`
+      : l.source
+        ? `From ${l.source.file}, row ${l.source.row}`
+        : 'Added here';
+    if (l.sheet) item.classList.add('changed');
     const cost = this.cell(l, 'cost', (Number(l.cost) / 100).toFixed(2), `Amount for ${l.item}`);
     cost.inputMode = 'decimal';
     cost.classList.add('num');

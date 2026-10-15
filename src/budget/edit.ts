@@ -4,7 +4,7 @@
  * screen's cells and the tests share one set of rules.
  */
 import { perWeek, type PeriodTable } from './periods.ts';
-import type { BudgetLine, Tier, TierId } from './model.ts';
+import type { BudgetLine, SheetRow, Tier, TierId } from './model.ts';
 import { parseMoney } from './workbook.ts';
 
 export type LineField = 'item' | 'cost' | 'period' | 'multiplier' | 'categoryId';
@@ -84,3 +84,69 @@ export function newLine(
 /** A category's lines, in the order they were added. */
 export const linesIn = (lines: readonly BudgetLine[], categoryId: string): BudgetLine[] =>
   lines.filter((l) => l.categoryId === categoryId);
+
+/** A line's own values, as a sheet row would give them. */
+export const rowOf = (l: BudgetLine): SheetRow => ({
+  item: l.item,
+  cost: l.cost,
+  period: l.period,
+  categoryId: l.categoryId,
+  tierMultiplier: l.tierMultiplier,
+});
+
+const sameMultipliers = (a: Record<string, number>, b: Record<string, number>) => {
+  const keys = new Set([...Object.keys(a), ...Object.keys(b)]);
+  return [...keys].every((k) => (a[k] ?? 1) === (b[k] ?? 1));
+};
+
+export const sameRow = (a: SheetRow, b: SheetRow): boolean =>
+  a.item === b.item &&
+  a.cost === b.cost &&
+  a.period === b.period &&
+  a.categoryId === b.categoryId &&
+  sameMultipliers(a.tierMultiplier, b.tierMultiplier);
+
+/**
+ * A line about to replace `old`: an imported line keeps what its sheet said
+ * from the first change, and drops it once it is back to the sheet's values.
+ */
+export function withSheet(old: BudgetLine | undefined, next: BudgetLine): BudgetLine {
+  const { sheet: _, ...bare } = next;
+  if (!next.source) return bare;
+  const sheet = next.sheet ?? old?.sheet ?? (old && old.source ? rowOf(old) : undefined);
+  return sheet && !sameRow(sheet, rowOf(next)) ? { ...bare, sheet } : bare;
+}
+
+/**
+ * Re-importing a sheet: its rows replace its lines, except where the line was
+ * changed or deleted here and the sheet still says what it said then. Then the
+ * change stands. A row the sheet itself changed takes the sheet's values.
+ */
+export function mergeReimport(
+  lines: readonly BudgetLine[],
+  removed: readonly BudgetLine[],
+  file: string,
+  incoming: readonly BudgetLine[]
+): { lines: BudgetLine[]; removed: BudgetLine[]; kept: number } {
+  const mine = new Map(lines.filter((l) => l.source?.file === file).map((l) => [l.id, l]));
+  const gone = new Map(removed.filter((l) => l.source?.file === file).map((l) => [l.id, l]));
+  let kept = 0;
+  const next: BudgetLine[] = [];
+  const stillRemoved: BudgetLine[] = removed.filter((l) => l.source?.file !== file);
+  for (const row of incoming) {
+    const had = mine.get(row.id);
+    const del = gone.get(row.id);
+    if (had?.sheet && sameRow(had.sheet, rowOf(row))) {
+      next.push(had);
+      kept++;
+    } else if (del && sameRow(del.sheet ?? rowOf(del), rowOf(row))) {
+      stillRemoved.push(del);
+      kept++;
+    } else next.push(row);
+  }
+  return {
+    lines: [...lines.filter((l) => l.source?.file !== file), ...next],
+    removed: stillRemoved,
+    kept,
+  };
+}

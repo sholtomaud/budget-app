@@ -4,6 +4,7 @@ import {
   EMPTY_PROFILE,
   ageNow,
   countryFromDevice,
+  lifespanFacts,
   modalAge,
   planAge,
   survival,
@@ -81,5 +82,20 @@ describe('plan to the age 1 in 4 people live past', () => {
   test('years of freedom run from the age at freedom to the plan’s end', () => {
     const p = planAge(au(), today)!;
     expect(yearsOfFreedom(p, today, '2038-10-01')).toBe(p.planTo - 52);
+  });
+});
+
+describe('what the advisor is told', () => {
+  test('ages and years, never a date of birth', () => {
+    const f = lifespanFacts(au(), { start: '2038-10-01', horizonYears: 30 }, today);
+    expect(f).toMatchObject({ ageNow: 40, ageWhenFreedomStarts: 52, yearsLeftToWork: 12 });
+    expect(f.yearsToFund).toBe((f.planToAge as number) - 52);
+    expect(JSON.stringify(f)).not.toMatch(/asOf|\d{4}-\d{2}-\d{2}/);
+  });
+
+  test('without an age, how to add one', () => {
+    expect(
+      lifespanFacts(EMPTY_PROFILE, { start: '2038-10-01', horizonYears: 30 }, today).none
+    ).toMatch(/Profile screen/);
   });
 });

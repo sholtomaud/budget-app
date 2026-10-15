@@ -271,7 +271,7 @@ each column. Change anything that's wrong, then import.
 - For an OPEX sheet it checks the per-week totals against the sheet's own totals row. Anything
   more than 0.5 % out is flagged.
 - Cells with spreadsheet errors (`#DIV/0!`, `#REF!`) are listed and skipped.
-- Importing the same file again replaces it.
+- Importing the same file again replaces it, keeping the changes you made here (below).
 
 Then choose a **tier** (Secure, Independent, Luxury), a **period** (week, month, year) and when
 it ends. For each category you see the budget, what you actually spent (net of refunds, without
@@ -284,6 +284,10 @@ category are cells: click one and type. A change saves when you leave the cell; 
 and moves down, **Escape** puts it back. Something that isn't a valid amount or period is refused
 and says why. Each open category ends with a row to add an item; **Delete** removes one, with
 **Undo**. **Add a line** below the table adds an item to any category.
+
+Importing the same sheet again keeps what you changed or deleted here, unless you changed that row
+in the spreadsheet too: then the sheet wins. Items you changed have a mark at the left; hover
+for what the sheet says.
 
 ### Review my budget
 

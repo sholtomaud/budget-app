@@ -201,3 +201,6 @@
 :host .vs .line-cells select {
   max-width: 12rem;
 }
+:host .vs tr.line input.changed {
+  border-left: 3px solid var(--accent);
+}

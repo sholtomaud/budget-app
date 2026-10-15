@@ -89,6 +89,16 @@ test('edit the budget like a spreadsheet: change, add and delete items (FR-BUD-0
   await expect(total).not.toHaveText(before!);
   await expect(line.getByLabel('Amount for Groceries')).toHaveValue('200.00');
 
+  // Changed here: marked, and kept when the unchanged sheet is imported again.
+  await expect(line.getByLabel('Item name')).toHaveClass(/changed/);
+  await page.locator('.pick-csv').setInputFiles('fixtures/syn-default-42/workbook/opex-budget.csv');
+  await page
+    .locator('.wizard .sheet')
+    .getByRole('button', { name: /^Import/ })
+    .click();
+  await expect(page.locator('.wizard .sheet')).toHaveCount(0);
+  await expect(line.getByLabel('Amount for Groceries')).toHaveValue('200.00');
+
   // Add an item under the same category.
   const add = page.locator('table.vs tr.add-item[data-add="food.groceries"]');
   await add.getByLabel(/^New item in/).fill('Farmers market');

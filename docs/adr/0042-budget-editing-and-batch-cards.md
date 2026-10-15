@@ -23,8 +23,14 @@ answered with the plan's savings fan, which is not what was asked.
    next line; Escape puts the value back. Each open category ends with an Add item row. Delete
    offers Undo. The rules for a cell's text live in `src/budget/edit.ts` (pure, unit-tested): a bad
    value is refused with a reason and nothing is saved.
-2. **Re-importing a sheet still replaces its lines.** Edits to an imported line keep its source, so
-   a re-import of that sheet overwrites them; the item's tooltip says which sheet it came from.
+2. **Changes made here survive a re-import; the sheet wins where it changed.** The first change to
+   an imported line (from the table, the budget review or a chat card) records what its sheet row
+   said (`BudgetLine.sheet`); deleting an imported line keeps it in `BudgetState.removed`.
+   Re-importing the sheet replaces its lines row by row (ids are `file#row`), except a row that
+   still says what it said when it was changed or deleted here: then the change or the deletion
+   stands. A row the person changed in the spreadsheet itself takes the sheet's new values. A
+   changed line is marked in the table, and its tooltip says what the sheet says. Removing the
+   sheet removes its lines and its deletions.
 3. **Several changes, one card.** When an answer brings more than one change (budget lines,
    categories, Big purchases, dashboards, budget changes, schedules), they come on one card. Each
    keeps its editable fields and gains a tick box; **Select all** ticks or clears them all. **Apply
@@ -39,6 +45,9 @@ answered with the plan's savings fan, which is not what was asked.
 
 ## Consequences
 
-- The Budget screen is where the budget is kept, not just read. The separate Budget lines table
-  remains as a flat list of every line.
+- The Budget screen is where the budget is kept, not just read, and a spreadsheet can still be
+  kept alongside it: a change made here stands until the spreadsheet changes the same row.
+- Matching is by row number: a sheet with rows inserted above a changed line no longer matches it,
+  and the sheet's values win. Acceptable for a re-import of the same workbook.
+- The separate Budget lines table remains as a flat list of every line.
 - A batch is still never applied without the person, and its Undo all is one click (ADR 0023).

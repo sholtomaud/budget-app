@@ -28,7 +28,15 @@ export interface BudgetLine {
   url?: string;
   /** Where the line came from (FR-ING-013). */
   source?: { file: string; row: number };
+  /** What the sheet said, once an imported line is changed here (FR-BUD-003). */
+  sheet?: SheetRow;
 }
+
+/** The values a sheet row gives a line. */
+export type SheetRow = Pick<
+  BudgetLine,
+  'item' | 'cost' | 'period' | 'categoryId' | 'tierMultiplier'
+>;
 
 export interface BudgetSettings {
   /** Annual CPI assumption (assumed). */
