@@ -29,8 +29,8 @@ test('setup with buttons only: a sample household, no budget, the plan; nothing 
   await page.getByRole('link', { name: 'Set up by chatting' }).click();
   await expect(page).toHaveURL(/\/chat$/);
   await expect(page.getByRole('heading', { name: 'Set up Crux' })).toBeVisible();
-  // The chat screen has its own menu: the top bar and the chat panel step aside.
-  await expect(page.locator('app-nav')).toBeHidden();
+  // The app's menu is the same as everywhere (ADR 0040); the chat panel steps aside.
+  await expect(page.getByRole('navigation', { name: 'Screens' })).toBeVisible();
   await expect(page.locator('chat-panel')).toBeHidden();
   await expect(lastReply(page)).toContainText('What do you have?');
   await expect(chat(page).locator('.steps li[data-section="data"]')).toHaveAttribute(
@@ -66,13 +66,12 @@ test('setup with buttons only: a sample household, no budget, the plan; nothing 
   await page.reload();
   await expect(lastReply(page)).toContainText('Setup is done.');
 
-  // The menu reaches every screen, and the top bar comes back there.
-  await chat(page)
-    .getByRole('navigation', { name: 'Menu' })
+  // The menu reaches every screen from here too.
+  await page
+    .getByRole('navigation', { name: 'Screens' })
     .getByRole('link', { name: 'Transactions' })
     .click();
   await expect(page).toHaveURL(/\/ledger$/);
-  await expect(page.locator('app-nav')).toBeVisible();
   expect(foreign).toEqual([]);
 });
 
@@ -167,14 +166,21 @@ test('with an AI provider, an answer the steps do not recognise is read as a str
   expect((bodies[0]!.response_format as { type: string }).type).toBe('json_schema');
 });
 
-test('phones: the menu is behind a button', async ({ page }) => {
+test('phones: the setup steps and the menu are each behind a button', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 800 });
   await page.goto('chat');
   await expect(lastReply(page)).toContainText('What do you have?');
-  const menu = chat(page).getByRole('navigation', { name: 'Menu' });
-  await expect(menu).toBeHidden();
-  await chat(page).getByRole('button', { name: 'Menu' }).click();
+  const steps = chat(page).getByRole('navigation', { name: 'Setup steps' });
+  await expect(steps).toBeHidden();
+  await chat(page).getByRole('button', { name: 'Steps' }).click();
+  await expect(steps).toBeVisible();
+  await expect(steps).toContainText('Your budget');
+  await page.reload();
+  const menu = page.getByRole('navigation', { name: 'Screens' });
+  await page.getByRole('button', { name: 'Menu', exact: true }).click();
   await expect(menu).toBeVisible();
   await menu.getByRole('link', { name: 'Budget' }).click();
   await expect(page).toHaveURL(/\/budget$/);
+  // The drawer closes once a screen is chosen.
+  await expect(menu).toBeHidden();
 });

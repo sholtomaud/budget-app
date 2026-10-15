@@ -460,6 +460,11 @@ your holdings on the Freedom screen. The file stays on this device.
 
 ## Screens
 
+The menu on the left reaches every screen. The pin at its top switches between a wide menu with
+names and a narrow rail of icons (hover over it, or tab into it, to see the names); Crux remembers
+which. **Chat** and the light or dark theme are at the bottom. On a phone, the menu is behind the
+**Menu** button at the top.
+
 | Screen       | What it is for                                                                            | Milestone |
 | ------------ | ----------------------------------------------------------------------------------------- | --------- |
 | Set up       | A chat that sets Crux up with you: your data, your budget, your plan                      | M10       |
