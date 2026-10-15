@@ -14,6 +14,8 @@ import type { FreedomSetup } from '../sim/inputs.ts';
 import { addAsset, clearLabel, correct, deleteAsset, deleteLine, upsertLine } from './data.ts';
 import { addScenario, loadScenarios, saveScenarios } from './scenarios.ts';
 import { sim } from './workers.ts';
+import { putDashboard } from './dashboards.ts';
+import type { Dashboard } from '../viz/dashboard.ts';
 
 export type Proposal =
   | { kind: 'budget-line'; line: BudgetLine }
@@ -21,7 +23,9 @@ export type Proposal =
   | { kind: 'categorise'; keys: string[]; categoryId: string; match: string; examples: string[] }
   | { kind: 'scenario'; name: string; setup: FreedomSetup; summary: string }
   /** A change to the current plan on the Freedom screen (a plan check's fix, ADR 0026). */
-  | { kind: 'setup'; label: string; setup: FreedomSetup; from: FreedomSetup; summary: string };
+  | { kind: 'setup'; label: string; setup: FreedomSetup; from: FreedomSetup; summary: string }
+  /** A dashboard to make or change (ADR 0037): the whole layout, its charts' titles. */
+  | { kind: 'dashboard'; dashboard: Dashboard; isNew: boolean; titles: string[] };
 
 /** Fired when the current plan is changed from outside the Freedom screen. */
 export const SETUP_CHANGED = 'app:setup-changed';
@@ -181,6 +185,8 @@ export function describe(p: Proposal, v: DataView): string {
       return `Save as a scenario to compare, without changing your plan: ${p.summary}`;
     case 'setup':
       return `${p.label}: ${p.summary}.`;
+    case 'dashboard':
+      return `${p.isNew ? 'Make a dashboard' : 'Change the dashboard'} “${p.dashboard.name}” with ${p.titles.length} chart${p.titles.length === 1 ? '' : 's'}: ${p.titles.join('; ')}.`;
   }
 }
 
@@ -210,5 +216,7 @@ export async function applyProposal(p: Proposal): Promise<() => Promise<void>> {
       await put(p.setup);
       return () => put(p.from);
     }
+    case 'dashboard':
+      return putDashboard(p.dashboard);
   }
 }
