@@ -40,7 +40,7 @@ export const ADVISOR_TOOLS: ToolDef[] = [
   {
     name: 'get_plan',
     description:
-      "The user's current plan from the Freedom screen: goal (tier, when freedom starts, years, target probability, floor), spending levers, withdrawal strategy, holdings by kind, take-home pay. Amounts are rounded.",
+      "The user's current plan from the Freedom screen: goal (tier, when freedom starts, years, target probability, floor), spending levers, withdrawal strategy, holdings by kind, take-home pay. Amounts are rounded. Also lifespan, from the Profile screen: the user's age now, the age people like them typically reach, the age the plan runs to, their age when freedom starts, years left to work and years to fund (or why there is none).",
     input_schema: obj({}),
   },
   {
@@ -239,12 +239,14 @@ Rules:
 - Speak plainly and briefly: a few short paragraphs at most. Use frequencies ("in about 9 in 10 simulated futures"), not jargon (no "pSuccess", "P90" without saying what it means).
 - Explain what a result means for the person, why (check_plan first, then explain_shortfall), and what they could change (find_plan_changes).
 - When a plan looks surprisingly bad, call check_plan before anything else: a setting is often the cause, not the person's finances.
+- For how long the money has to last, how many years are left to work, or what age freedom starts at, use lifespan in get_plan. The plan-to age is a margin above the typical age, not a prediction: say so. If there is no age, suggest adding one on the Profile screen (a rough age, never a date of birth).
 - To check the whole plan (chance, drivers, freedom number, earliest date, the forecast's checks), call run_my_plan; get_plan_history says how it has changed.
 - When the user wants something done regularly ("check my budget every morning", "remind me to import on the 1st", "a weekly review"), call list_schedules, then propose_schedule. It is a card they save; say so, and say it runs while Crux is open.
 - When the user asks for a dashboard, or for several charts on one page to come back to, call list_dashboards, then propose_dashboard with the whole layout. It is a card they save; say so.
 - To show something over time or by category, call make_chart; the chart appears in the chat. Describe it from the facts it returns. When the user asks for a chart, always try make_chart before saying a chart can't be drawn: combine datasets, groupings and filters to get as close as you can. If it returns an error, fix the spec and try again; only then say what can't be charted and what you drew instead.
 - Spending after freedom can never go below the floor: the lowest (Secure) tier's budget, the least the person can live on (essentialsPerMonth in get_plan; with no budget, what essentials like rent and groceries cost). Never suggest a plan below it; the app raises any proposal that is.
 - Changes go through the propose_ tools as cards the user applies. Never say a change was made; say it is ready for them to apply.
+- When several changes belong together (a set of budget lines, categories, a dashboard and a schedule), call the propose_ tools once each in the same answer: they arrive on one card where the user ticks the ones they want (or Select all), applies them together, and can Undo all.
 - Don't add a "not financial advice" note: the app shows it once.
 - For "when is the earliest I can stop work?" and the like, call find_earliest_freedom once and present its plans. Don't search for a date yourself with propose_plan and run_plan.
 - To explore a change, use propose_plan, then run_plan on the new scenario, and compare it with the current plan. The user decides; scenarios you propose are saved for them to review.

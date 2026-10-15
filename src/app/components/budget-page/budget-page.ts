@@ -18,13 +18,13 @@ import { askChat } from '../../chat-ask.ts';
 import { activeProvider } from '../../egress.ts';
 import { actualVsBudget, availableMonths } from '../../../budget/actuals.ts';
 import { annualisedCapexPerWeek } from '../../../budget/capex.ts';
-import { weeklyRate } from '../../../budget/model.ts';
+import { weeklyRate, type BudgetLine } from '../../../budget/model.ts';
+import { editLine, linesIn, newLine, type LineField } from '../../../budget/edit.ts';
 import { perWeek, WEEKS_IN, type Span } from '../../../budget/periods.ts';
 import {
   SHEET_LABEL,
   FIELDS,
   mappingFor,
-  parseMoney,
   type Mapping,
   type SheetType,
   type WorkbookPreview,
@@ -40,6 +40,10 @@ const minor = (x: number) => BigInt(Math.round(x));
 export class BudgetPage extends BaseComponent {
   private unsubscribe: (() => void) | null = null;
   private tier = 'secure';
+  /** Categories opened to show their lines (FR-BUD-003). */
+  private readonly opened = new Set<string>();
+  /** The line last deleted, for Undo. */
+  private deleted: BudgetLine | null = null;
 
   constructor() {
     super(template, style);
@@ -57,19 +61,12 @@ export class BudgetPage extends BaseComponent {
     this.$<HTMLFormElement>('.add-line').onsubmit = (e) => {
       e.preventDefault();
       const f = e.target as HTMLFormElement;
-      const v = (n: string) => (f.elements.namedItem(n) as HTMLInputElement).value.trim();
-      const cost = parseMoney(v('cost'));
-      if (cost === undefined) return;
-      const tiers = data.getState().view?.budget.tiers ?? [];
-      void upsertLine({
-        id: `manual-${Date.now().toString(36)}`,
-        categoryId: v('categoryId'),
-        item: v('item'),
-        cost,
-        ccy: 'AUD',
-        period: v('period'),
-        tierMultiplier: Object.fromEntries(tiers.map((t) => [t.id, 1])),
-      }).then(() => f.reset());
+      const v = (n: string) => (f.elements.namedItem(n) as HTMLInputElement).value;
+      const categoryId = v('categoryId');
+      void this.add({ categoryId, item: v('item'), cost: v('cost'), period: v('period') }, () => {
+        f.reset();
+        this.opened.add(categoryId);
+      });
     };
     this.unsubscribe = data.subscribe((s) => this.render(s));
     this.render(data.getState());
@@ -86,10 +83,19 @@ export class BudgetPage extends BaseComponent {
   private render(s: DataState): void {
     const v = s.view;
     if (!v) return;
+    const active = document.activeElement as HTMLInputElement | null;
+    const focus = active?.dataset?.focus;
+    const typed = active instanceof HTMLInputElement ? active.value : null;
     this.renderControls(v);
     this.renderReport(v);
     this.renderLines(v);
     this.renderSheets(v);
+    // A cell being edited keeps its place when a save re-draws the table.
+    if (focus) {
+      const again = this.querySelector<HTMLElement>(`[data-focus="${CSS.escape(focus)}"]`);
+      if (again instanceof HTMLInputElement && typed !== null) again.value = typed;
+      again?.focus();
+    }
   }
 
   private renderControls(v: DataView): void {
@@ -157,7 +163,7 @@ export class BudgetPage extends BaseComponent {
     const pctCell = (p: number | null) =>
       el('td', { class: 'num' }, p === null ? '–' : `${Math.round(p * 100)}%`);
     this.$('.vs tbody').replaceChildren(
-      ...r.rows.map((row) => {
+      ...r.rows.flatMap((row) => {
         const uncategorised = row.categoryId === 'uncategorised';
         const route = uncategorised
           ? '/ledger?tab=review'
@@ -170,10 +176,40 @@ export class BudgetPage extends BaseComponent {
             : categoryName(row.categoryId, v.categories)
         );
         const over = row.budgeted && row.variance < 0;
-        return el(
+        const lines = linesIn(v.budget.lines, row.categoryId);
+        const isOpen = this.opened.has(row.categoryId);
+        const toggle = uncategorised
+          ? el('span', { class: 'toggle-gap' })
+          : el(
+              'button',
+              {
+                type: 'button',
+                class: 'toggle',
+                'aria-expanded': String(isOpen),
+                'aria-label': `${isOpen ? 'Hide' : 'Show'} items in ${categoryName(row.categoryId, v.categories)}`,
+                title: `${lines.length} item${lines.length === 1 ? '' : 's'}`,
+              },
+              isOpen ? '▾' : '▸'
+            );
+        if (toggle instanceof HTMLButtonElement)
+          toggle.onclick = () => {
+            if (isOpen) this.opened.delete(row.categoryId);
+            else this.opened.add(row.categoryId);
+            this.renderReport(data.getState().view);
+          };
+        const head = el(
           'tr',
-          { class: row.budgeted ? '' : 'unbudgeted', 'data-category': row.categoryId },
-          el('th', { scope: 'row' }, link),
+          {
+            class: `cat ${row.budgeted ? '' : 'unbudgeted'}`,
+            'data-category': row.categoryId,
+          },
+          el(
+            'th',
+            { scope: 'row' },
+            toggle,
+            link,
+            lines.length ? el('span', { class: 'muted n-items' }, ` ${lines.length}`) : null
+          ),
           el('td', { class: 'num' }, row.budgeted ? money(minor(row.budget)) : '–'),
           el(
             'td',
@@ -191,6 +227,12 @@ export class BudgetPage extends BaseComponent {
           el('td', { class: 'num' }, money(minor(row.runRate.m6))),
           el('td', { class: 'num' }, money(minor(row.runRate.m12)))
         );
+        if (!isOpen) return [head];
+        return [
+          head,
+          ...lines.map((l) => this.lineRow(v, l, weeks)),
+          this.addRow(v, row.categoryId),
+        ];
       })
     );
     this.$('.vs tfoot').replaceChildren(
@@ -218,6 +260,212 @@ export class BudgetPage extends BaseComponent {
       prov(synthetic ? 'illustrative' : 'actual'),
       ' · positive variance means under budget. Click a category to see its transactions.'
     );
+  }
+
+  /** One budget line as a sub-row of its category: every cell editable (FR-BUD-003). */
+  private lineRow(v: DataView, l: BudgetLine, weeks: number): HTMLElement {
+    const tierName = v.budget.tiers.find((t) => t.id === this.tier)?.name ?? this.tier;
+    const rate = weeklyRate(l, this.tier, (c) => perWeek(c, v.budget.periods)) * weeks;
+    const item = this.cell(l, 'item', l.item, `Item name`);
+    item.title = l.sheet
+      ? `Changed here. ${l.source!.file}, row ${l.source!.row} says ${l.sheet.item}, ${money(l.sheet.cost, l.ccy)} ${v.budget.periods[l.sheet.period]?.label ?? l.sheet.period}; re-importing it unchanged keeps your change.`
+      : l.source
+        ? `From ${l.source.file}, row ${l.source.row}`
+        : 'Added here';
+    if (l.sheet) item.classList.add('changed');
+    const cost = this.cell(l, 'cost', (Number(l.cost) / 100).toFixed(2), `Amount for ${l.item}`);
+    cost.inputMode = 'decimal';
+    cost.classList.add('num');
+    const period = this.periodSelect(v, l.period);
+    this.wire(period, l, 'period', `How often for ${l.item}`);
+    const share = this.cell(
+      l,
+      'multiplier',
+      String(l.tierMultiplier[this.tier] ?? 1),
+      `Share of ${l.item} at ${tierName} (1 = all of it, 0 = none)`
+    );
+    share.inputMode = 'decimal';
+    share.classList.add('share');
+    const cat = categorySelect(
+      v.categories.filter((c) => c.kind === 'opex' || c.kind === 'fee'),
+      l.categoryId
+    );
+    this.wire(cat, l, 'categoryId', `Category for ${l.item}`);
+    const del = el(
+      'button',
+      { type: 'button', class: 'small secondary del', 'aria-label': `Delete ${l.item}` },
+      'Delete'
+    );
+    del.onclick = () => void this.deleteLine(l);
+    return el(
+      'tr',
+      { class: 'line', 'data-line': l.id },
+      el('th', { scope: 'row' }, item),
+      el('td', { class: 'num' }, money(minor(rate))),
+      el(
+        'td',
+        { colspan: '6' },
+        el(
+          'div',
+          { class: 'line-cells' },
+          el('label', {}, el('span', { class: 'muted' }, '$'), cost),
+          period,
+          el(
+            'label',
+            { title: `Share at ${tierName}` },
+            el('span', { class: 'muted' }, '×'),
+            share
+          ),
+          cat,
+          del
+        )
+      )
+    );
+  }
+
+  /** The row under a category's lines to add one more. */
+  private addRow(v: DataView, categoryId: string): HTMLElement {
+    const key = (f: string) => `new:${categoryId}:${f}`;
+    const item = el('input', {
+      placeholder: 'New item',
+      'aria-label': `New item in ${categoryName(categoryId, v.categories)}`,
+      'data-focus': key('item'),
+    });
+    const cost = el('input', {
+      placeholder: '0.00',
+      inputmode: 'decimal',
+      class: 'num',
+      'aria-label': 'Amount for the new item',
+      'data-focus': key('cost'),
+    });
+    const period = this.periodSelect(v, 'm');
+    period.setAttribute('aria-label', 'How often for the new item');
+    period.dataset.focus = key('period');
+    const add = el('button', { type: 'button', class: 'small', 'data-focus': key('add') }, 'Add');
+    const go = () =>
+      void this.add(
+        { categoryId, item: item.value, cost: cost.value, period: period.value },
+        () => {
+          item.value = cost.value = '';
+          // The next item goes in the same place.
+          item.focus();
+        }
+      );
+    add.onclick = go;
+    for (const i of [item, cost])
+      i.onkeydown = (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          go();
+        }
+      };
+    return el(
+      'tr',
+      { class: 'line add-item', 'data-add': categoryId },
+      el('th', { scope: 'row' }, item),
+      el('td', {}),
+      el(
+        'td',
+        { colspan: '6' },
+        el(
+          'div',
+          { class: 'line-cells' },
+          el('label', {}, el('span', { class: 'muted' }, '$'), cost),
+          period,
+          add
+        )
+      )
+    );
+  }
+
+  private periodSelect(v: DataView, value: string): HTMLSelectElement {
+    const s = el('select', {});
+    for (const [code, p] of Object.entries(v.budget.periods))
+      s.append(new Option(p.label, code, false, code === value));
+    if (!v.budget.periods[value]) s.append(new Option(value, value, false, true));
+    return s;
+  }
+
+  /** A text cell of a line. */
+  private cell(l: BudgetLine, field: LineField, value: string, label: string): HTMLInputElement {
+    const i = el('input', { value, 'data-field': field });
+    this.wire(i, l, field, label);
+    i.onkeydown = (e) => {
+      if (e.key === 'Escape') {
+        i.value = value;
+        i.removeAttribute('aria-invalid');
+        i.blur();
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        // Like a spreadsheet: save, and on to the same cell of the next line.
+        const all = [
+          ...this.querySelectorAll<HTMLInputElement>(`.vs input[data-field="${field}"]`),
+        ];
+        const next = all[all.indexOf(i) + 1];
+        if (next) next.focus();
+        else i.blur();
+      }
+    };
+    return i;
+  }
+
+  /** Save a cell when it changes; a bad value is refused, with the reason. */
+  private wire(
+    x: HTMLInputElement | HTMLSelectElement,
+    l: BudgetLine,
+    field: LineField,
+    label: string
+  ): void {
+    x.setAttribute('aria-label', label);
+    x.dataset.focus = `${l.id}:${field}`;
+    x.onchange = () => {
+      const v = data.getState().view!;
+      const r = editLine(l, field, x.value, { tier: this.tier, periods: v.budget.periods });
+      if (!r.ok) {
+        x.setAttribute('aria-invalid', 'true');
+        this.status(r.error);
+        return;
+      }
+      x.removeAttribute('aria-invalid');
+      this.status('');
+      void upsertLine(r.line);
+    };
+  }
+
+  private async add(
+    input: { categoryId: string; item: string; cost: string; period: string },
+    done: () => void
+  ): Promise<void> {
+    const v = data.getState().view!;
+    const r = newLine(input, {
+      tiers: v.budget.tiers,
+      periods: v.budget.periods,
+      id: `manual-${Date.now().toString(36)}`,
+    });
+    if (!r.ok) {
+      this.status(r.error);
+      return;
+    }
+    this.status(`Added ${r.line.item}.`);
+    done();
+    await upsertLine(r.line);
+  }
+
+  private async deleteLine(l: BudgetLine): Promise<void> {
+    this.deleted = l;
+    await deleteLine(l.id);
+    const undo = el('button', { type: 'button', class: 'small secondary undo' }, 'Undo');
+    undo.onclick = async () => {
+      undo.disabled = true;
+      if (this.deleted) await upsertLine(this.deleted);
+      this.deleted = null;
+      this.status(`${l.item} is back.`);
+    };
+    this.status(`Deleted ${l.item}. `, undo);
+  }
+
+  private status(text: string, ...extra: Node[]): void {
+    this.$('.edit-status').replaceChildren(text, ...extra);
   }
 
   private opexWeekly(v: DataView): number {

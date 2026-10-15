@@ -16,6 +16,8 @@ import {
 import { sim } from '../../workers.ts';
 import { inputsFor, loadHistories } from '../../freedom-inputs.ts';
 import { SETUP_CHANGED } from '../../proposals.ts';
+import { loadProfile, PROFILE_CHANGED, profileHorizon, today } from '../../profile.ts';
+import { planAge, type Profile } from '../../../profile/lifespan.ts';
 import { checkPlan } from '../../../sim/checks.ts';
 import { historyModel } from '../../../sim/history.ts';
 import { addScenario } from '../../scenarios.ts';
@@ -62,6 +64,8 @@ export class FreedomPage extends BaseComponent {
   /** Bootstrap models over the user's imported price histories. */
   private historyModels: ReturnModel[] = [];
   private view: DataView | null = null;
+  /** The profile, which may set the years of freedom (ADR 0043). */
+  private profile: Profile | null = null;
   /** The run on screen: a fresh one, or one from the history. */
   private shown: PlanRun | null = null;
   private history: PlanRun[] = [];
@@ -115,6 +119,7 @@ export class FreedomPage extends BaseComponent {
     this.$<HTMLButtonElement>('.save-scenario').onclick = () => void this.saveScenario();
     this.unsubscribe = data.subscribe(() => void this.load());
     window.addEventListener(SETUP_CHANGED, this.onSetupChanged);
+    window.addEventListener(PROFILE_CHANGED, this.onProfileChanged);
     void ensureLoaded().then(() => this.load());
   }
 
@@ -127,8 +132,14 @@ export class FreedomPage extends BaseComponent {
     if (this.shown) this.lastRunLine(this.shown, true);
   };
 
+  private readonly onProfileChanged = async () => {
+    this.profile = await loadProfile();
+    this.horizonFromProfile();
+  };
+
   override destroy(): void {
     window.removeEventListener(SETUP_CHANGED, this.onSetupChanged);
+    window.removeEventListener(PROFILE_CHANGED, this.onProfileChanged);
     this.unsubscribe?.();
     this.runId++;
   }
@@ -142,6 +153,7 @@ export class FreedomPage extends BaseComponent {
     this.$('.setup').hidden = !has;
     if (!has) return;
     this.setup ??= (await sim().loadSetup()) ?? defaultSetup(v);
+    this.profile = await loadProfile();
     this.historyModels = (await loadHistories()).map(historyModel);
     this.fill();
     await this.showLatest();
@@ -196,8 +208,51 @@ export class FreedomPage extends BaseComponent {
     this.field<HTMLInputElement>('.run', 'seed').value = s.seed;
     this.showStrategyParams();
     this.taxNote();
+    this.horizonFromProfile();
     this.renderHoldings();
     void this.showChecks();
+  }
+
+  /**
+   * With an age in the profile, the years of freedom run from the person's age
+   * when freedom starts to the age the profile plans for; the field follows.
+   */
+  private horizonFromProfile(): void {
+    const s = this.setup;
+    if (!s) return;
+    const field = this.field<HTMLInputElement>('.goal', 'horizon');
+    const note = this.$('.horizon-note');
+    const p = this.profile;
+    const years = p ? profileHorizon(p, s) : undefined;
+    const plan = p && planAge(p, today());
+    const link = el(
+      'a',
+      { href: `${import.meta.env.BASE_URL}profile`, 'data-route': '/profile' },
+      'Profile'
+    );
+    field.readOnly = years !== undefined;
+    if (years === undefined || !plan) {
+      note.replaceChildren(
+        plan ? 'Years of freedom are set by hand; your ' : 'Add your age on your ',
+        link,
+        plan
+          ? ' can set them from your age instead.'
+          : ' and Crux works out how many years your money has to last.'
+      );
+      return;
+    }
+    field.value = String(years);
+    note.replaceChildren(
+      `To age ${plan.planTo}: you're about ${plan.planTo - years} when freedom starts. From your `,
+      link,
+      ' ',
+      prov('assumed'),
+      '.'
+    );
+    if (s.goal.horizonYears !== years) {
+      s.goal = { ...s.goal, horizonYears: years };
+      this.changed();
+    }
   }
 
   private async saveScenario(): Promise<void> {
@@ -278,6 +333,7 @@ export class FreedomPage extends BaseComponent {
     s.returnUncertainty = this.field<HTMLInputElement>('.goal', 'returnUncertainty').checked;
     this.showStrategyParams();
     this.taxNote();
+    this.horizonFromProfile();
     this.changed();
   }
 

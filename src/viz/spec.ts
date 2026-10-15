@@ -8,7 +8,14 @@
 import { validate, formatError, type Schema } from '../lib/jsonschema.ts';
 
 export const CHART_KINDS = ['line', 'bar', 'stacked-bar', 'table', 'fan'] as const;
-export const DATASETS = ['spending', 'income', 'budget', 'big-purchases', 'capital'] as const;
+export const DATASETS = [
+  'spending',
+  'income',
+  'saved',
+  'budget',
+  'big-purchases',
+  'capital',
+] as const;
 export const GROUP_BY = [
   'month',
   'quarter',
@@ -75,6 +82,8 @@ export const CATALOGUE: Record<Dataset, string> = {
     'Money going out on day-to-day spending (operating costs, fees, tax), net of refunds; transfers between accounts and big purchases are left out. Dollars. Provenance: actual.',
   income:
     'Money coming in classified as income (pay, interest, refunds of capital excluded). Dollars. Provenance: actual.',
+  saved:
+    'What was kept each period: income minus day-to-day spending, from the same transactions as the income and spending datasets. Below zero when more went out than came in. Put it next to spending and income on one time axis to show all three. Dollars. Provenance: actual.',
   budget:
     "The budget lines at the plan's tier, as a monthly rate. Grouped by month it is the same each month; grouped by category or group it is the monthly budget for each. 'text' matches the line's item; group by item for one bar per line. Dollars. Provenance: budgeted.",
   'big-purchases':

@@ -26,6 +26,8 @@ export interface BudgetState {
   /** Goal sheet values, kept for the Freedom screen (M5), with their source rows. */
   goal: Record<string, { value: string; file: string; row: number }>;
   imports: WorkbookImport[];
+  /** Imported lines deleted here, so re-importing an unchanged sheet leaves them out (FR-BUD-003). */
+  removed?: BudgetLine[];
 }
 
 export function emptyBudget(): BudgetState {

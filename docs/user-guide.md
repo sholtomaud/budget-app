@@ -128,6 +128,10 @@ Ctrl+J. On a phone, tap **Ask Crux**. Ask in plain words:
 - Tell it about a cost: **I pay $45 a month for the gym**, **My car is 6 years old**,
   **Categorise the cafe ones as Cafes**. It shows a card with the details. Change anything, then
   **Apply**; **Undo** reverses it.
+- When an answer brings several changes (budget lines, categories, big purchases, a dashboard,
+  schedules), they come on one card. Tick the ones you want, or **Select all**, and press
+  **Apply selected**: they apply together, or not at all. **Undo all** reverses them. Changes to
+  your plan stay on separate cards, since each is a whole plan.
 
 Those answers are worked out on this device, with no AI, and say **Crux · on this device**. With an
 AI provider turned on (Settings), other questions go to it and say **Crux + the provider's
@@ -267,12 +271,23 @@ each column. Change anything that's wrong, then import.
 - For an OPEX sheet it checks the per-week totals against the sheet's own totals row. Anything
   more than 0.5 % out is flagged.
 - Cells with spreadsheet errors (`#DIV/0!`, `#REF!`) are listed and skipped.
-- Importing the same file again replaces it.
+- Importing the same file again replaces it, keeping the changes you made here (below).
 
 Then choose a **tier** (Secure, Independent, Luxury), a **period** (week, month, year) and when
 it ends. For each category you see the budget, what you actually spent (net of refunds, without
 transfers), the variance, and 3-, 6- and 12-month run rates. Click a category to see its
 transactions. The budget total adds annualised capital spend to operating spend.
+
+**Keep it up to date in place.** Open a category with ▸ to see its items. Each item's name,
+amount, how often, share at the tier you're looking at (1 = all of it, 0 = not at this tier) and
+category are cells: click one and type. A change saves when you leave the cell; **Enter** saves
+and moves down, **Escape** puts it back. Something that isn't a valid amount or period is refused
+and says why. Each open category ends with a row to add an item; **Delete** removes one, with
+**Undo**. **Add a line** below the table adds an item to any category.
+
+Importing the same sheet again keeps what you changed or deleted here, unless you changed that row
+in the spreadsheet too: then the sheet wins. Items you changed have a mark at the left; hover
+for what the sheet says.
 
 ### Review my budget
 
@@ -350,9 +365,13 @@ When could you stop working for money, and how sure can you be?
 Set the goal:
 
 - the tier you want to live at;
-- when freedom starts, and for how many years;
+- when freedom starts, and for how many years (with your age on **Profile**, Crux works out the
+  years: from your age when freedom starts to the age you plan for);
 - a floor your capital must never fall below;
 - the probability you're aiming for.
+
+The rest (floor, target, salaries, spending levers, cash buffer, withdrawals and tax) is under
+**More settings**.
 
 Then choose a withdrawal strategy:
 
@@ -480,6 +499,20 @@ With a provider on:
 `Close` or `Price`; at least 25 months) for any investment. It then appears as a return model for
 your holdings on the Freedom screen. The file stays on this device.
 
+## Profile
+
+Crux needs to know roughly how long your money has to last. **Profile** asks for your age in
+years, never your date of birth, and your country. The country is read from your device's time
+zone and language, on the device: nothing is looked up online and your address is never sent
+anywhere. If you like, say your sex (life expectancy differs) and add a partner (the plan then
+lasts until the last of you).
+
+From your country's life expectancy, Crux works out the age people like you typically reach and
+suggests planning to the age that **1 in 4** live past (you can choose 1 in 2 or 1 in 10). It
+then shows your timeline: your age now, your age when freedom starts, the years left to work and
+the years to fund. Freedom's years of freedom follow it unless you switch that off. Countries not
+in Crux's table take your own figures.
+
 ## Screens
 
 The menu on the left reaches every screen. The pin at its top switches between a wide menu with
@@ -499,6 +532,7 @@ which. **Chat** and the light or dark theme are at the bottom. On a phone, the m
 | Scenarios    | Side-by-side comparison, the optimiser and its trade-offs                                 | M6        |
 | Chat         | Panel on every screen; built-in answers, optional AI, changes as cards                    | M8, chat  |
 | Saved charts | Charts kept from the chat: as saved, or with today's data; download SVG, PNG, CSV         | M10       |
+| Profile      | A rough age and country; how long to plan for; years to work and to fund                  | Profile   |
 | Settings     | Encryption, export, delete all; AI provider, call log, return history                     | M7, M8    |
 | Kernel       | Shows the pinned kernel and runs an example model                                         | M0        |
 

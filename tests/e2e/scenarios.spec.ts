@@ -11,6 +11,9 @@ test('scenarios: save, compare side by side, and optimise (FR-OPT-001)', async (
   await nav.getByRole('link', { name: 'Freedom' }).click();
   await expect(page.locator('table.holdings tbody tr').first()).toBeVisible();
   const set = async (label: string, value: string) => {
+    // Most settings sit under More settings (ADR 0043).
+    if (!(await page.getByLabel(label).isVisible()))
+      await page.locator('freedom-page details.more summary').click();
     await page.getByLabel(label).fill(value);
     await page.getByLabel(label).dispatchEvent('change');
   };

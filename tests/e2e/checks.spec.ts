@@ -5,6 +5,8 @@ test.use({ viewport: { width: 1400, height: 900 }, contextOptions: { reducedMoti
 
 async function setField(page: Page, label: string, value: string) {
   const f = page.locator('freedom-page').getByLabel(label, { exact: true });
+  // Most settings sit under More settings (ADR 0043).
+  if (!(await f.isVisible())) await page.locator('freedom-page details.more summary').click();
   await f.fill(value);
   await f.dispatchEvent('change');
 }

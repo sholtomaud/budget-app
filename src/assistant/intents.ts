@@ -25,7 +25,9 @@ export type Intent =
 
 /** A chart asked for in words (ADR 0028): turned into a spec by src/viz/requests.ts. */
 export interface ChartRequest {
-  dataset: 'spending' | 'income' | 'big-purchases' | 'capital';
+  dataset: 'spending' | 'income' | 'big-purchases' | 'capital' | 'flows';
+  /** For 'flows': which of spending, income and savings to draw on one timeline. */
+  flows?: ('spending' | 'income' | 'saved')[];
   groupBy: 'month' | 'quarter' | 'year' | 'category' | 'group' | 'merchant' | 'item';
   /** "on groceries": a category, group or words to look for. */
   topic?: string;
@@ -36,6 +38,28 @@ export interface ChartRequest {
 /** "Chart my spending on groceries by month against the budget", and the like. */
 export function matchChart(t: string): ChartRequest | null {
   const chartWord = /\b(chart|graph|plot|visuali[sz]e|draw)\b/.test(t);
+  const income = /\b(income|earnings|salary|wages)\b/.test(t);
+  const spending = /\b(spend|spending|spent|expenses?|costs?|outgoings)\b/.test(t);
+  const saving = /\b(savings?|saved|kept|left over)\b/.test(t);
+  // Two or more of spending, income and savings: one timeline from the ledger.
+  if (chartWord && [income, spending, saving].filter(Boolean).length >= 2) {
+    const flows: NonNullable<ChartRequest['flows']> = [];
+    if (spending) flows.push('spending');
+    if (income) flows.push('income');
+    if (saving) flows.push('saved');
+    const n = /\b(?:last|past)\s+(\d+)\s+(months?|years?)\b/.exec(t);
+    return {
+      dataset: 'flows',
+      flows,
+      groupBy: /\b(yearly|per year|each year|by year)\b/.test(t)
+        ? 'year'
+        : /\b(quarterly|by quarter)\b/.test(t)
+          ? 'quarter'
+          : 'month',
+      ...(n ? { months: Math.min(120, Number(n[1]) * (n[2]!.startsWith('year') ? 12 : 1)) } : {}),
+      vsBudget: false,
+    };
+  }
   // Savings over time: from the plan's simulation, not the ledger.
   if (
     /\b(savings|capital|balance|net worth|wealth|nest egg|money left|investments)\b/.test(t) &&
@@ -44,8 +68,6 @@ export function matchChart(t: string): ChartRequest | null {
     /\b(chart|graph|plot|draw|show|see|forecast|visuali[sz]e)\b/.test(t)
   )
     return { dataset: 'capital', groupBy: 'year', vsBudget: false };
-  const income = /\b(income|earnings|salary|wages)\b/.test(t);
-  const spending = /\b(spend|spending|spent|expenses?|costs?|outgoings)\b/.test(t);
   const by =
     /\bby (month|quarter|year|category|categories|group|merchant|shop|store|payee)s?\b/.exec(
       t
@@ -118,6 +140,7 @@ export const SCREEN_WORDS: { words: RegExp; path: string; label: string }[] = [
   { words: /^(dashboards?|my dashboards?)$/, path: '/dashboards', label: 'Dashboards' },
   { words: /^(saved charts|my charts|charts)$/, path: '/charts', label: 'Saved charts' },
   { words: /^(schedules?|my schedules?)$/, path: '/schedules', label: 'Schedules' },
+  { words: /^(profile|my profile|my age)$/, path: '/profile', label: 'Profile' },
   { words: /^settings$/, path: '/settings', label: 'Settings' },
 ];
 

@@ -43,6 +43,12 @@ export const cruxReply = (r: Partial<ChatReply> & { text: string }): ChatReply =
   ...r,
 });
 
+/** Turn a card's inputs off while it applies (or for good, once applied). */
+const lockFields = (fields: HTMLElement, on: boolean) =>
+  fields
+    .querySelectorAll<HTMLInputElement | HTMLSelectElement>('input,select')
+    .forEach((x) => (x.disabled = on));
+
 export class Conversation {
   readonly els: ConversationElements;
   private readonly opts: ConversationOptions;
@@ -233,7 +239,13 @@ export class Conversation {
       chart.item = c;
       li.append(chart);
     }
-    for (const p of r.proposals) li.append(this.card(p));
+    // Plan changes are alternatives (each is a whole plan), so they keep a card
+    // each; everything else that comes together is one card (a batch).
+    const alone = r.proposals.filter((p) => p.kind === 'setup');
+    const together = r.proposals.filter((p) => p.kind !== 'setup');
+    if (together.length > 1) li.append(this.batch(together));
+    else for (const p of together) li.append(this.card(p));
+    for (const p of alone) li.append(this.card(p));
     if (r.links.length)
       li.append(
         el(
@@ -343,6 +355,141 @@ export class Conversation {
 
   /** A proposal card: editable details, then Apply or Discard; Undo after applying. */
   private card(p0: Proposal): HTMLElement {
+    const { card, fields, read, verb, doneText } = this.cardParts(p0);
+    const apply = el('button', { type: 'button', class: 'small apply' }, verb);
+    const discard = el('button', { type: 'button', class: 'secondary small discard' }, 'Discard');
+    const note = el('span', { class: 'muted small result', role: 'status' });
+    const buttons = el('div', { class: 'buttons' }, apply, discard, note);
+    apply.onclick = async () => {
+      apply.disabled = discard.disabled = true;
+      lockFields(fields, true);
+      try {
+        const undo = await applyProposal(read());
+        note.textContent = doneText;
+        const u = el('button', { type: 'button', class: 'secondary small undo' }, 'Undo');
+        u.onclick = async () => {
+          u.disabled = true;
+          await undo();
+          note.textContent = 'Undone.';
+          u.remove();
+        };
+        buttons.append(u);
+      } catch (err) {
+        note.textContent = err instanceof Error ? err.message : String(err);
+        apply.disabled = discard.disabled = false;
+        lockFields(fields, false);
+      }
+    };
+    discard.onclick = () => {
+      apply.disabled = discard.disabled = true;
+      note.textContent = 'Discarded.';
+    };
+    card.append(buttons);
+    return card;
+  }
+
+  /**
+   * Several changes on one card: tick the ones you want (or Select all), then
+   * Apply selected. They apply in order; if one fails, the ones before it are
+   * undone, so the batch is all or nothing. Undo all reverses the batch.
+   */
+  private batch(ps: Proposal[]): HTMLElement {
+    const parts = ps.map((p) => this.cardParts(p));
+    const all = el('input', {
+      type: 'checkbox',
+      class: 'select-all',
+      checked: '',
+    }) as HTMLInputElement;
+    const count = el('span', { class: 'muted small count' });
+    const boxes = parts.map((x, i) => {
+      const box = el('input', {
+        type: 'checkbox',
+        class: 'pick',
+        checked: '',
+        'aria-label': `Include change ${i + 1}`,
+      }) as HTMLInputElement;
+      x.card.prepend(el('label', { class: 'tick' }, box, el('span', {}, `Change ${i + 1}`)));
+      return box;
+    });
+    const apply = el('button', { type: 'button', class: 'small apply' }, 'Apply selected');
+    const discard = el(
+      'button',
+      { type: 'button', class: 'secondary small discard' },
+      'Discard all'
+    );
+    const note = el('span', { class: 'muted small result', role: 'status' });
+    const buttons = el('div', { class: 'buttons' }, apply, discard, note);
+    const sync = () => {
+      const n = boxes.filter((b) => b.checked).length;
+      all.checked = n === boxes.length;
+      all.indeterminate = n > 0 && n < boxes.length;
+      count.textContent = `${n} of ${boxes.length} selected`;
+      apply.disabled = n === 0;
+      parts.forEach((x, i) => x.card.classList.toggle('off', !boxes[i]!.checked));
+    };
+    all.onchange = () => {
+      for (const b of boxes) b.checked = all.checked;
+      sync();
+    };
+    for (const b of boxes) b.onchange = sync;
+    sync();
+    const lock = (on: boolean) => {
+      all.disabled = on;
+      for (const b of boxes) b.disabled = on;
+      for (const x of parts) lockFields(x.fields, on);
+    };
+    apply.onclick = async () => {
+      apply.disabled = discard.disabled = true;
+      lock(true);
+      const picked = parts.filter((_, i) => boxes[i]!.checked);
+      const undos: (() => Promise<void>)[] = [];
+      try {
+        for (const x of picked) undos.push(await applyProposal(x.read()));
+      } catch (err) {
+        for (const u of undos.reverse()) await u();
+        note.textContent = `Nothing changed: ${err instanceof Error ? err.message : String(err)}`;
+        apply.disabled = discard.disabled = false;
+        lock(false);
+        sync();
+        return;
+      }
+      note.textContent = `Applied ${picked.length} change${picked.length === 1 ? '' : 's'}.`;
+      const u = el('button', { type: 'button', class: 'secondary small undo' }, 'Undo all');
+      u.onclick = async () => {
+        u.disabled = true;
+        for (const f of [...undos].reverse()) await f();
+        note.textContent = 'All undone.';
+        u.remove();
+      };
+      buttons.append(u);
+    };
+    discard.onclick = () => {
+      apply.disabled = discard.disabled = true;
+      lock(true);
+      note.textContent = 'Discarded.';
+    };
+    return el(
+      'div',
+      { class: 'proposal-batch' },
+      el(
+        'div',
+        { class: 'batch-head' },
+        el('label', { class: 'tick' }, all, el('span', {}, 'Select all')),
+        count
+      ),
+      ...parts.map((x) => x.card),
+      buttons
+    );
+  }
+
+  /** A proposal's card body: the summary and editable fields, and how to read them back. */
+  private cardParts(p0: Proposal): {
+    card: HTMLElement;
+    fields: HTMLElement;
+    read: () => Proposal;
+    verb: string;
+    doneText: string;
+  } {
     const v = data.getState().view!;
     const card = el('div', { class: 'proposal', 'data-kind': p0.kind });
     const summary = el('p', { class: 'summary' }, describe(p0, v));
@@ -469,37 +616,8 @@ export class Conversation {
               : p0.kind === 'schedule'
                 ? 'Saved. See it on the Schedules screen.'
                 : 'Applied.';
-    const apply = el('button', { type: 'button', class: 'small apply' }, verb);
-    const discard = el('button', { type: 'button', class: 'secondary small discard' }, 'Discard');
-    const note = el('span', { class: 'muted small result', role: 'status' });
-    const buttons = el('div', { class: 'buttons' }, apply, discard, note);
-    apply.onclick = async () => {
-      apply.disabled = discard.disabled = true;
-      fields
-        .querySelectorAll('input,select')
-        .forEach((x) => ((x as HTMLInputElement).disabled = true));
-      try {
-        const undo = await applyProposal(read());
-        note.textContent = doneText;
-        const u = el('button', { type: 'button', class: 'secondary small undo' }, 'Undo');
-        u.onclick = async () => {
-          u.disabled = true;
-          await undo();
-          note.textContent = 'Undone.';
-          u.remove();
-        };
-        buttons.append(u);
-      } catch (err) {
-        note.textContent = err instanceof Error ? err.message : String(err);
-        apply.disabled = discard.disabled = false;
-      }
-    };
-    discard.onclick = () => {
-      apply.disabled = discard.disabled = true;
-      note.textContent = 'Discarded.';
-    };
-    card.append(summary, fields, buttons);
-    return card;
+    card.append(summary, fields);
+    return { card, fields, read, verb, doneText };
   }
 }
 

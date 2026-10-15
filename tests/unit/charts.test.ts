@@ -510,6 +510,44 @@ describe('charts asked for in words', () => {
   });
 });
 
+describe('spending, income and savings on one chart', () => {
+  test('the words ask for one timeline from the ledger, not the plan', () => {
+    const r = matchChart(
+      'i want a chart that tracks spending, income and savings over time all in the one chart.'
+    );
+    expect(r).toMatchObject({
+      dataset: 'flows',
+      flows: ['spending', 'income', 'saved'],
+      groupBy: 'month',
+    });
+    expect(matchChart('graph my income and spending by year')).toMatchObject({
+      flows: ['spending', 'income'],
+      groupBy: 'year',
+    });
+  });
+
+  test('saved is income minus spending, each month', () => {
+    const spec = specFromRequest(
+      {
+        dataset: 'flows',
+        flows: ['spending', 'income', 'saved'],
+        groupBy: 'month',
+        vsBudget: false,
+      },
+      categories
+    );
+    expect(checkSpec(spec)).toBeNull();
+    const r = runChart(spec, ctx);
+    if (!r.ok) throw new Error(r.error);
+    const [spent, earned, saved] = r.table.series;
+    expect(saved!.label).toBe('Saved');
+    saved!.values.forEach((v, i) =>
+      expect(v).toBeCloseTo(earned!.values[i]! - spent!.values[i]!, 2)
+    );
+    expect(saved!.values[0]).toBeCloseTo(3000 - 200, 2);
+  });
+});
+
 function asset(name: string, dollars: number, a: Partial<Asset> = {}): Asset {
   return {
     id: `a-${name}`,

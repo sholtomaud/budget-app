@@ -8,6 +8,7 @@ import { Classifier, defaultLife, type StateStore } from '../classify/service.ts
 import { emptyBudget, type BudgetState, type WorkbookImport } from '../budget/state.ts';
 import type { BudgetLine, BudgetSettings } from '../budget/model.ts';
 import { preview, type Mapping, type WorkbookPreview } from '../budget/workbook.ts';
+import { mergeReimport, withSheet } from '../budget/edit.ts';
 import type { Category } from '../classify/categories.ts';
 import type { MemoryEntry } from '../classify/memory.ts';
 import type { Rule } from '../classify/rules.ts';
@@ -289,7 +290,10 @@ export class DataService {
     const p = this.previewWorkbook(file, text, opts);
     const b = this.budget;
     if (p.mapping.type === 'opex') {
-      b.lines = [...b.lines.filter((l) => l.source?.file !== file), ...p.lines];
+      // Changes made here stand unless the sheet itself changed that row (FR-BUD-003).
+      const m = mergeReimport(b.lines, b.removed ?? [], file, p.lines);
+      b.lines = m.lines;
+      b.removed = m.removed;
     } else if (p.mapping.type === 'capex' || p.mapping.type === 'wishlist') {
       await this.classifier.importAssets(file, p.assets);
     } else if (p.mapping.type === 'renewals') {
@@ -335,6 +339,7 @@ export class DataService {
 
   async removeWorkbook(file: string): Promise<void> {
     this.budget.lines = this.budget.lines.filter((l) => l.source?.file !== file);
+    this.budget.removed = (this.budget.removed ?? []).filter((l) => l.source?.file !== file);
     this.budget.imports = this.budget.imports.filter((i) => i.file !== file);
     await this.classifier.importAssets(file, []);
     await this.saveBudget();
@@ -342,12 +347,22 @@ export class DataService {
   }
 
   async upsertLine(line: BudgetLine): Promise<void> {
-    this.budget.lines = [...this.budget.lines.filter((l) => l.id !== line.id), line];
+    const old = this.budget.lines.find((l) => l.id === line.id);
+    const gone = this.budget.removed?.find((l) => l.id === line.id);
+    this.budget.lines = [
+      ...this.budget.lines.filter((l) => l.id !== line.id),
+      withSheet(old ?? gone, line),
+    ];
+    if (gone) this.budget.removed = this.budget.removed!.filter((l) => l.id !== line.id);
     await this.saveBudget();
   }
 
   async deleteLine(id: string): Promise<void> {
+    const old = this.budget.lines.find((l) => l.id === id);
     this.budget.lines = this.budget.lines.filter((l) => l.id !== id);
+    // An imported line stays deleted when its sheet is imported again, unchanged.
+    if (old?.source)
+      this.budget.removed = [...(this.budget.removed ?? []).filter((l) => l.id !== id), old];
     await this.saveBudget();
   }
 

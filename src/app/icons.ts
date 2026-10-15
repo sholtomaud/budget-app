@@ -15,6 +15,7 @@ const PATHS: Record<string, string> = {
   '/dashboards': 'M3 3h8v8H3zM13 3h8v5h-8zM13 10h8v11h-8zM3 13h8v8H3z',
   '/charts': 'M4 20V12M10 20V5M16 20v-9M22 20H2',
   '/schedules': 'M12 7v5l3 2M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z',
+  '/profile': 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0',
   '/settings':
     'M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2',
   chat: 'M4 5h16v11H9l-5 4zM8 9h8M8 12h5',
