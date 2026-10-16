@@ -117,10 +117,17 @@ export function withSheet(old: BudgetLine | undefined, next: BudgetLine): Budget
   return sheet && !sameRow(sheet, rowOf(next)) ? { ...bare, sheet } : bare;
 }
 
+const itemKey = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ');
+
 /**
  * Re-importing a sheet: its rows replace its lines, except where the line was
  * changed or deleted here and the sheet still says what it said then. Then the
  * change stands. A row the sheet itself changed takes the sheet's values.
+ *
+ * Rows are matched by the item's name in the sheet, not by row number, so rows
+ * inserted, deleted or moved in the spreadsheet keep the changes made here.
+ * Two rows with the same name pair up by position: the same row first, then
+ * the nearest. A matched line takes the row's new id and place.
  */
 export function mergeReimport(
   lines: readonly BudgetLine[],
@@ -128,21 +135,45 @@ export function mergeReimport(
   file: string,
   incoming: readonly BudgetLine[]
 ): { lines: BudgetLine[]; removed: BudgetLine[]; kept: number } {
-  const mine = new Map(lines.filter((l) => l.source?.file === file).map((l) => [l.id, l]));
-  const gone = new Map(removed.filter((l) => l.source?.file === file).map((l) => [l.id, l]));
+  const priors = [
+    ...lines.filter((l) => l.source?.file === file).map((line) => ({ line, gone: false })),
+    ...removed.filter((l) => l.source?.file === file).map((line) => ({ line, gone: true })),
+  ];
+  type Prior = (typeof priors)[number];
+  const sheetOf = (l: BudgetLine) => l.sheet ?? rowOf(l);
+  const rowNo = (l: BudgetLine) => l.source?.row ?? 0;
+  const match = new Map<BudgetLine, Prior>();
+  const used = new Set<Prior>();
+  // Same name at the same row first, so one moved duplicate doesn't steal another's partner.
+  for (const exact of [true, false])
+    for (const row of incoming) {
+      if (match.has(row)) continue;
+      let best: Prior | undefined;
+      for (const p of priors) {
+        if (used.has(p) || itemKey(sheetOf(p.line).item) !== itemKey(row.item)) continue;
+        const d = Math.abs(rowNo(p.line) - rowNo(row));
+        if (exact && d !== 0) continue;
+        if (!best || d < Math.abs(rowNo(best.line) - rowNo(row))) best = p;
+      }
+      if (best) {
+        match.set(row, best);
+        used.add(best);
+      }
+    }
   let kept = 0;
   const next: BudgetLine[] = [];
-  const stillRemoved: BudgetLine[] = removed.filter((l) => l.source?.file !== file);
+  const stillRemoved = removed.filter((l) => l.source?.file !== file);
   for (const row of incoming) {
-    const had = mine.get(row.id);
-    const del = gone.get(row.id);
-    if (had?.sheet && sameRow(had.sheet, rowOf(row))) {
-      next.push(had);
-      kept++;
-    } else if (del && sameRow(del.sheet ?? rowOf(del), rowOf(row))) {
-      stillRemoved.push(del);
-      kept++;
-    } else next.push(row);
+    const p = match.get(row);
+    // New, untouched, or changed in the sheet itself: the sheet's row.
+    if (!p || !(p.gone || p.line.sheet) || !sameRow(sheetOf(p.line), rowOf(row))) {
+      next.push(row);
+      continue;
+    }
+    kept++;
+    const moved = { ...p.line, id: row.id, ...(row.source ? { source: row.source } : {}) };
+    if (p.gone) stillRemoved.push(moved);
+    else next.push(moved);
   }
   return {
     lines: [...lines.filter((l) => l.source?.file !== file), ...next],

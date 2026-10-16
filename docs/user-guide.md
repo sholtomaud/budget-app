@@ -286,7 +286,9 @@ and says why. Each open category ends with a row to add an item; **Delete** remo
 **Undo**. **Add a line** below the table adds an item to any category.
 
 Importing the same sheet again keeps what you changed or deleted here, unless you changed that row
-in the spreadsheet too: then the sheet wins. Items you changed have a mark at the left; hover
+in the spreadsheet too: then the sheet wins. Items are matched by name, so adding, deleting or
+moving rows in the spreadsheet doesn't lose your changes; renaming an item there counts as
+changing it. Items you changed have a mark at the left; hover
 for what the sheet says.
 
 ### Review my budget

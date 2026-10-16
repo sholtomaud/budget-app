@@ -120,4 +120,49 @@ describe('re-importing a sheet keeps changes made here (unless the sheet changed
     expect(m.removed).toEqual([]);
     expect(m.kept).toBe(0);
   });
+
+  test('rows inserted above move the edit and the deletion with their items', () => {
+    const edited = withSheet(rent, { ...rent, cost: 65000n });
+    // Two new rows on top: rent is now row 6, groceries row 7.
+    const water = imported(4, 'Water', 3000n);
+    const power = imported(5, 'Power', 9000n);
+    const m = mergeReimport([edited], [food], 'opex.csv', [
+      water,
+      power,
+      imported(6, 'Rent', 62000n),
+      imported(7, 'Groceries', 14000n),
+    ]);
+    expect(m.kept).toBe(2);
+    const rentNow = m.lines.find((l) => l.item === 'Rent')!;
+    expect(rentNow).toMatchObject({ id: 'opex.csv#6', cost: 65000n, source: { row: 6 } });
+    expect(m.lines.map((l) => l.item)).toEqual(['Water', 'Power', 'Rent']);
+    expect(m.removed).toMatchObject([{ id: 'opex.csv#7', item: 'Groceries' }]);
+    // Ids stay unique.
+    expect(new Set(m.lines.map((l) => l.id)).size).toBe(m.lines.length);
+  });
+
+  test('items with the same name pair up by position', () => {
+    const a = imported(4, 'Insurance', 10000n);
+    const b = imported(9, 'Insurance', 50000n);
+    const editedB = withSheet(b, { ...b, cost: 55000n });
+    // A row added between them: b moves from 9 to 10.
+    const m = mergeReimport([a, editedB], [], 'opex.csv', [
+      imported(4, 'Insurance', 10000n),
+      imported(6, 'Gym', 4000n),
+      imported(10, 'Insurance', 50000n),
+    ]);
+    expect(m.lines.map((l) => [l.source?.row, l.cost])).toEqual([
+      [4, 10000n],
+      [6, 4000n],
+      [10, 55000n],
+    ]);
+  });
+
+  test('an item renamed in the sheet takes the sheet’s row', () => {
+    const edited = withSheet(rent, { ...rent, cost: 65000n });
+    const renamed = imported(4, 'Rent (new flat)', 62000n);
+    const m = mergeReimport([edited], [], 'opex.csv', [renamed]);
+    expect(m.lines).toEqual([renamed]);
+    expect(m.kept).toBe(0);
+  });
 });
