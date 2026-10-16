@@ -18,7 +18,9 @@ from their IP address so they need not enter it, and for less on the Freedom scr
 1. **A profile, not personal data.** A Profile screen keeps an age in whole years and the date it
    was given (it moves on by itself), never a date of birth; a country; a sex for the life table
    only if the person gives one (otherwise the average of both); and, optionally, a partner's age.
-   It lives in the vault with everything else.
+   It lives in the vault with everything else, and is never sent to an AI provider: the advisor's
+   tools don't read it (a unit test checks), so the chat can't talk about the person's age. Only
+   the plan's years of freedom, which it sets, are part of the plan the advisor sees.
 2. **The country from the device, not the network.** An IP lookup would send the person's address to
    a third party, which NFR-PRIV-003 forbids. The device's time zone (`Australia/Sydney` → AU), else
    its language region (`en-NZ` → NZ), gives the same answer offline. The screen says where it came

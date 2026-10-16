@@ -201,36 +201,3 @@ export function yearsOfFreedom(plan: PlanAge, today: string, start: string): num
     Number(today.slice(5, 7));
   return Math.max(1, Math.round(plan.planTo - (plan.ageNow + Math.max(0, months) / 12)));
 }
-
-/**
- * What the profile says about the plan's timeline, for the advisor (ADR 0043):
- * ages in whole years, never a date of birth.
- */
-export function lifespanFacts(
-  p: Profile,
-  goal: { start: string; horizonYears: number },
-  today: string
-): Record<string, unknown> {
-  const plan = planAge(p, today);
-  if (!plan)
-    return {
-      none: p.you
-        ? 'The profile has no country figures, so there is no planning age. The user can choose a country on the Profile screen.'
-        : 'There is no age in the profile. The user can add a rough age on the Profile screen; Crux then works out how many years to plan for.',
-    };
-  const fund = yearsOfFreedom(plan, today, goal.start);
-  const ageAtFreedom = plan.planTo - fund;
-  return {
-    ageNow: plan.ageNow,
-    ...(p.partner ? { partnerAgeNow: ageNow(p.partner, today) } : {}),
-    typicalAge: plan.typical,
-    planToAge: plan.planTo,
-    plannedFor: PLAN_FOR[p.planFor].label,
-    ageWhenFreedomStarts: ageAtFreedom,
-    yearsLeftToWork: Math.max(0, ageAtFreedom - plan.ageNow),
-    yearsToFund: fund,
-    yearsOfFreedomSetBy: p.setsHorizon ? 'the profile' : 'hand, on the Freedom screen',
-    lifeTable: plan.source,
-    provenance: plan.provenance,
-  };
-}
