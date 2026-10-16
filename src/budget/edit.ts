@@ -3,8 +3,15 @@
  * text in, a checked line (or what's wrong with it) out. Pure, so the Budget
  * screen's cells and the tests share one set of rules.
  */
-import { perWeek, type PeriodTable } from './periods.ts';
-import type { BudgetLine, SheetRow, Tier, TierId } from './model.ts';
+import { perWeek, WEEKS_IN, type PeriodTable, type Span } from './periods.ts';
+import {
+  tierRank,
+  weeklyRate,
+  type BudgetLine,
+  type SheetRow,
+  type Tier,
+  type TierId,
+} from './model.ts';
 import { parseMoney } from './workbook.ts';
 
 export type LineField = 'item' | 'cost' | 'period' | 'multiplier' | 'categoryId';
@@ -179,5 +186,72 @@ export function mergeReimport(
     lines: [...lines.filter((l) => l.source?.file !== file), ...next],
     removed: stillRemoved,
     kept,
+  };
+}
+
+const SPAN_PERIOD: Record<Span, string> = { week: 'w', month: 'm', year: 'y' };
+
+/**
+ * A category's budget typed in for the period shown, at the tier shown. With a
+ * budget already, the items that count at this tier are scaled to it (their
+ * amounts, so every tier that has them moves the same way). Without one, one
+ * item is added at that amount, counted at this tier and the ones above.
+ */
+export function setCategoryBudget(
+  lines: readonly BudgetLine[],
+  categoryId: string,
+  text: string,
+  opts: {
+    tier: TierId;
+    tiers: readonly Tier[];
+    periods: PeriodTable;
+    span: Span;
+    id: string;
+    name: string;
+  }
+): { ok: true; upsert: BudgetLine[]; summary: string } | { ok: false; error: string } {
+  const target = parseMoney(text.trim());
+  if (target === undefined) return { ok: false, error: `“${text.trim()}” is not an amount.` };
+  if (target < 0n) return { ok: false, error: 'A budget amount can’t be below zero.' };
+  const per = (c: string) => perWeek(c, opts.periods);
+  const weeks = WEEKS_IN[opts.span];
+  const counted = linesIn(lines, categoryId).filter((l) => weeklyRate(l, opts.tier, per) > 0);
+  const now = counted.reduce((a, l) => a + weeklyRate(l, opts.tier, per) * weeks, 0);
+  const want = Number(target);
+  if (Math.abs(now - want) < 0.5) return { ok: true, upsert: [], summary: '' };
+  // One item: kept in the period typed in, so the cell shows exactly what was typed.
+  const only = counted.length === 1 ? counted[0]! : undefined;
+  const share = only?.tierMultiplier[opts.tier] ?? 1;
+  if (only && share > 0) {
+    const k = want / now;
+    return {
+      ok: true,
+      upsert: [{ ...only, cost: BigInt(Math.round(want / share)), period: SPAN_PERIOD[opts.span] }],
+      summary: `${opts.name}: its item ${k >= 1 ? 'up' : 'down'} ${Math.abs(Math.round((k - 1) * 100))} %, now set ${opts.periods[SPAN_PERIOD[opts.span]]?.label ?? `per ${opts.span}`}`,
+    };
+  }
+  if (now > 0) {
+    const k = want / now;
+    return {
+      ok: true,
+      upsert: counted.map((l) => ({ ...l, cost: BigInt(Math.round(Number(l.cost) * k)) })),
+      summary: `${opts.name}: ${counted.length === 1 ? 'its item' : `its ${counted.length} items`} ${k >= 1 ? 'up' : 'down'} ${Math.abs(Math.round((k - 1) * 100))} %`,
+    };
+  }
+  const rank = tierRank(opts.tiers, opts.tier);
+  return {
+    ok: true,
+    upsert: [
+      {
+        id: opts.id,
+        categoryId,
+        item: opts.name,
+        cost: target,
+        ccy: 'AUD',
+        period: SPAN_PERIOD[opts.span],
+        tierMultiplier: Object.fromEntries(opts.tiers.map((t, i) => [t.id, i >= rank ? 1 : 0])),
+      },
+    ],
+    summary: `${opts.name}: added a budget`,
   };
 }

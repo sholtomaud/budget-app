@@ -6,6 +6,7 @@ import {
   mergeReimport,
   newLine,
   rowOf,
+  setCategoryBudget,
   withSheet,
 } from '../../src/budget/edit.ts';
 import { DEFAULT_TIERS, type BudgetLine } from '../../src/budget/model.ts';
@@ -164,5 +165,74 @@ describe('re-importing a sheet keeps changes made here (unless the sheet changed
     const m = mergeReimport([edited], [], 'opex.csv', [renamed]);
     expect(m.lines).toEqual([renamed]);
     expect(m.kept).toBe(0);
+  });
+});
+
+describe('typing a category’s budget', () => {
+  const opts = {
+    tier: 'secure',
+    tiers: DEFAULT_TIERS,
+    periods: DEFAULT_PERIODS,
+    span: 'month' as const,
+    id: 'n1',
+    name: 'Groceries',
+  };
+  const weekly = { ...line, cost: 10000n, period: 'w' }; // $100 a week
+  const luxuryOnly: BudgetLine = {
+    ...line,
+    id: 'l2',
+    item: 'Organic box',
+    cost: 5000n,
+    period: 'w',
+    tierMultiplier: { secure: 0, independent: 0, luxury: 1 },
+  };
+
+  test('scales the items that count at this tier', () => {
+    // $100 a week is about $433.33 a month; set $520 a month.
+    const r = setCategoryBudget([weekly, luxuryOnly], 'food.groceries', '520', opts);
+    if (!r.ok) throw new Error(r.error);
+    expect(r.upsert).toHaveLength(1);
+    // One item: set in the period typed in, exactly.
+    expect(r.upsert[0]).toMatchObject({ id: 'l1', period: 'm', cost: 52000n });
+    expect(r.summary).toMatch(/up 20 %, now set per month/);
+  });
+
+  test('several items scale together and keep their periods', () => {
+    const cafe = { ...weekly, id: 'l3', item: 'Snacks', cost: 5000n };
+    const r = setCategoryBudget([weekly, cafe], 'food.groceries', '780', opts);
+    if (!r.ok) throw new Error(r.error);
+    expect(r.upsert.map((l) => [l.period, l.cost])).toEqual([
+      ['w', 12000n],
+      ['w', 6000n],
+    ]);
+  });
+
+  test('adds one item when there is no budget, from this tier up', () => {
+    const r = setCategoryBudget([], 'food.cafes', '$80', {
+      ...opts,
+      tier: 'independent',
+      name: 'Cafes',
+    });
+    if (!r.ok) throw new Error(r.error);
+    expect(r.upsert).toEqual([
+      expect.objectContaining({
+        categoryId: 'food.cafes',
+        item: 'Cafes',
+        cost: 8000n,
+        period: 'm',
+        tierMultiplier: { secure: 0, independent: 1, luxury: 1 },
+      }),
+    ]);
+  });
+
+  test('the same amount changes nothing; a bad one is refused', () => {
+    expect(setCategoryBudget([weekly], 'food.groceries', '433.33', opts)).toMatchObject({
+      ok: true,
+      upsert: [],
+    });
+    expect(setCategoryBudget([weekly], 'food.groceries', 'heaps', opts)).toMatchObject({
+      ok: false,
+    });
+    expect(setCategoryBudget([weekly], 'food.groceries', '-1', opts)).toMatchObject({ ok: false });
   });
 });

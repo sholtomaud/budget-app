@@ -23,6 +23,14 @@ answered with the plan's savings fan, which is not what was asked.
    next line; Escape puts the value back. Each open category ends with an Add item row. Delete
    offers Undo. The rules for a cell's text live in `src/budget/edit.ts` (pure, unit-tested): a bad
    value is refused with a reason and nothing is saved.
+
+   The category's own Budget cell is editable too, for changing a budget on the fly: a new amount
+   for the period shown scales the category's items that count at the tier shown (their amounts,
+   so each tier that has them moves by the same share). A category with one item has it set in the
+   period typed in, so the cell shows exactly what was typed. A category with no budget at that
+   tier (a "no budget" row) gets one item at that amount, counted at that tier and the ones above.
+   Undo puts the items back.
+
 2. **Changes made here survive a re-import; the sheet wins where it changed.** The first change to
    an imported line (from the table, the budget review or a chat card) records what its sheet row
    said (`BudgetLine.sheet`); deleting an imported line keeps it in `BudgetState.removed`.

@@ -278,7 +278,10 @@ it ends. For each category you see the budget, what you actually spent (net of r
 transfers), the variance, and 3-, 6- and 12-month run rates. Click a category to see its
 transactions. The budget total adds annualised capital spend to operating spend.
 
-**Keep it up to date in place.** Open a category with ▸ to see its items. Each item's name,
+**Keep it up to date in place.** To change a category's budget on the fly, type a new amount in
+its **Budget** cell: it is for the period you're looking at, and the category's items scale to it
+(**Undo** puts them back). A row marked "no budget" gets one the same way. To change items one by
+one, open a category with ▸ to see its items. Each item's name,
 amount, how often, share at the tier you're looking at (1 = all of it, 0 = not at this tier) and
 category are cells: click one and type. A change saves when you leave the cell; **Enter** saves
 and moves down, **Escape** puts it back. Something that isn't a valid amount or period is refused

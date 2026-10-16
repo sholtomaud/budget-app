@@ -19,7 +19,13 @@ import { activeProvider } from '../../egress.ts';
 import { actualVsBudget, availableMonths } from '../../../budget/actuals.ts';
 import { annualisedCapexPerWeek } from '../../../budget/capex.ts';
 import { weeklyRate, type BudgetLine } from '../../../budget/model.ts';
-import { editLine, linesIn, newLine, type LineField } from '../../../budget/edit.ts';
+import {
+  editLine,
+  linesIn,
+  newLine,
+  setCategoryBudget,
+  type LineField,
+} from '../../../budget/edit.ts';
 import { perWeek, WEEKS_IN, type Span } from '../../../budget/periods.ts';
 import {
   SHEET_LABEL,
@@ -210,7 +216,13 @@ export class BudgetPage extends BaseComponent {
             link,
             lines.length ? el('span', { class: 'muted n-items' }, ` ${lines.length}`) : null
           ),
-          el('td', { class: 'num' }, row.budgeted ? money(minor(row.budget)) : '–'),
+          el(
+            'td',
+            { class: 'num' },
+            uncategorised
+              ? '–'
+              : this.budgetCell(v, row.categoryId, row.budgeted ? row.budget : 0, span)
+          ),
           el(
             'td',
             { class: 'num' },
@@ -462,6 +474,74 @@ export class BudgetPage extends BaseComponent {
       this.status(`${l.item} is back.`);
     };
     this.status(`Deleted ${l.item}. `, undo);
+  }
+
+  /**
+   * A category's budget for the period shown, as a cell: a new amount scales
+   * its items, or adds one when it has none (FR-BUD-003).
+   */
+  private budgetCell(v: DataView, categoryId: string, now: number, span: Span): HTMLInputElement {
+    const name = categoryName(categoryId, v.categories);
+    const shown = now > 0 ? (now / 100).toFixed(2) : '';
+    const i = el('input', {
+      value: shown,
+      placeholder: 'Set',
+      inputmode: 'decimal',
+      class: 'budget-cell',
+      'aria-label': `Budget for ${name}, per ${span}`,
+      'data-focus': `cat:${categoryId}:budget`,
+      'data-field': 'budget',
+      title:
+        now > 0 ? 'Type a new amount: its items scale to it' : 'Type an amount to add a budget',
+    });
+    i.onkeydown = (e) => {
+      if (e.key === 'Escape') {
+        i.value = shown;
+        i.removeAttribute('aria-invalid');
+        i.blur();
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        const all = [...this.querySelectorAll<HTMLInputElement>('.vs input.budget-cell')];
+        const next = all[all.indexOf(i) + 1];
+        if (next) next.focus();
+        else i.blur();
+      }
+    };
+    i.onchange = async () => {
+      if (!i.value.trim()) {
+        i.value = shown;
+        return;
+      }
+      const r = setCategoryBudget(v.budget.lines, categoryId, i.value, {
+        tier: this.tier,
+        tiers: v.budget.tiers,
+        periods: v.budget.periods,
+        span,
+        id: `manual-${Date.now().toString(36)}`,
+        name,
+      });
+      if (!r.ok) {
+        i.setAttribute('aria-invalid', 'true');
+        this.status(r.error);
+        return;
+      }
+      i.removeAttribute('aria-invalid');
+      if (!r.upsert.length) return;
+      const before = r.upsert.map((l) => v.budget.lines.find((x) => x.id === l.id));
+      for (const l of r.upsert) await upsertLine(l);
+      const undo = el('button', { type: 'button', class: 'small secondary undo' }, 'Undo');
+      undo.onclick = async () => {
+        undo.disabled = true;
+        for (const [k, l] of r.upsert.entries()) {
+          const was = before[k];
+          if (was) await upsertLine(was);
+          else await deleteLine(l.id);
+        }
+        this.status(`${name} is back as it was.`);
+      };
+      this.status(`${r.summary}. `, undo);
+    };
+    return i;
   }
 
   private status(text: string, ...extra: Node[]): void {
