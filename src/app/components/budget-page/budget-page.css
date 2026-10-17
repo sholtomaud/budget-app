@@ -204,3 +204,25 @@
 :host .vs tr.line input.changed {
   border-left: 3px solid var(--accent);
 }
+:host .vs input.budget-cell {
+  font: inherit;
+  width: 7rem;
+  text-align: right;
+  border: 1px solid transparent;
+  background: transparent;
+  color: inherit;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+:host .vs input.budget-cell:hover,
+:host .vs input.budget-cell:placeholder-shown {
+  border-color: var(--border);
+}
+:host .vs input.budget-cell:focus {
+  border-color: var(--accent);
+  background: var(--surface);
+  outline: none;
+}
+:host .vs input.budget-cell[aria-invalid='true'] {
+  border-color: var(--bad);
+}

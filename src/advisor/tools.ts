@@ -40,7 +40,7 @@ export const ADVISOR_TOOLS: ToolDef[] = [
   {
     name: 'get_plan',
     description:
-      "The user's current plan from the Freedom screen: goal (tier, when freedom starts, years, target probability, floor), spending levers, withdrawal strategy, holdings by kind, take-home pay. Amounts are rounded. Also lifespan, from the Profile screen: the user's age now, the age people like them typically reach, the age the plan runs to, their age when freedom starts, years left to work and years to fund (or why there is none).",
+      "The user's current plan from the Freedom screen: goal (tier, when freedom starts, years, target probability, floor), spending levers, withdrawal strategy, holdings by kind, take-home pay. Amounts are rounded.",
     input_schema: obj({}),
   },
   {
@@ -239,7 +239,6 @@ Rules:
 - Speak plainly and briefly: a few short paragraphs at most. Use frequencies ("in about 9 in 10 simulated futures"), not jargon (no "pSuccess", "P90" without saying what it means).
 - Explain what a result means for the person, why (check_plan first, then explain_shortfall), and what they could change (find_plan_changes).
 - When a plan looks surprisingly bad, call check_plan before anything else: a setting is often the cause, not the person's finances.
-- For how long the money has to last, how many years are left to work, or what age freedom starts at, use lifespan in get_plan. The plan-to age is a margin above the typical age, not a prediction: say so. If there is no age, suggest adding one on the Profile screen (a rough age, never a date of birth).
 - To check the whole plan (chance, drivers, freedom number, earliest date, the forecast's checks), call run_my_plan; get_plan_history says how it has changed.
 - When the user wants something done regularly ("check my budget every morning", "remind me to import on the 1st", "a weekly review"), call list_schedules, then propose_schedule. It is a card they save; say so, and say it runs while Crux is open.
 - When the user asks for a dashboard, or for several charts on one page to come back to, call list_dashboards, then propose_dashboard with the whole layout. It is a card they save; say so.

@@ -495,7 +495,7 @@ variance %, and a trailing 3/6/12-month run rate. Drill down to transactions.
 | ID | Requirement |
 |---|---|
 | FR-BUD-002 | **Budget review** (ADR 0038): on request ("Review my budget", the Budget screen, the AI's `review_budget`), alerts on the floor, the plan's chance against its target and the cash buffer (3 months of Secure); then per category with 6+ months of spending, the last 3 months against the budget at the plan's tier, with a deadband (the model's 80 % range, or the recent level ± its usual monthly movement). Outside it, a change half way to what it costs, as a card with Undo: essentials only up, discretionary down or a choice (raise, or raise and take from another). A category changed in the last 2 months is held. Never applied without the person. |
-| FR-BUD-003 | **Editing in place** (ADR 0042): the actual-vs-budget table opens each category to its budget lines as sub-rows. Each line's item, amount, period, share at the shown tier and category are cells that save when changed (Enter moves down, Escape reverts); a bad value is refused with a reason and nothing is saved. Each category has an Add item row; a line can be deleted, with Undo. Re-importing a sheet keeps a change or deletion made here unless the sheet itself changed that row. |
+| FR-BUD-003 | **Editing in place** (ADR 0042): the actual-vs-budget table opens each category to its budget lines as sub-rows. Each line's item, amount, period, share at the shown tier and category are cells that save when changed (Enter moves down, Escape reverts); a bad value is refused with a reason and nothing is saved. Each category has an Add item row; a line can be deleted, with Undo. A category's own Budget cell takes a new amount for the period shown: its items that count at the tier scale to it (a single item is set in that period, exactly), or, with no budget, one item is added, counted at that tier and above. Re-importing a sheet keeps a change or deletion made here unless the sheet itself changed that row; rows are matched by item, not row number. |
 
 ### 9.3 CAPEX register (FR-CAP)
 
@@ -680,7 +680,7 @@ How long to plan for (ADR 0043):
 
 | ID | Requirement |
 |---|---|
-| FR-GOAL-020 | The profile keeps an age in whole years with the date it was given (so it moves on), never a date of birth; a country; optionally a sex for the life table and a partner. The country is taken from the device's time zone, else its language region, on the device: never from an IP address or any lookup (NFR-PRIV-003). |
+| FR-GOAL-020 | The profile keeps an age in whole years with the date it was given (so it moves on), never a date of birth; a country; optionally a sex for the life table and a partner. The country is taken from the device's time zone, else its language region, on the device: never from an IP address or any lookup (NFR-PRIV-003). The profile is never sent to an AI provider: the advisor's tools don't read it. |
 | FR-GOAL-021 | Life expectancy at birth by country and sex is a shipped, editable table with its sources (`data-tables/life-expectancy.json`); a country not in it takes the person's own figures. A Gompertz curve (dispersion 10 years, assumed) fitted to each figure gives survival from the person's age; for a couple, until the last of them. The plan runs to the age that 1 in 4 live past (or 1 in 2, or 1 in 10), labelled `assumed`. |
 | FR-GOAL-022 | Unless switched off, the plan's years of freedom are the plan-to age less the person's age when freedom starts, and follow the start date. |
 

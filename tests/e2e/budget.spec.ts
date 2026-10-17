@@ -113,6 +113,39 @@ test('edit the budget like a spreadsheet: change, add and delete items (FR-BUD-0
   await expect(page.locator('table.vs tr.line[data-line]')).toHaveCount(2);
 });
 
+test('set a category’s budget on the fly, or add one where there is none (FR-BUD-003)', async ({
+  page,
+}) => {
+  await loadDefault(page);
+  await importSheets(page);
+  const total = page.locator('.opex-budget');
+  const before = await total.textContent();
+
+  // Groceries: a new monthly budget scales its item.
+  const cell = page.getByLabel('Budget for Groceries, per month');
+  await cell.fill('700');
+  await cell.press('Enter');
+  await expect(page.locator('.edit-status')).toContainText('Groceries: its item up');
+  await expect(page.getByLabel('Budget for Groceries, per month')).toHaveValue('700.00');
+  await expect(total).not.toHaveText(before!);
+  await page.locator('.edit-status').getByRole('button', { name: 'Undo' }).click();
+  await expect(total).toHaveText(before!);
+
+  // A category with spending but no budget gets one.
+  const none = page.locator('table.vs tr.cat.unbudgeted').first();
+  const id = await none.getAttribute('data-category');
+  await none.locator('input.budget-cell').fill('25');
+  await none.locator('input.budget-cell').press('Tab');
+  const row = page.locator(`table.vs tr.cat[data-category="${id}"]`);
+  await expect(row).not.toHaveClass(/unbudgeted/);
+  await expect(row.locator('input.budget-cell')).toHaveValue('25.00');
+
+  // A bad amount is refused.
+  await row.locator('input.budget-cell').fill('lots');
+  await row.locator('input.budget-cell').press('Tab');
+  await expect(page.locator('.edit-status')).toContainText('not an amount');
+});
+
 test('CAPEX register: replacement windows, sinking fund, tiers, wish-list decisions (FR-CAP-001…005)', async ({
   page,
 }) => {

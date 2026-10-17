@@ -63,8 +63,6 @@ import {
 import { LIBRARY } from '../viz/library.ts';
 import { SCREEN_WORDS } from '../assistant/intents.ts';
 import { sim } from './workers.ts';
-import { loadProfile, today } from './profile.ts';
-import { lifespanFacts } from '../profile/lifespan.ts';
 
 const pct = (x: number) => `${Math.round(x * 100)} %`;
 const sum = (r: Record<string, number>) => Object.values(r).reduce((a, b) => a + b, 0);
@@ -375,7 +373,6 @@ export async function runTool(
         cashInBank: rough(setup.decisions.bankBuffer),
         holdings: Object.entries(byClass).map(([kind, value]) => ({ kind, value: rough(value) })),
         tax: setup.taxTable ?? 'off (before tax)',
-        lifespan: lifespanFacts(await loadProfile(), setup.goal, today()),
       });
     }
     case 'get_spending_summary': {
