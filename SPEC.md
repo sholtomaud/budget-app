@@ -683,6 +683,7 @@ How long to plan for (ADR 0043):
 | FR-GOAL-020 | The profile keeps an age in whole years with the date it was given (so it moves on), never a date of birth; a country; optionally a sex for the life table and a partner. The country is taken from the device's time zone, else its language region, on the device: never from an IP address or any lookup (NFR-PRIV-003). The profile is never sent to an AI provider: the advisor's tools don't read it. |
 | FR-GOAL-021 | Life expectancy at birth by country and sex is a shipped, editable table with its sources (`data-tables/life-expectancy.json`); a country not in it takes the person's own figures. A Gompertz curve (dispersion 10 years, assumed) fitted to each figure gives survival from the person's age; for a couple, until the last of them. The plan runs to the age that 1 in 4 live past (or 1 in 2, or 1 in 10), labelled `assumed`. |
 | FR-GOAL-022 | Unless switched off, the plan's years of freedom are the plan-to age less the person's age when freedom starts, and follow the start date. |
+| FR-GOAL-023 | With an age in the profile, each super holding without a date set by hand is locked until its owner reaches the tax table's preservation age (labelled `assumed`; whole-year ages round the date later, never earlier). When super is locked past the freedom date, the full run also reports the bridge: the smallest capital outside super that reaches the target with super as it is today. The freedom number at the target stays the total, super included (ADR 0044). |
 
 ### 11.4 Optimiser (FR-OPT-001)
 

@@ -3,6 +3,7 @@ import { addMonths } from '../../src/lib/dates.ts';
 import { makePlan, runOnce, wire } from '../../src/sim/controller.ts';
 import type { GsskKernel } from '../../src/sim/gssk.ts';
 import {
+  bridgeFreedom,
   deterministicFreedom,
   p90Freedom,
   projectRunway,
@@ -281,6 +282,25 @@ describe('goal metrics (FR-GOAL)', () => {
     const f = await p90Freedom(s, sp, local, { runs: 30, iterations: 6 });
     expect(f.capital).not.toBeNull();
     expect(f.pSuccess).toBeGreaterThanOrEqual(0.9);
+  });
+
+  test('the bridge: capital outside super, smaller when super unlocks during freedom', async () => {
+    const sp = sampleSpending();
+    const withSuper = (accessibleFrom: string) =>
+      short({
+        holdings: sampleScenario().holdings.map((h) =>
+          h.assetClass === 'super' ? { ...h, accessibleFrom } : h
+        ),
+      });
+    const opts = { runs: 30, iterations: 6 };
+    const soon = await bridgeFreedom(withSuper('2031-01-01'), sp, local, opts);
+    const never = await bridgeFreedom(withSuper('2040-01-01'), sp, local, opts);
+    expect(soon).toMatchObject({ locked: 300_000, until: '2031-01' });
+    expect(soon!.capital).not.toBeNull();
+    expect(soon!.pSuccess).toBeGreaterThanOrEqual(0.9);
+    expect(soon!.capital!).toBeLessThan(never!.capital!);
+    // Nothing locked at the start: no bridge.
+    expect(await bridgeFreedom(withSuper('2028-01-01'), sp, local, opts)).toBeNull();
   });
 
   test('years to freedom and project runway', async () => {

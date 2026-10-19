@@ -79,13 +79,32 @@ describe('a run, for the AI', () => {
       chanceIfCertain: '79 %',
       change: '+17.0 points',
     });
-    expect(f.freedomNumber).toEqual({ simple: '~$1,200,000', atTarget: '~$1,600,000' });
+    expect(f.freedomNumber).toMatchObject({ simple: '~$1,200,000', atTarget: '~$1,600,000' });
+    expect(f.freedomNumber).not.toHaveProperty('outsideSuper');
     expect(f.earliest?.plans[0]).toMatchObject({
       plan: 'earliest at the target',
       freedomStarts: '2034-01',
     });
     expect(JSON.stringify(f)).not.toContain('1612345');
     expect(f.finished).toBe('every step');
+  });
+
+  test('with super locked, the bridge outside super, rounded, and both in words', () => {
+    const r = {
+      ...base,
+      freedomNumber: {
+        ...base.freedomNumber!,
+        bridge: { capital: 912_345, locked: 287_654, until: '2033-10' },
+      },
+    };
+    expect(runFacts(r).freedomNumber?.outsideSuper).toMatchObject({
+      needed: '~$910,000',
+      superToday: '~$290,000',
+      superUnlocks: '2033-10',
+    });
+    const text = fullRunText(r);
+    expect(text).toContain('super included');
+    expect(text).toContain('locked until 2033-10');
   });
 
   test('a stopped run says what finished', () => {

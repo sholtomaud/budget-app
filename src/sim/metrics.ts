@@ -157,6 +157,82 @@ export async function p90Freedom(
   return { capital: bank + hi * invested, target, runs, iterations: n, pSuccess: pHi };
 }
 
+export interface BridgeFreedom {
+  /**
+   * Smallest capital outside super (bank and holdings you can spend at the
+   * start) that reaches the target, with the locked holdings as they are
+   * today; null if not found below the search cap.
+   */
+  capital: number | null;
+  /** The locked holdings (today's value), and when the last of them unlocks. */
+  locked: number;
+  until: string;
+  pSuccess: number | null;
+}
+
+/**
+ * The bridge (FR-GOAL-023): how much you need outside super when super is
+ * locked past the freedom date. Only the holdings you can spend at the start
+ * are scaled; super stays at today's value, grows, and is drawn once it
+ * unlocks. Null when nothing is locked at the start.
+ */
+export async function bridgeFreedom(
+  s: Scenario,
+  spending: SpendingInput,
+  run: Runner,
+  opts: { runs?: number; target?: number; iterations?: number } = {}
+): Promise<BridgeFreedom | null> {
+  const runs = opts.runs ?? 200;
+  const target = opts.target ?? 0.9;
+  const iterations = opts.iterations ?? 10;
+  const base = freedomNow(s);
+  const start = base.asOf;
+  const isLocked = (h: Holding) => !!h.accessibleFrom && h.accessibleFrom.slice(0, 7) > start;
+  const locked = base.holdings.filter(isLocked);
+  if (!locked.length) return null;
+  const until = locked
+    .map((h) => h.accessibleFrom!.slice(0, 7))
+    .sort()
+    .at(-1)!;
+  const lockedValue = locked.reduce((a, h) => a + dollars(h.value), 0);
+  const bank = dollars(s.decisions.bankBuffer);
+  const free = base.holdings.reduce((a, h) => a + (isLocked(h) ? 0 : dollars(h.value)), 0);
+  if (free <= 0) return { capital: null, locked: lockedValue, until, pSuccess: null };
+  const p = async (k: number) =>
+    (
+      await run({
+        scenario: {
+          ...base,
+          holdings: base.holdings.map((h) =>
+            isLocked(h) ? h : { ...h, value: BigInt(Math.round(Number(h.value) * k)) }
+          ),
+        },
+        spending,
+        runs,
+        keepCapital: false,
+      })
+    ).pSuccess;
+
+  let lo = 0;
+  let hi = 1;
+  let pHi = await p(hi);
+  while (pHi < target) {
+    lo = hi;
+    hi *= 2;
+    if (hi * free > 1e9) return { capital: null, locked: lockedValue, until, pSuccess: pHi };
+    pHi = await p(hi);
+  }
+  for (let i = 0; i < iterations; i++) {
+    const mid = (lo + hi) / 2;
+    const pm = await p(mid);
+    if (pm >= target) {
+      hi = mid;
+      pHi = pm;
+    } else lo = mid;
+  }
+  return { capital: bank + hi * free, locked: lockedValue, until, pSuccess: pHi };
+}
+
 export interface YearsToFreedom {
   /** Years until real capital first reaches `capital`; null where most runs never do. */
   p10: number | null;
