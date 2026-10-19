@@ -58,6 +58,18 @@ They are answered from the app's own results with templated text: no AI and no n
 
 The numbers themselves are always the app's.
 
+**Amended (2026-10-19): the AI first for conversation.** A pattern can match a long message in
+passing ("that would **mean** my **secure** budget…" matched the glossary), and the same
+template came back however the person rephrased. So:
+
+- the glossary answers only a short question (10 words or fewer);
+- with an AI set up, a question-type intent in a long message (more than 20 words, or more than
+  two sentences) goes to the AI (`wantsAI`). Actions (cards, charts, screens, "run my plan")
+  stay with Crux, whatever their length;
+- with an AI set up, the same message sent again straight after Crux answered it goes to the AI.
+
+With no AI set up, nothing changes but the glossary rule.
+
 ### AI second ("Crux + provider")
 
 Anything else goes to the AI provider, if one is set up, through the egress gate (ADR 0021):
