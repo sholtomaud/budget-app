@@ -20,6 +20,8 @@ export interface Holding {
   returnModelId: string;
   /** Not available to spend before this date (super preservation age). */
   accessibleFrom?: string;
+  /** The date came from the profile's age (assumed), not the person: it follows the profile. */
+  lockedBy?: 'profile';
   /** Owner for tax: one person, or shared equally. */
   owner?: 'p1' | 'p2' | 'joint';
   provenance: Provenance;

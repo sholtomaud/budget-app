@@ -22,6 +22,7 @@ import type { DataView } from '../data/service.ts';
 import { earliestFreedom, type EarliestPlanId } from '../optimise/earliest.ts';
 import { minTierSpend, type FreedomSetup } from '../sim/inputs.ts';
 import {
+  bridgeFreedom,
   deterministicFreedom,
   p90Freedom,
   projectRunway,
@@ -78,6 +79,11 @@ export interface PlanRun {
     atTarget: number | null;
     atTargetChance: number | null;
     atTargetRuns: number;
+    /**
+     * With super locked past the freedom date (FR-GOAL-023): the capital
+     * needed outside super, with super as it is today, and when it unlocks.
+     */
+    bridge?: { capital: number | null; locked: number; until: string };
   };
   yearsToFreedom?: { p10: number | null; p50: number | null; p90: number | null; reached: number };
   runwayMonths?: number;
@@ -221,6 +227,8 @@ export async function runFullPlan(
     atTargetChance: f.pSuccess,
     atTargetRuns: f.runs,
   };
+  const b = await bridgeFreedom(scenario, spending, poolRunner, { runs: 200, target });
+  if (b) run.freedomNumber.bridge = { capital: b.capital, locked: b.locked, until: b.until };
   if (f.capital !== null) {
     const y = await yearsToFreedom(scenario, spending, f.capital, poolRunner, { runs: 200 });
     run.yearsToFreedom = { p10: y.p10, p50: y.p50, p90: y.p90, reached: y.reached };
@@ -361,6 +369,22 @@ export function runFacts(r: PlanRun, tierName: (id: string) => string = (id) => 
             simple: roughAmount(f.deterministic),
             atTarget:
               f.atTarget === null ? 'not reachable below $1 billion' : roughAmount(f.atTarget),
+            meaning:
+              'All the capital at the start, super included, scaled in today’s mix of holdings: it has to fund every year of freedom.',
+            ...(f.bridge
+              ? {
+                  outsideSuper: {
+                    needed:
+                      f.bridge.capital === null
+                        ? 'not reachable below $1 billion'
+                        : roughAmount(f.bridge.capital),
+                    superToday: roughAmount(f.bridge.locked),
+                    superUnlocks: f.bridge.until,
+                    meaning:
+                      'Super is locked until preservation age. This is the smallest amount outside super (bank and holdings you can spend) that reaches the target with super as it is today: it carries spending until super unlocks, and super, grown by then, does the rest.',
+                  },
+                }
+              : {}),
           },
         }
       : {}),
@@ -428,7 +452,14 @@ export function fullRunText(r: PlanRun, tierName: (id: string) => string = (id) 
   const f = r.freedomNumber;
   if (f?.atTarget != null)
     lines.push(
-      `To reach your target you'd need about **${dollars(f.atTarget)}** at the start${r.yearsToFreedom?.p50 != null ? `, typically about ${r.yearsToFreedom.p50.toFixed(0)} years away if you keep saving as now` : ''}.`
+      `To reach your target you'd need about **${dollars(f.atTarget)}** at the start${r.yearsToFreedom?.p50 != null ? `, typically about ${r.yearsToFreedom.p50.toFixed(0)} years away if you keep saving as now` : ''}. That is everything, super included, for all ${r.goal.horizonYears} years.`
+    );
+  const b = f?.bridge;
+  if (b)
+    lines.push(
+      b.capital === null
+        ? `Your super (about ${dollars(b.locked)} today) is locked until ${b.until}, and no amount outside super below $1 billion reaches the target with it.`
+        : `Your super (about ${dollars(b.locked)} today) is locked until ${b.until}. With super as it is, you'd need about **${dollars(b.capital)}** outside super: it carries you until then, and super, grown by then, does the rest.`
     );
   const e = r.earliest;
   if (e?.plans.length) {

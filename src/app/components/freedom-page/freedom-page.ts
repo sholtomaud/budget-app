@@ -16,7 +16,13 @@ import {
 import { sim } from '../../workers.ts';
 import { inputsFor, loadHistories } from '../../freedom-inputs.ts';
 import { SETUP_CHANGED } from '../../proposals.ts';
-import { loadProfile, PROFILE_CHANGED, profileHorizon, today } from '../../profile.ts';
+import {
+  loadProfile,
+  PROFILE_CHANGED,
+  profileHorizon,
+  profileSuperLocks,
+  today,
+} from '../../profile.ts';
 import { planAge, type Profile } from '../../../profile/lifespan.ts';
 import { checkPlan } from '../../../sim/checks.ts';
 import { historyModel } from '../../../sim/history.ts';
@@ -135,6 +141,7 @@ export class FreedomPage extends BaseComponent {
   private readonly onProfileChanged = async () => {
     this.profile = await loadProfile();
     this.horizonFromProfile();
+    this.superFromProfile();
   };
 
   override destroy(): void {
@@ -156,6 +163,7 @@ export class FreedomPage extends BaseComponent {
     this.profile = await loadProfile();
     this.historyModels = (await loadHistories()).map(historyModel);
     this.fill();
+    this.superFromProfile();
     await this.showLatest();
   }
 
@@ -253,6 +261,16 @@ export class FreedomPage extends BaseComponent {
       s.goal = { ...s.goal, horizonYears: years };
       this.changed();
     }
+  }
+
+  /** With an age in the profile, super is locked until preservation age (FR-GOAL-023). */
+  private superFromProfile(): void {
+    const s = this.setup;
+    const held = this.profile && s && profileSuperLocks(this.profile, s);
+    if (!s || !held) return;
+    s.holdings = held;
+    this.renderHoldings();
+    this.changed();
   }
 
   private async saveScenario(): Promise<void> {
@@ -409,8 +427,12 @@ export class FreedomPage extends BaseComponent {
           value: h.accessibleFrom?.slice(0, 7) ?? '',
           'aria-label': `${h.name} locked until`,
         });
-        locked.onchange = () =>
+        if (h.lockedBy === 'profile')
+          locked.title = 'From your age on your Profile and the preservation age (assumed)';
+        locked.onchange = () => {
+          delete h.lockedBy;
           update({ accessibleFrom: locked.value ? `${locked.value}-01` : undefined });
+        };
         const hold = el('input', { type: 'checkbox', 'aria-label': `Never sell ${h.name}` });
         hold.checked = held.includes(h.id);
         hold.disabled = s.decisions.withdrawal.kind !== 'hold';
@@ -660,7 +682,21 @@ export class FreedomPage extends BaseComponent {
     this.$('.fn-p90-note').replaceChildren(
       ...(f?.atTarget != null
         ? [
-            `Smallest starting capital, in today's mix of holdings, that succeeds in ${pct(f.atTargetChance ?? 0)} of ${f.atTargetRuns} futures. `,
+            `Smallest starting capital, in today's mix of holdings and super included, that succeeds in ${pct(f.atTargetChance ?? 0)} of ${f.atTargetRuns} futures. `,
+            prov('forecast'),
+          ]
+        : [])
+    );
+    const b = f?.bridge;
+    this.$('.fn-bridge').textContent = !b
+      ? ''
+      : b.capital === null
+        ? `Outside super: not reachable below $1 billion.`
+        : `Outside super: ${aud.format(b.capital)}`;
+    this.$('.fn-bridge-note').replaceChildren(
+      ...(b
+        ? [
+            `Super (${aud.format(b.locked)} today) is locked until ${b.until}. The smallest amount outside it that reaches ${pct(target)}, with super as it is: it carries you until super unlocks. `,
             prov('forecast'),
           ]
         : [])

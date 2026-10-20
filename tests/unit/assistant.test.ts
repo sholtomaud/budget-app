@@ -128,4 +128,21 @@ describe('built-in intents (no AI)', async () => {
     });
     expect(parseDollars('about $2k')).toBe(2000);
   });
+
+  const long =
+    "What I don't understand is if super is available in 7 years it will grow in that time. " +
+    "That would mean my savings only need to last until I'm 60, right? So ~$50k (secure budget) " +
+    'for 7-10 years is $500k? What am I missing?';
+
+  test('a term in passing in a long message is not a glossary question', () => {
+    expect(matchIntent(long)).toBeNull();
+    expect(matchIntent('What does secure mean?')?.id).toBe('define');
+  });
+
+  test('long or several-sentence questions go to the AI; actions and short ones stay', async () => {
+    const { wantsAI } = await import('../../src/assistant/intents.ts');
+    expect(wantsAI('How likely is my plan to work?', { id: 'chance' })).toBe(false);
+    expect(wantsAI(`${long} How likely is my plan to work?`, { id: 'chance' })).toBe(true);
+    expect(wantsAI(long, { id: 'navigate', path: '/', label: 'Start' })).toBe(false);
+  });
 });

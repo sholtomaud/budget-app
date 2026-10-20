@@ -12,7 +12,10 @@ import {
   yearsOfFreedom,
   type Profile,
 } from '../profile/lifespan.ts';
-import type { FreedomSetup } from '../sim/inputs.ts';
+import { superLocks } from '../profile/super.ts';
+import { DEFAULT_TAX_TABLE, type FreedomSetup } from '../sim/inputs.ts';
+import type { Holding } from '../sim/model.ts';
+import { taxTable } from '../sim/tax.ts';
 
 export const PROFILE_CHANGED = 'app:profile-changed';
 
@@ -41,12 +44,23 @@ export function profileHorizon(p: Profile, setup: FreedomSetup): number | undefi
   return plan && yearsOfFreedom(plan, today(), setup.goal.start);
 }
 
-/** Save the plan's years of freedom from the profile, if it sets them and they differ. */
+/** Super holdings locked until preservation age from the profile's age, or undefined if unchanged. */
+export function profileSuperLocks(p: Profile, setup: FreedomSetup): Holding[] | undefined {
+  const age = taxTable(setup.taxTable ?? DEFAULT_TAX_TABLE).superannuation.preservationAge;
+  return superLocks(setup.holdings, p, age, today());
+}
+
+/** Save what the profile sets in the plan (years of freedom, super's lock), if it differs. */
 export async function applyProfile(p: Profile): Promise<void> {
   const setup = await sim().loadSetup();
   if (!setup) return;
   const years = profileHorizon(p, setup);
-  if (years === undefined || years === setup.goal.horizonYears) return;
-  await sim().saveSetup({ ...setup, goal: { ...setup.goal, horizonYears: years } });
+  const holdings = profileSuperLocks(p, setup);
+  if ((years === undefined || years === setup.goal.horizonYears) && !holdings) return;
+  await sim().saveSetup({
+    ...setup,
+    ...(holdings ? { holdings } : {}),
+    goal: { ...setup.goal, horizonYears: years ?? setup.goal.horizonYears },
+  });
   window.dispatchEvent(new CustomEvent(SETUP_CHANGED));
 }

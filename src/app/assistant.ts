@@ -13,7 +13,13 @@
  * in memory for the session only.
  */
 import { budgetReview } from './budget-review.ts';
-import { glossaryEntry, matchIntent, STARTERS, type Intent } from '../assistant/intents.ts';
+import {
+  glossaryEntry,
+  matchIntent,
+  STARTERS,
+  wantsAI,
+  type Intent,
+} from '../assistant/intents.ts';
 import { dollars } from '../assistant/phrases.ts';
 import type { DataView } from '../data/service.ts';
 import { canonicalJson } from '../lib/hash.ts';
@@ -108,12 +114,16 @@ export const fromInsight = (i: Insight): ChatReply =>
     suggestions: i.suggestions ?? [],
   });
 
+const normal = (q: string) => q.trim().toLowerCase().replace(/\s+/g, ' ');
+
 const contextText = (c: PageContext | null) =>
   c ? `${c.title}${c.detail ? ` · ${c.detail}` : ''}` : undefined;
 
 export class Assistant {
   private session: AdvisorSession;
   private readonly cache = new Map<string, ChatReply>();
+  /** The last message Crux answered itself, to send a repeat to the AI. */
+  private lastBuiltIn: string | undefined;
 
   private readonly view: () => DataView;
 
@@ -126,6 +136,7 @@ export class Assistant {
   reset(): void {
     this.session = new AdvisorSession(this.view);
     this.cache.clear();
+    this.lastBuiltIn = undefined;
   }
 
   /**
@@ -139,9 +150,16 @@ export class Assistant {
     opts: { onActivity?: ActivitySink; signal?: AbortSignal } = {}
   ): Promise<ChatReply> {
     const intent = matchIntent(question);
-    if (intent) return this.builtIn(intent, context, opts.onActivity);
-
     const ap = await activeProvider();
+    // With an AI set up, a long message, or the same question asked again
+    // after Crux's answer, goes to the AI: the template didn't answer it.
+    const again = normal(question) === this.lastBuiltIn;
+    if (intent && !(ap.ok && (again || wantsAI(question, intent)))) {
+      this.lastBuiltIn = normal(question);
+      return this.builtIn(intent, context, opts.onActivity);
+    }
+    this.lastBuiltIn = undefined;
+
     if (!ap.ok)
       return reply({
         text: `I can answer common questions on my own, on this device: how likely your plan is to work, why, what would make it work, where your money goes, how sure the forecast is, and what the terms mean. I can also add budget lines, big purchases and categories for you to approve.\n\nFor anything else, an AI provider can help. It's optional: turn one on in Settings. Your key is kept only while the app is open.`,

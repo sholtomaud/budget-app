@@ -276,9 +276,42 @@ export function matchIntent(raw: string): Intent | null {
     )
   )
     return { id: 'page' };
-  if (/\b(what('s| is| are| does)|explain|meaning of|define|mean)\b/.test(t) && glossaryEntry(t))
+  // Only a short question about a term: "that would mean…" in a long message is not one.
+  if (
+    words(t) <= 10 &&
+    /\b(what('s| is| are| does)|explain|meaning of|define|mean)\b/.test(t) &&
+    glossaryEntry(t)
+  )
     return { id: 'define', text: t };
   return null;
+}
+
+const words = (t: string) => t.split(/\s+/).filter(Boolean).length;
+
+/** Intents that answer a question, as opposed to doing something (a card, a chart, a screen). */
+const ANSWERS: ReadonlySet<Intent['id']> = new Set([
+  'chance',
+  'why',
+  'fix',
+  'earliest',
+  'sure',
+  'spending',
+  'review',
+  'page',
+  'define',
+]);
+
+/**
+ * Whether a message is better answered by the AI, when one is set up, even
+ * though Crux recognised it: a long or several-sentence message that only
+ * matched a question pattern in passing. Crux's templates answer the common
+ * question, not the person's own reasoning.
+ */
+export function wantsAI(raw: string, intent: Intent): boolean {
+  if (!ANSWERS.has(intent.id)) return false;
+  const text = raw.trim();
+  const sentences = text.split(/[.?!]+(?:\s|$)/).filter((x) => x.trim()).length;
+  return words(text) > 20 || sentences > 2;
 }
 
 /** The glossary entry a question is about, by its longest matching term. */
