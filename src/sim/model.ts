@@ -252,6 +252,12 @@ export interface SpendingInput {
    * shouldn't: a period the app can't read, or an essential (a mortgage,
    * rent) left out of the goal tier. Monthly is dollars at a share of 1.
    */
+  /**
+   * Budget lines in `tier` that end (FR-BUD-005): from month `from`
+   * (YYYY-MM) on, `monthly` dollars of group `group` are no longer spent.
+   * Scaled by the spending lever, like `tier`.
+   */
+  ends?: { item: string; group: string; from: string; monthly: number }[];
   uncounted?: {
     item: string;
     categoryId: string;

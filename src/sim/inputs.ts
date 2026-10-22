@@ -8,7 +8,7 @@
 import ESSENTIALS from '../../data-tables/essentials.json' with { type: 'json' };
 import type { BudgetState } from '../budget/state.ts';
 import { annualisedCapexPerWeek, inTier } from '../budget/capex.ts';
-import { weeklyRate } from '../budget/model.ts';
+import { endedBy, weeklyRate } from '../budget/model.ts';
 import { perWeek } from '../budget/periods.ts';
 import type { Account, Asset, BalanceCheckpoint, Provenance, Txn } from '../domain/types.ts';
 import type { Quantiles } from '../forecast/opex.ts';
@@ -69,6 +69,9 @@ export function applySpendingLevers(
     ...sp,
     current: scale(sp.current, levers.currentSpend),
     tier: scale(sp.tier, levers.tierSpend),
+    ...(sp.ends
+      ? { ends: sp.ends.map((e) => ({ ...e, monthly: e.monthly * levers.tierSpend })) }
+      : {}),
   };
 }
 
@@ -302,11 +305,23 @@ export function spendingFrom(
   for (const g of credits) current[g] = 0;
   const budget: Record<string, number> = {};
   const uncounted: NonNullable<SpendingInput['uncounted']> = [];
+  const ends: NonNullable<SpendingInput['ends']> = [];
+  const asOf = asOfFor(d.txns);
   for (const l of d.budget.lines) {
     const g = groupOf(l.categoryId);
     if (g === 'capex') continue; // capital lines are the register's job
+    // Ended before the simulation starts: nothing (FR-BUD-005).
+    if (endedBy(l, asOf)) continue;
     const monthly = (weeklyRate(l, tier, (c) => perWeek(c, d.budget.periods)) * 52) / 12 / 100;
     budget[g] = (budget[g] ?? 0) + monthly;
+    // Ends later: counted until then, and the simulation drops it after.
+    if (l.endDate && monthly > 0)
+      ends.push({
+        item: l.item,
+        group: g,
+        from: addMonths(`${l.endDate.slice(0, 7)}-01`, 1).slice(0, 7),
+        monthly,
+      });
     // Lines that silently count as nothing: say so (FR-BUD-004).
     const per = perWeek(l.period, d.budget.periods);
     const base = { item: l.item, categoryId: l.categoryId, period: l.period };
@@ -336,6 +351,7 @@ export function spendingFrom(
     ...(credits.length ? { credits } : {}),
     ...(essentials ? { essentials } : {}),
     ...(uncounted.length ? { uncounted } : {}),
+    ...(ends.length ? { ends: ends.sort((a, b) => (a.from < b.from ? -1 : 1)) } : {}),
   };
 }
 
@@ -365,7 +381,10 @@ export function essentialsFrom(d: HouseholdData): SpendingInput['essentials'] | 
   if (lowest)
     for (const l of d.budget.lines) {
       if (groupOf(l.categoryId) === 'capex') continue;
-      const m = (weeklyRate(l, lowest.id, (c) => perWeek(c, d.budget.periods)) * 52) / 12 / 100;
+      const m =
+        (weeklyRate(l, lowest.id, (c) => perWeek(c, d.budget.periods), asOfFor(d.txns)) * 52) /
+        12 /
+        100;
       if (m > 0) budgeted.set(l.categoryId, (budgeted.get(l.categoryId) ?? 0) + m);
     }
   const actualGroups = new Map<string, number>();

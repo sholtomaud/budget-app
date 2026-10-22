@@ -18,7 +18,16 @@ export type Intent =
   | { id: 'page' }
   | { id: 'define'; text: string }
   | { id: 'navigate'; path: string; label: string }
-  | { id: 'budget-line'; item: string; amount: number; period: string }
+  | {
+      id: 'budget-line';
+      item: string;
+      amount: number;
+      period: string;
+      /** "until March 2038": the last month paid, YYYY-MM (FR-BUD-005). */
+      until?: string;
+      /** "for 12 more years": resolved against today by the app. */
+      forYears?: number;
+    }
   | { id: 'asset'; name: string; ageYears?: number; cost?: number }
   | { id: 'categorise'; match: string; category: string }
   | { id: 'chart'; request: ChartRequest };
@@ -166,6 +175,22 @@ const sentences = (t: string) => t.split(/[.?!]+(?:\s|$)/).filter((x) => x.trim(
 /** A message short enough to be one request: a card is only offered for one of these. */
 const oneRequest = (t: string) => words(t) <= 25 && sentences(t) <= 2;
 
+const MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+
+/** "until March 2038", "till 2038", "for 12 more years": when a cost stops (FR-BUD-005). */
+function untilOf(t: string): { until?: string; forYears?: number } {
+  const u =
+    /\b(?:until|till|to|ending|ends?(?: in)?)\s+(?:(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+)?(20\d{2}|21\d{2})\b/.exec(
+      t
+    );
+  if (u)
+    return {
+      until: `${u[2]}-${String(u[1] ? MONTHS.indexOf(u[1]) + 1 : 12).padStart(2, '0')}`,
+    };
+  const f = /\bfor\s+(?:another\s+|the next\s+)?(\d{1,2})\s+(?:more\s+)?years?\b/.exec(t);
+  return f ? { forYears: Number(f[1]) } : {};
+}
+
 const clean = (s: string) =>
   s
     .replace(/^(the|my|our|a|an)\s+/i, '')
@@ -190,11 +215,18 @@ export function matchIntent(raw: string): Intent | null {
       (recurring && /\b(is|costs?)\s+\$/.test(t)))
   ) {
     const period = PERIODS.find(([re]) => re.test(t))?.[1] ?? 'm';
+    const stop = String.raw`(?=\s+(?:a|per|each|every|until|for|till)\s|[.,!?]|$)`;
     const item =
-      /\bfor\s+([a-z][\w' -]{1,40}?)(?=\s+(?:a|per|each|every)\s|[.,!?]|$)/i.exec(text)?.[1] ??
-      /\bon\s+([a-z][\w' -]{1,40}?)(?=\s+(?:a|per|each|every)\s|[.,!?]|$)/i.exec(text)?.[1] ??
+      new RegExp(String.raw`\bfor\s+([a-z][\w' -]{1,40}?)${stop}`, 'i').exec(text)?.[1] ??
+      new RegExp(String.raw`\bon\s+([a-z][\w' -]{1,40}?)${stop}`, 'i').exec(text)?.[1] ??
       /^(?:my\s+|our\s+)?([a-z][\w' -]{1,40}?)\s+(?:is|costs?)\s+\$/i.exec(text)?.[1];
-    return { id: 'budget-line', item: clean(item ?? 'New budget line'), amount: dollars, period };
+    return {
+      id: 'budget-line',
+      item: clean(item ?? 'New budget line'),
+      amount: dollars,
+      period,
+      ...untilOf(t),
+    };
   }
   const old =
     /\b(?:my|our|the)\s+([a-z][\w -]{1,30}?)\s+is\s+(\d+(?:\.\d+)?)\s+years?\s+old\b/i.exec(text);

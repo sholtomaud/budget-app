@@ -344,6 +344,12 @@ export function runOnce(
   const sum = (r: Record<string, number>) => Object.values(r).reduce((a, b) => a + b, 0);
   const currentOpex = sum(plan.spending.current);
   const tierOpex = sum(plan.spending.tier);
+  // Budget lines that end (FR-BUD-005): after-freedom spending less what has ended by month m.
+  const ended = new Float64Array(n);
+  for (const e of plan.spending.ends ?? []) {
+    const from = Math.max(0, monthsBetween(s.asOf, e.from));
+    for (let m = from; m < n; m++) ended[m]! += e.monthly;
+  }
 
   const costBase = s.holdings.map((h) => dollars(h.costBase ?? h.value));
   const startMonthOfYear = Number(s.asOf.slice(5, 7)); // 1..12
@@ -406,7 +412,7 @@ export function runOnce(
     const project = free ? plan.projectMonthly : 0;
     const ratio = ratioAt(plan.spending.ratio, m, u);
     // Spending is never negative (inputs are checked; this is the last guard).
-    const opex = Math.max(0, (free ? tierOpex : currentOpex) * ratio);
+    const opex = Math.max(0, (free ? tierOpex - ended[m]! : currentOpex) * ratio);
     const capex = capexPath[m]!;
     const need = opex + capex;
 

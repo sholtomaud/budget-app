@@ -37,6 +37,7 @@ test('the AI proposes several changes; the person picks some, applies them toget
             amountDollars: 30,
             period: 'w',
             categoryHint: null,
+            lastMonth: null,
           })
         : n === 2
           ? call('c2', 'propose_budget_line', {
@@ -44,6 +45,7 @@ test('the AI proposes several changes; the person picks some, applies them toget
               amountDollars: 18,
               period: 'm',
               categoryHint: null,
+              lastMonth: null,
             })
           : n === 3
             ? call('c3', 'propose_big_purchase', {

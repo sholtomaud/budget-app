@@ -110,7 +110,8 @@ export function budgetLineProposal(
   item: string,
   amountDollars: number,
   period: string,
-  categoryHint?: string
+  categoryHint?: string,
+  endDate?: string
 ): Proposal {
   const categoryId =
     guessCategory(`${categoryHint ?? ''} ${item}`, v, isSpending) ?? 'shopping.general';
@@ -124,6 +125,7 @@ export function budgetLineProposal(
       ccy: 'AUD',
       period: PERIOD_WORDS[period] ? period : 'm',
       tierMultiplier: Object.fromEntries(v.budget.tiers.map((t) => [t.id, 1])),
+      ...(endDate && /^\d{4}-\d{2}$/.test(endDate) ? { endDate } : {}),
       notes: 'Added from the chat panel',
     },
   };
@@ -193,7 +195,7 @@ export function categoriseProposal(
 export function describe(p: Proposal, v: DataView): string {
   switch (p.kind) {
     case 'budget-line':
-      return `Add a budget line: ${p.line.item}, $${(Number(p.line.cost) / 100).toFixed(2)} ${PERIOD_WORDS[p.line.period] ?? p.line.period}, in ${categoryName(p.line.categoryId, v.categories)}.`;
+      return `Add a budget line: ${p.line.item}, $${(Number(p.line.cost) / 100).toFixed(2)} ${PERIOD_WORDS[p.line.period] ?? p.line.period}${p.line.endDate ? `, paid until ${p.line.endDate}` : ''}, in ${categoryName(p.line.categoryId, v.categories)}.`;
     case 'asset':
       return `Add to Big purchases: ${p.asset.name} (${categoryName(p.asset.categoryId, v.categories)}), expected to last about ${p.asset.life.meanYears} years${p.ageYears !== undefined ? `, now ${p.ageYears} years old` : ''}${p.asset.cost.minor > 0n ? `, $${(Number(p.asset.cost.minor) / 100).toLocaleString('en-AU')} to replace` : ''}.`;
     case 'categorise':

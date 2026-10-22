@@ -284,6 +284,31 @@ describe('goal metrics (FR-GOAL)', () => {
     expect(f.pSuccess).toBeGreaterThanOrEqual(0.9);
   });
 
+  test('a budget line that ends stops being spent from its month (FR-BUD-005)', () => {
+    const s = short();
+    const runs = { runs: 12 };
+    const base = simulate(kernel, s, sampleSpending(), runs);
+    // Housing (2,500 a month after freedom) ends two years into freedom.
+    const ends = [{ item: 'Mortgage', group: 'housing', from: '2031-01', monthly: 2_500 }];
+    const paidOff = simulate(kernel, s, sampleSpending({ ends }), runs);
+    for (const [a, b] of base.summaries.map((r, i) => [r, paidOff.summaries[i]!] as const)) {
+      // 3 years of freedom at 2,500 a month less, in every future (same seeds).
+      expect(a.totalSpend - b.totalSpend).toBeCloseTo(3 * 12 * 2_500, -3);
+      expect(b.endCapital).toBeGreaterThan(a.endCapital);
+    }
+    // Ended before freedom: never spent after it.
+    const before = simulate(
+      kernel,
+      s,
+      sampleSpending({ ends: [{ ...ends[0]!, from: '2027-01' }] }),
+      runs
+    );
+    expect(base.summaries[0]!.totalSpend - before.summaries[0]!.totalSpend).toBeCloseTo(
+      5 * 12 * 2_500,
+      -3
+    );
+  });
+
   test('the bridge: capital outside super, smaller when super unlocks during freedom', async () => {
     const sp = sampleSpending();
     const withSuper = (accessibleFrom: string) =>

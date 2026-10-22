@@ -42,7 +42,8 @@ export function budgetMonthlyFor(v: DataView, tier: string): Record<string, numb
     if (l.categoryId.startsWith('capex.')) continue;
     out[l.categoryId] =
       (out[l.categoryId] ?? 0) +
-      (weeklyRate(l, tier, (c) => perWeek(c, v.budget.periods)) * 52) / 12;
+      (weeklyRate(l, tier, (c) => perWeek(c, v.budget.periods), new Date().toISOString()) * 52) /
+        12;
   }
   return out;
 }

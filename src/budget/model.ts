@@ -24,6 +24,11 @@ export interface BudgetLine {
   tierMultiplier: Record<TierId, number>;
   startDate?: string;
   renewDate?: string;
+  /**
+   * The last month it is paid, YYYY-MM (a mortgage paid off, a loan): from
+   * the month after, it counts as nothing (FR-BUD-005). None: it runs on.
+   */
+  endDate?: string;
   notes?: string;
   url?: string;
   /** Where the line came from (FR-ING-013). */
@@ -35,7 +40,7 @@ export interface BudgetLine {
 /** The values a sheet row gives a line. */
 export type SheetRow = Pick<
   BudgetLine,
-  'item' | 'cost' | 'period' | 'categoryId' | 'tierMultiplier'
+  'item' | 'cost' | 'period' | 'categoryId' | 'tierMultiplier' | 'endDate'
 >;
 
 export interface BudgetSettings {
@@ -53,13 +58,21 @@ export function tierRank(tiers: readonly Tier[], id: TierId | undefined): number
   return i < 0 ? 0 : i;
 }
 
-/** Weekly rate of a line at a tier, in minor units (float). Multiplier 0 excludes the line. */
+/** Has the line ended by `month` (YYYY-MM or a date)? Paid through its end month, not after. */
+export const endedBy = (line: BudgetLine, month: string): boolean =>
+  !!line.endDate && month.slice(0, 7) > line.endDate.slice(0, 7);
+
+/**
+ * Weekly rate of a line at a tier, in minor units (float). Multiplier 0
+ * excludes the line; so does `month` after its end date.
+ */
 export function weeklyRate(
   line: BudgetLine,
   tier: TierId,
-  perWeekOf: (code: string) => number | undefined
+  perWeekOf: (code: string) => number | undefined,
+  month?: string
 ): number {
   const f = perWeekOf(line.period);
-  if (f === undefined) return 0;
+  if (f === undefined || (month && endedBy(line, month))) return 0;
   return Number(line.cost) * f * (line.tierMultiplier[tier] ?? 1);
 }
