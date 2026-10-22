@@ -123,12 +123,13 @@ const monthsApart = (a: string, b: string) =>
 export function monthlyBudget(
   lines: readonly BudgetLine[],
   tier: string,
-  periods: PeriodTable
+  periods: PeriodTable,
+  month = new Date().toISOString().slice(0, 7)
 ): Map<string, number> {
   const out = new Map<string, number>();
   for (const l of lines) {
     if (groupOf(l.categoryId) === 'capex') continue;
-    const m = weeklyRate(l, tier, (c) => perWeek(c, periods)) * WEEKS_PER_MONTH;
+    const m = weeklyRate(l, tier, (c) => perWeek(c, periods), month) * WEEKS_PER_MONTH;
     if (m > 0) out.set(l.categoryId, (out.get(l.categoryId) ?? 0) + m);
   }
   return out;

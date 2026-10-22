@@ -18,7 +18,7 @@ import { askChat } from '../../chat-ask.ts';
 import { activeProvider } from '../../egress.ts';
 import { actualVsBudget, availableMonths } from '../../../budget/actuals.ts';
 import { annualisedCapexPerWeek } from '../../../budget/capex.ts';
-import { weeklyRate, type BudgetLine } from '../../../budget/model.ts';
+import { endedBy, weeklyRate, type BudgetLine } from '../../../budget/model.ts';
 import {
   editLine,
   linesIn,
@@ -277,7 +277,9 @@ export class BudgetPage extends BaseComponent {
   /** One budget line as a sub-row of its category: every cell editable (FR-BUD-003). */
   private lineRow(v: DataView, l: BudgetLine, weeks: number): HTMLElement {
     const tierName = v.budget.tiers.find((t) => t.id === this.tier)?.name ?? this.tier;
-    const rate = weeklyRate(l, this.tier, (c) => perWeek(c, v.budget.periods)) * weeks;
+    const rate =
+      weeklyRate(l, this.tier, (c) => perWeek(c, v.budget.periods), this.shownMonth()) * weeks;
+    const ended = endedBy(l, this.shownMonth());
     const item = this.cell(l, 'item', l.item, `Item name`);
     item.title = l.sheet
       ? `Changed here. ${l.source!.file}, row ${l.source!.row} says ${l.sheet.item}, ${money(l.sheet.cost, l.ccy)} ${v.budget.periods[l.sheet.period]?.label ?? l.sheet.period}; re-importing it unchanged keeps your change.`
@@ -290,6 +292,9 @@ export class BudgetPage extends BaseComponent {
     cost.classList.add('num');
     const period = this.periodSelect(v, l.period);
     this.wire(period, l, 'period', `How often for ${l.item}`);
+    // The last month it's paid (a mortgage paid off): empty runs on (FR-BUD-005).
+    const ends = el('input', { type: 'month', value: l.endDate ?? '', class: 'ends' });
+    this.wire(ends, l, 'endDate', `Last month ${l.item} is paid`);
     const share = this.cell(
       l,
       'multiplier',
@@ -322,6 +327,14 @@ export class BudgetPage extends BaseComponent {
           { class: 'line-cells' },
           el('label', {}, el('span', { class: 'muted' }, '$'), cost),
           period,
+          el(
+            'label',
+            {
+              title: ended ? `Ended ${l.endDate}: counts as nothing now` : 'Paid until (optional)',
+            },
+            el('span', { class: 'muted' }, ended ? 'ended' : 'until'),
+            ends
+          ),
           el(
             'label',
             { title: `Share at ${tierName}` },
@@ -550,9 +563,16 @@ export class BudgetPage extends BaseComponent {
 
   private opexWeekly(v: DataView): number {
     return v.budget.lines.reduce(
-      (s, l) => s + weeklyRate(l, this.tier, (c) => perWeek(c, v.budget.periods)),
+      (s, l) =>
+        s + weeklyRate(l, this.tier, (c) => perWeek(c, v.budget.periods), this.shownMonth()),
       0
     );
+  }
+
+  /** The month the table is about (its period's end), or this month. */
+  private shownMonth(): string {
+    const end = this.querySelector<HTMLSelectElement>('.controls select[name="end"]')?.value;
+    return (end || new Date().toISOString()).slice(0, 7);
   }
 
   private renderLines(v: DataView): void {
@@ -594,7 +614,7 @@ export class BudgetPage extends BaseComponent {
           el(
             'td',
             { class: 'muted' },
-            l.source ? `${l.source.file} row ${l.source.row}` : 'added here'
+            `${l.source ? `${l.source.file} row ${l.source.row}` : 'added here'}${l.endDate ? ` · until ${l.endDate}` : ''}`
           ),
           el('td', {}, del)
         );

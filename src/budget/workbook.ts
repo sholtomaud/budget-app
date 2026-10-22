@@ -37,6 +37,11 @@ export const FIELDS: Record<SheetType, FieldDef[]> = {
     { key: 'startDate', label: 'Start date', aliases: ['start date', 'start'] },
     { key: 'renewDate', label: 'Renew date', aliases: ['renew date', 'renewal', 'renew'] },
     {
+      key: 'endDate',
+      label: 'Ends',
+      aliases: ['end date', 'ends', 'end', 'until', 'last payment', 'paid off'],
+    },
+    {
       key: 'subCategory',
       label: 'Sub-category',
       aliases: ['sub-category', 'subcategory', 'sub category', 'category id'],
@@ -419,6 +424,10 @@ export function preview(file: string, text: string, opts: PreviewOptions = {}): 
       const rd = parseDate(col(r, 'renewDate'));
       if (sd) line.startDate = sd;
       if (rd) line.renewDate = rd;
+      // "2038" alone: paid through that year.
+      const endText = col(r, 'endDate').trim();
+      const ed = /^\d{4}$/.test(endText) ? `${endText}-12` : parseDate(endText)?.slice(0, 7);
+      if (ed) line.endDate = ed;
       if (col(r, 'notes')) line.notes = col(r, 'notes');
       if (col(r, 'url')) line.url = col(r, 'url');
       lines.push(line);

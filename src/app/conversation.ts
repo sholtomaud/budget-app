@@ -530,16 +530,22 @@ export class Conversation {
           cats((id) => !/^(capex|income|investment|tax|transfer)\./.test(id)),
           p0.line.categoryId
         );
-        read = () => ({
-          kind: 'budget-line',
-          line: {
-            ...p0.line,
-            item: item.value.trim() || p0.line.item,
-            cost: BigInt(Math.round(Number(amount.value) * 100)),
-            period: period.value,
-            categoryId: cat.value,
-          },
-        });
+        // A cost that stops (a mortgage paid off): plans stop spending it after (FR-BUD-005).
+        const ends = input('Last month paid (optional)', p0.line.endDate ?? '', 'month');
+        read = () => {
+          const { endDate: _, ...line } = p0.line;
+          return {
+            kind: 'budget-line',
+            line: {
+              ...line,
+              item: item.value.trim() || p0.line.item,
+              cost: BigInt(Math.round(Number(amount.value) * 100)),
+              period: period.value,
+              categoryId: cat.value,
+              ...(/^\d{4}-\d{2}$/.test(ends.value) ? { endDate: ends.value } : {}),
+            },
+          };
+        };
         break;
       }
       case 'asset': {

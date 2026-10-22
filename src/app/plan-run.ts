@@ -344,7 +344,10 @@ export function needWords(n: NeedBreakdown, tier: string): string {
   if (n.capexMonthly > 0.5) parts.push(`big purchases, ${dollars(n.capexMonthly)} a month`);
   const less =
     n.projectIncome > 0 ? `, less project income of ${dollars(n.projectIncome)} a year` : '';
-  return `${parts.join('; plus ')}${less}`;
+  const ends = (n.endsLater ?? [])
+    .map((e) => `${e.item} ends in ${e.from} (${dollars(e.monthly)} a month less from then)`)
+    .join('; ');
+  return `${parts.join('; plus ')}${less}${ends ? `. Later, ${ends}` : ''}`;
 }
 
 /**
@@ -408,6 +411,14 @@ export function runFacts(r: PlanRun, tierName: (id: string) => string = (id) => 
                     spendingAfterFreedom: `${percent(f.need.lever)} of the tier`,
                     bigPurchasesPerMonth: roughAmount(f.need.capexMonthly),
                     projectIncomePerYear: roughAmount(f.need.projectIncome),
+                    ...(f.need.endsLater?.length
+                      ? {
+                          endsDuringFreedom: f.need.endsLater.map(
+                            (e) =>
+                              `${e.item}: about ${roughAmount(e.monthly)} a month, not paid from ${e.from}`
+                          ),
+                        }
+                      : {}),
                   },
                 }
               : {}),

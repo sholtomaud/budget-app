@@ -194,6 +194,7 @@ interface BudgetLine {                        // one row of an OPEX budget
   period: Period;                             // 'd','w','f','m','q','y','2y','3y','5y','6y','visit', …
   tierMultiplier: Record<TierId, number>;     // e.g. { secure: 1, independent: 1.5, luxury: 2 }
   startDate?: string; renewDate?: string; notes?: string; url?: string;
+  endDate?: string;                           // last month paid, YYYY-MM (FR-BUD-005)
 }
 
 type TierId = 'secure' | 'independent' | 'luxury' | string;
@@ -497,6 +498,7 @@ variance %, and a trailing 3/6/12-month run rate. Drill down to transactions.
 | FR-BUD-002 | **Budget review** (ADR 0038): on request ("Review my budget", the Budget screen, the AI's `review_budget`), alerts on the floor, the plan's chance against its target and the cash buffer (3 months of Secure); then per category with 6+ months of spending, the last 3 months against the budget at the plan's tier, with a deadband (the model's 80 % range, or the recent level ± its usual monthly movement). Outside it, a change half way to what it costs, as a card with Undo: essentials only up, discretionary down or a choice (raise, or raise and take from another). A category changed in the last 2 months is held. Never applied without the person. |
 | FR-BUD-003 | **Editing in place** (ADR 0042): the actual-vs-budget table opens each category to its budget lines as sub-rows. Each line's item, amount, period, share at the shown tier and category are cells that save when changed (Enter moves down, Escape reverts); a bad value is refused with a reason and nothing is saved. Each category has an Add item row; a line can be deleted, with Undo. A category's own Budget cell takes a new amount for the period shown: its items that count at the tier scale to it (a single item is set in that period, exactly), or, with no budget, one item is added, counted at that tier and above. Re-importing a sheet keeps a change or deletion made here unless the sheet itself changed that row; rows are matched by item, not row number. |
 | FR-BUD-004 | A budget line that counts as nothing in a plan says so: a period the app can't read is a plan problem; an essential (data-tables/essentials.json, e.g. a mortgage or rent) whose share at the plan's tier is 0 is a plan note, with what it costs (ADR 0045). |
+| FR-BUD-005 | A budget line may have a last month it is paid (a mortgage or loan paid off). It counts in budgets up to and including that month and as nothing after: on the Budget screen for periods after it, in plans from the month after (the simulation drops it then, before or after freedom starts), and in the freedom number's year of spending when it has ended by the freedom date. The breakdown names lines that end during freedom. Set on the Budget screen, from a sheet's End date column (a year alone: through December), on a chat card, or in words ("until March 2038", "for 12 more years") (ADR 0046). |
 
 ### 9.3 CAPEX register (FR-CAP)
 

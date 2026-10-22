@@ -6,6 +6,7 @@
  */
 import { checkToolInput, chatRequest, type Turn } from '../api/llm.ts';
 import { roughAmount } from '../api/redact.ts';
+import { addMonths } from '../lib/dates.ts';
 import {
   ADVISOR_TOOLS,
   advisorSystem,
@@ -306,7 +307,8 @@ export async function runTool(
           String(input.item),
           Number(input.amountDollars),
           String(input.period),
-          (input.categoryHint as string | null) ?? undefined
+          (input.categoryHint as string | null) ?? undefined,
+          (input.lastMonth as string | null) ?? undefined
         )
       );
     case 'propose_big_purchase':
@@ -352,6 +354,14 @@ export async function runTool(
                 .map(([g, x]) => [g, rough(BigInt(Math.round((x / Math.max(1e-9, lever)) * 100)))])
             ),
             bigPurchasesPerMonth: rough(BigInt(Math.round(sp.capexMonthly * 100))),
+            ...(sp.ends?.length
+              ? {
+                  budgetLinesEnding: sp.ends.map(
+                    (e) =>
+                      `${e.item}: about ${rough(BigInt(Math.round((e.monthly / Math.max(1e-9, lever)) * 100)))} a month, paid until ${addMonths(`${e.from}-01`, -1).slice(0, 7)}; the simulation stops spending it after that`
+                  ),
+                }
+              : {}),
             ...(sp.uncounted?.length
               ? {
                   budgetLinesNotCounted: sp.uncounted.map((u) =>

@@ -93,7 +93,8 @@ export function actualVsBudget(
     budgetBy.set(
       l.categoryId,
       (budgetBy.get(l.categoryId) ?? 0) +
-        weeklyRate(l, opts.tier, (c) => perWeek(c, periods)) * weeks
+        // A line that ended before the window counts as nothing (FR-BUD-005).
+        weeklyRate(l, opts.tier, (c) => perWeek(c, periods), win.from) * weeks
     );
 
   const monthEnd = `${win.to.slice(0, 7)}-01`;

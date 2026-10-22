@@ -14,7 +14,7 @@ import {
 } from './model.ts';
 import { parseMoney } from './workbook.ts';
 
-export type LineField = 'item' | 'cost' | 'period' | 'multiplier' | 'categoryId';
+export type LineField = 'item' | 'cost' | 'period' | 'multiplier' | 'categoryId' | 'endDate';
 
 export type EditResult = { ok: true; line: BudgetLine } | { ok: false; error: string };
 
@@ -57,6 +57,14 @@ export function editLine(
       return t
         ? { ok: true, line: { ...line, categoryId: t } }
         : { ok: false, error: 'Pick a category.' };
+    case 'endDate': {
+      const { endDate: _, ...rest } = line;
+      if (!t) return { ok: true, line: rest };
+      const m = /^(\d{4})-(\d{2})(?:-\d{2})?$/.exec(t);
+      if (!m || Number(m[2]) < 1 || Number(m[2]) > 12)
+        return { ok: false, error: `“${t}” is not a month (YYYY-MM).` };
+      return { ok: true, line: { ...rest, endDate: `${m[1]}-${m[2]}` } };
+    }
   }
 }
 
@@ -99,6 +107,7 @@ export const rowOf = (l: BudgetLine): SheetRow => ({
   period: l.period,
   categoryId: l.categoryId,
   tierMultiplier: l.tierMultiplier,
+  ...(l.endDate ? { endDate: l.endDate } : {}),
 });
 
 const sameMultipliers = (a: Record<string, number>, b: Record<string, number>) => {
@@ -111,6 +120,7 @@ export const sameRow = (a: SheetRow, b: SheetRow): boolean =>
   a.cost === b.cost &&
   a.period === b.period &&
   a.categoryId === b.categoryId &&
+  (a.endDate ?? '') === (b.endDate ?? '') &&
   sameMultipliers(a.tierMultiplier, b.tierMultiplier);
 
 /**

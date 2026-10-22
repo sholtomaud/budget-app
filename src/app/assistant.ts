@@ -24,6 +24,7 @@ import {
 } from '../assistant/intents.ts';
 import { dollars } from '../assistant/phrases.ts';
 import type { DataView } from '../data/service.ts';
+import { addMonths } from '../lib/dates.ts';
 import { canonicalJson } from '../lib/hash.ts';
 import { fnv1a64 } from '../lib/prng.ts';
 import { step, type ActivitySink } from './activity.ts';
@@ -368,9 +369,24 @@ export class Assistant {
           suggestions: PAGE_SUGGESTIONS[intent.path] ?? [],
         });
       case 'budget-line': {
-        const p = budgetLineProposal(v, intent.item, intent.amount, intent.period);
+        const until =
+          intent.until ??
+          (intent.forYears
+            ? addMonths(
+                `${new Date().toISOString().slice(0, 7)}-01`,
+                intent.forYears * 12 - 1
+              ).slice(0, 7)
+            : undefined);
+        const p = budgetLineProposal(
+          v,
+          intent.item,
+          intent.amount,
+          intent.period,
+          undefined,
+          until
+        );
         return reply({
-          text: `Here's that as a budget line: **${dollars(intent.amount)} ${PERIOD_WORDS[intent.period] ?? ''}** for ${intent.item}. Check the details, then apply it.`,
+          text: `Here's that as a budget line: **${dollars(intent.amount)} ${PERIOD_WORDS[intent.period] ?? ''}** for ${intent.item}${until ? `, paid until ${until}` : ''}. Check the details, then apply it.`,
           proposals: [p],
           links: [{ label: 'Open Budget', path: '/budget' }],
         });

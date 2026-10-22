@@ -109,12 +109,13 @@ export const ADVISOR_TOOLS: ToolDef[] = [
   {
     name: 'propose_budget_line',
     description:
-      'Offer the user a card to add a recurring cost to their budget. Nothing changes until they click Apply. Use when they mention a regular cost.',
+      'Offer the user a card to add a recurring cost to their budget. Nothing changes until they click Apply. Use when they mention a regular cost. For a cost that stops (a mortgage or loan paid off), give lastMonth, the last month it is paid (YYYY-MM): plans stop spending it after that.',
     input_schema: obj({
       item: { type: 'string' },
       amountDollars: { type: 'number' },
       period: { type: 'string', enum: ['d', 'w', 'f', 'm', 'q', 'y'] },
       categoryHint: nullable({ type: 'string' }),
+      lastMonth: nullable({ type: 'string' }),
     }),
   },
   {

@@ -53,7 +53,10 @@ export interface DeterministicFreedom {
  * for super and capital withdrawals: a conservative, `assumed` figure.
  */
 export function deterministicFreedom(s: Scenario, spending: SpendingInput): DeterministicFreedom {
-  const opex = Object.values(spending.tier).reduce((a, b) => a + b, 0);
+  // At the start of freedom: lines that have ended by then don't count (FR-BUD-005).
+  const opex =
+    Object.values(spending.tier).reduce((a, b) => a + b, 0) -
+    endedAt(spending, s.goal.start).reduce((a, e) => a + e.monthly, 0);
   const annualNeed = Math.max(
     0,
     12 * (opex + spending.capexMonthly) - dollars(s.goal.projectIncome ?? 0n)
@@ -83,6 +86,10 @@ export function deterministicFreedom(s: Scenario, spending: SpendingInput): Dete
   };
 }
 
+/** Budget lines that have ended by `month` (FR-BUD-005). */
+const endedAt = (spending: SpendingInput, month: string) =>
+  (spending.ends ?? []).filter((e) => e.from <= month.slice(0, 7));
+
 /** What the year of spending behind the freedom number is made of (FR-GOAL-024). */
 export interface NeedBreakdown {
   /** The goal tier's budget a month, before the spending lever. */
@@ -96,13 +103,18 @@ export interface NeedBreakdown {
   /** Project income, a year, taken off. */
   projectIncome: number;
   annualNeed: number;
+  /** Budget lines that end during freedom, at the tier's share (FR-BUD-005). */
+  endsLater?: { item: string; from: string; monthly: number }[];
 }
 
 /** `spending` has the lever applied, as for `deterministicFreedom`. */
 export function needBreakdown(s: Scenario, spending: SpendingInput, lever: number): NeedBreakdown {
   const k = Math.max(1e-9, lever);
+  const gone: Record<string, number> = {};
+  for (const e of endedAt(spending, s.goal.start)) gone[e.group] = (gone[e.group] ?? 0) + e.monthly;
+  const later = (spending.ends ?? []).filter((e) => e.from > s.goal.start.slice(0, 7));
   const byGroup = Object.entries(spending.tier)
-    .map(([group, v]) => ({ group, monthly: v / k }))
+    .map(([group, v]) => ({ group, monthly: (v - (gone[group] ?? 0)) / k }))
     .filter((g) => g.monthly > 0)
     .sort((a, b) => b.monthly - a.monthly);
   return {
@@ -112,6 +124,9 @@ export function needBreakdown(s: Scenario, spending: SpendingInput, lever: numbe
     capexMonthly: spending.capexMonthly,
     projectIncome: dollars(s.goal.projectIncome ?? 0n),
     annualNeed: deterministicFreedom(s, spending).annualNeed,
+    ...(later.length
+      ? { endsLater: later.map((e) => ({ item: e.item, from: e.from, monthly: e.monthly / k })) }
+      : {}),
   };
 }
 

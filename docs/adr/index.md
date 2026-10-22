@@ -35,6 +35,7 @@ Every deviation from the [specification](../spec.md) gets one.
 | [0028](./0028-charts-in-chat.md)                           | Charts in the chat: specs the app fills with its own data, AI-designed charts, saved charts                             | Accepted            |
 | [0029](./0029-one-click-plans-and-compute.md)              | One-click plans: three different plans (NSGA-II), screen-then-confirm runs, WebGPU screening                            | Accepted (part)     |
 | [0030](./0030-bank-csv-adapters.md)                        | Bank and accounting CSVs: presets, a learned column mapper that learns from corrections                                 | Accepted            |
+| [0046](./0046-budget-lines-that-end.md)                    | Budget lines that end (a mortgage paid off): counted to their last month, dropped by the simulation after               | Accepted            |
 | [0045](./0045-one-conversation-and-spending-parts.md)      | One conversation: the AI by name, near-repeats, cards only for short requests, Crux's answers shared; spending in parts | Accepted            |
 | [0044](./0044-super-lock-and-bridge.md)                    | Super locked until preservation age from the profile; the bridge: what you need outside super                           | Accepted            |
 | [0043](./0043-profile-and-plan-length.md)                  | A profile (rough age, country from the device) sets how long the plan runs; a shorter Freedom form                      | Accepted            |

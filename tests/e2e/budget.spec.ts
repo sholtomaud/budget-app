@@ -111,6 +111,21 @@ test('edit the budget like a spreadsheet: change, add and delete items (FR-BUD-0
   await expect(page.locator('table.vs tr.line[data-line]')).toHaveCount(1);
   await page.locator('.edit-status').getByRole('button', { name: 'Undo' }).click();
   await expect(page.locator('table.vs tr.line[data-line]')).toHaveCount(2);
+
+  // A line that has ended (a loan paid off) counts as nothing; clearing the end brings it back (FR-BUD-005).
+  const withBoth = await total.textContent();
+  const ends = page.getByLabel('Last month Groceries is paid');
+  await ends.fill('2020-01');
+  await ends.dispatchEvent('change');
+  await expect(total).not.toHaveText(withBoth!);
+  await expect(
+    page
+      .locator('table.vs tr.line', { has: page.getByLabel('Last month Groceries is paid') })
+      .getByText('ended', { exact: true })
+  ).toBeVisible();
+  await page.getByLabel('Last month Groceries is paid').fill('');
+  await page.getByLabel('Last month Groceries is paid').dispatchEvent('change');
+  await expect(total).toHaveText(withBoth!);
 });
 
 test('set a category’s budget on the fly, or add one where there is none (FR-BUD-003)', async ({
