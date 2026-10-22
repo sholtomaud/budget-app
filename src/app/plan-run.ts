@@ -24,10 +24,12 @@ import { minTierSpend, type FreedomSetup } from '../sim/inputs.ts';
 import {
   bridgeFreedom,
   deterministicFreedom,
+  needBreakdown,
   p90Freedom,
   projectRunway,
   shortfallDrivers,
   yearsToFreedom,
+  type NeedBreakdown,
 } from '../sim/metrics.ts';
 import type { Scenario, SpendingInput } from '../sim/model.ts';
 import { evaluator, inputsFor, ratioFor, runIdOf } from './freedom-inputs.ts';
@@ -84,6 +86,8 @@ export interface PlanRun {
      * needed outside super, with super as it is today, and when it unlocks.
      */
     bridge?: { capital: number | null; locked: number; until: string };
+    /** What the year of spending is made of (FR-GOAL-024). */
+    need?: NeedBreakdown;
   };
   yearsToFreedom?: { p10: number | null; p50: number | null; p90: number | null; reached: number };
   runwayMonths?: number;
@@ -226,6 +230,7 @@ export async function runFullPlan(
     atTarget: f.capital,
     atTargetChance: f.pSuccess,
     atTargetRuns: f.runs,
+    need: needBreakdown(scenario, spending, setup.levers?.tierSpend ?? 1),
   };
   const b = await bridgeFreedom(scenario, spending, poolRunner, { runs: 200, target });
   if (b) run.freedomNumber.bridge = { capital: b.capital, locked: b.locked, until: b.until };
@@ -321,6 +326,27 @@ export function previousRun(list: readonly PlanRun[], run: PlanRun): PlanRun | u
   return i > 0 ? list[i - 1] : undefined;
 }
 
+const GROUP_NAMES: Record<string, string> = { comms: 'phone and internet', food: 'food' };
+
+/**
+ * The year of spending behind the freedom number in words (FR-GOAL-024):
+ * the tier's budget by its biggest groups, the lever, big purchases and
+ * project income.
+ */
+export function needWords(n: NeedBreakdown, tier: string): string {
+  const top = n.byGroup
+    .slice(0, 4)
+    .map((g) => `${GROUP_NAMES[g.group] ?? g.group} ${dollars(g.monthly)}`)
+    .join(', ');
+  const parts = [
+    `the ${tier} budget, ${dollars(n.tierMonthly)} a month${top ? ` (${top}${n.byGroup.length > 4 ? ', …' : ''})` : ''}${Math.abs(n.lever - 1) > 0.005 ? `, at ${percent(n.lever)} of it after freedom` : ''}`,
+  ];
+  if (n.capexMonthly > 0.5) parts.push(`big purchases, ${dollars(n.capexMonthly)} a month`);
+  const less =
+    n.projectIncome > 0 ? `, less project income of ${dollars(n.projectIncome)} a year` : '';
+  return `${parts.join('; plus ')}${less}`;
+}
+
 /**
  * A run as the AI sees it (FR-API-003): chances as percentages, money
  * rounded, dates as months. The same facts whether the run was fresh or kept.
@@ -371,6 +397,20 @@ export function runFacts(r: PlanRun, tierName: (id: string) => string = (id) => 
               f.atTarget === null ? 'not reachable below $1 billion' : roughAmount(f.atTarget),
             meaning:
               'All the capital at the start, super included, scaled in today’s mix of holdings: it has to fund every year of freedom.',
+            ...(f.need
+              ? {
+                  yearOfSpending: {
+                    total: roughAmount(f.need.annualNeed),
+                    tierBudgetPerMonth: roughAmount(f.need.tierMonthly),
+                    tierBudgetByGroupPerMonth: Object.fromEntries(
+                      f.need.byGroup.map((g) => [g.group, roughAmount(g.monthly)])
+                    ),
+                    spendingAfterFreedom: `${percent(f.need.lever)} of the tier`,
+                    bigPurchasesPerMonth: roughAmount(f.need.capexMonthly),
+                    projectIncomePerYear: roughAmount(f.need.projectIncome),
+                  },
+                }
+              : {}),
             ...(f.bridge
               ? {
                   outsideSuper: {
@@ -453,6 +493,10 @@ export function fullRunText(r: PlanRun, tierName: (id: string) => string = (id) 
   if (f?.atTarget != null)
     lines.push(
       `To reach your target you'd need about **${dollars(f.atTarget)}** at the start${r.yearsToFreedom?.p50 != null ? `, typically about ${r.yearsToFreedom.p50.toFixed(0)} years away if you keep saving as now` : ''}. That is everything, super included, for all ${r.goal.horizonYears} years.`
+    );
+  if (f?.need)
+    lines.push(
+      `The year of spending behind it, about ${dollars(f.need.annualNeed)}, is ${needWords(f.need, tierName(r.goal.tier))}.`
     );
   const b = f?.bridge;
   if (b)

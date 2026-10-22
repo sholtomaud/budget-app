@@ -247,4 +247,16 @@ export interface SpendingInput {
     top: { categoryId: string; monthly: number }[];
     outdated?: { group: string; actual: number; budgeted: number }[];
   };
+  /**
+   * Budget lines that count as nothing in `tier` though they probably
+   * shouldn't: a period the app can't read, or an essential (a mortgage,
+   * rent) left out of the goal tier. Monthly is dollars at a share of 1.
+   */
+  uncounted?: {
+    item: string;
+    categoryId: string;
+    reason: 'period' | 'tier';
+    period: string;
+    monthly?: number;
+  }[];
 }

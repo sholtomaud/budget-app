@@ -301,11 +301,18 @@ export function spendingFrom(
     .sort();
   for (const g of credits) current[g] = 0;
   const budget: Record<string, number> = {};
+  const uncounted: NonNullable<SpendingInput['uncounted']> = [];
   for (const l of d.budget.lines) {
     const g = groupOf(l.categoryId);
     if (g === 'capex') continue; // capital lines are the register's job
     const monthly = (weeklyRate(l, tier, (c) => perWeek(c, d.budget.periods)) * 52) / 12 / 100;
     budget[g] = (budget[g] ?? 0) + monthly;
+    // Lines that silently count as nothing: say so (FR-BUD-004).
+    const per = perWeek(l.period, d.budget.periods);
+    const base = { item: l.item, categoryId: l.categoryId, period: l.period };
+    if (per === undefined && l.cost > 0n) uncounted.push({ ...base, reason: 'period' });
+    else if (per && l.cost > 0n && l.tierMultiplier[tier] === 0 && isEssential(l.categoryId))
+      uncounted.push({ ...base, reason: 'tier', monthly: (Number(l.cost) * per * 52) / 12 / 100 });
   }
   const hasBudget = Object.keys(budget).length > 0;
   let ratio: SpendingInput['ratio'] = null;
@@ -328,6 +335,7 @@ export function spendingFrom(
     capexMonthly: (annualisedCapexPerWeek(d.assets, tier, d.budget.tiers) * 52) / 12 / 100,
     ...(credits.length ? { credits } : {}),
     ...(essentials ? { essentials } : {}),
+    ...(uncounted.length ? { uncounted } : {}),
   };
 }
 

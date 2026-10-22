@@ -161,6 +161,11 @@ export function parseDollars(text: string): number | undefined {
   return m[2] ? n * 1000 : n;
 }
 
+const words = (t: string) => t.split(/\s+/).filter(Boolean).length;
+const sentences = (t: string) => t.split(/[.?!]+(?:\s|$)/).filter((x) => x.trim()).length;
+/** A message short enough to be one request: a card is only offered for one of these. */
+const oneRequest = (t: string) => words(t) <= 25 && sentences(t) <= 2;
+
 const clean = (s: string) =>
   s
     .replace(/^(the|my|our|a|an)\s+/i, '')
@@ -172,7 +177,10 @@ export function matchIntent(raw: string): Intent | null {
   const t = text.toLowerCase();
 
   // Requests to change something (proposals): these carry their own details.
-  const dollars = parseDollars(text);
+  // Only in a short message with one amount: a pasted screen or a long
+  // question that mentions "$24k a year" in passing is not a request.
+  const single = oneRequest(text) && (text.match(/\$\s?\d/g) ?? []).length <= 1;
+  const dollars = single ? parseDollars(text) : undefined;
   const recurring = PERIODS.some(([re]) => re.test(t));
   if (
     dollars !== undefined &&
@@ -190,7 +198,7 @@ export function matchIntent(raw: string): Intent | null {
   }
   const old =
     /\b(?:my|our|the)\s+([a-z][\w -]{1,30}?)\s+is\s+(\d+(?:\.\d+)?)\s+years?\s+old\b/i.exec(text);
-  if (old)
+  if (old && single)
     return {
       id: 'asset',
       name: clean(old[1]!),
@@ -201,7 +209,7 @@ export function matchIntent(raw: string): Intent | null {
     /\b(?:add|plan(?:ning)? to (?:buy|replace)|need (?:a|to replace)|replace|replacing|buying)\s+(?:a |an |my |the |our )?([a-z][\w -]{1,30}?)(?=\s+(?:for|costing|at|in|next|this|soon)\b|\s+to\s+(?:my\s+)?big purchases|[.,!?]|$)/i.exec(
       text
     );
-  if (buy && /\b(big purchases?|capex|replace|replacing|buy|buying|new)\b/i.test(t))
+  if (single && buy && /\b(big purchases?|capex|replace|replacing|buy|buying|new)\b/i.test(t))
     return {
       id: 'asset',
       name: clean(buy[1]!),
@@ -211,7 +219,7 @@ export function matchIntent(raw: string): Intent | null {
     /\b(?:categori[sz]e|put|move|mark|file|label)\s+(?:all\s+)?(?:of\s+)?(?:the\s+|my\s+)?(.+?)\s+(?:ones\s+|transactions\s+|purchases\s+|payments\s+)?(?:as|to|under|into|in)\s+(?:the\s+)?(.+?)(?:\s+category)?[.!?]*$/i.exec(
       text
     );
-  if (cat) return { id: 'categorise', match: clean(cat[1]!), category: clean(cat[2]!) };
+  if (cat && single) return { id: 'categorise', match: clean(cat[1]!), category: clean(cat[2]!) };
 
   const chart = matchChart(t);
   if (chart) return { id: 'chart', request: chart };
@@ -286,8 +294,6 @@ export function matchIntent(raw: string): Intent | null {
   return null;
 }
 
-const words = (t: string) => t.split(/\s+/).filter(Boolean).length;
-
 /** Intents that answer a question, as opposed to doing something (a card, a chart, a screen). */
 const ANSWERS: ReadonlySet<Intent['id']> = new Set([
   'chance',
@@ -310,8 +316,53 @@ const ANSWERS: ReadonlySet<Intent['id']> = new Set([
 export function wantsAI(raw: string, intent: Intent): boolean {
   if (!ANSWERS.has(intent.id)) return false;
   const text = raw.trim();
-  const sentences = text.split(/[.?!]+(?:\s|$)/).filter((x) => x.trim()).length;
-  return words(text) > 20 || sentences > 2;
+  return words(text) > 20 || sentences(text) > 2;
+}
+
+/**
+ * "Please ask Gemini…", "send this to the AI", "local model: …": the person
+ * wants the AI, not Crux's built-in answer. `provider` is the active
+ * provider's label ("Google Gemini"), whose words count too.
+ */
+export function asksForAI(raw: string, provider = ''): boolean {
+  const own = provider
+    .toLowerCase()
+    .replace(/\(.*?\)/g, ' ')
+    .split(/[^a-z0-9.]+/)
+    .filter((w) => w.length >= 3 && !/^(the|and|model|local|google)$/.test(w))
+    .map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  const names = [
+    'ai',
+    'a\\.i\\.?',
+    'llm',
+    'gemini',
+    'claude',
+    'chat ?gpt',
+    'gpt',
+    'openai',
+    'ollama',
+    'advisor',
+    'local (?:ai|model|llm)',
+    'model',
+    ...own,
+  ].join('|');
+  const t = raw.toLowerCase();
+  return (
+    new RegExp(
+      `\\b(?:ask|asking|send (?:this|it|that)(?: over)? to|pass (?:this|it|that) (?:on )?to|check with|run (?:this|it) (?:by|past)|use)\\s+(?:the\\s+|my\\s+)?(?:${names})\\b`
+    ).test(t) || new RegExp(`^\\s*(?:hey\\s+)?(?:${names})\\s*[,:]`).test(t)
+  );
+}
+
+/** Two messages that say much the same (one re-sent with a few words changed). */
+export function sameMessage(a: string, b: string): boolean {
+  const set = (s: string) => new Set(s.toLowerCase().match(/[a-z0-9$]{3,}/g) ?? []);
+  const x = set(a);
+  const y = set(b);
+  if (!x.size || !y.size) return a.trim().toLowerCase() === b.trim().toLowerCase();
+  let both = 0;
+  for (const w of x) if (y.has(w)) both++;
+  return both / (x.size + y.size - both) >= 0.6;
 }
 
 /** The glossary entry a question is about, by its longest matching term. */

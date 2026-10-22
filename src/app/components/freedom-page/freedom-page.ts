@@ -8,6 +8,7 @@ import {
   PLAN_STEPS,
   previousRun,
   runFullPlan,
+  needWords,
   saveRun,
   STEP_WORDS,
   type PlanRun,
@@ -669,7 +670,7 @@ export class FreedomPage extends BaseComponent {
     this.$('.fn-det-note').replaceChildren(
       ...(f
         ? [
-            `${aud.format(f.annualNeed)} a year of spending at a ${(f.withdrawalRate * 100).toFixed(1)} % withdrawal rate. `,
+            `${aud.format(f.annualNeed)} a year of spending at a ${(f.withdrawalRate * 100).toFixed(1)} % withdrawal rate${f.need ? `: ${needWords(f.need, v.budget.tiers.find((t) => t.id === r.goal.tier)?.name ?? r.goal.tier)}` : ''}. `,
             prov('assumed'),
           ]
         : [])
