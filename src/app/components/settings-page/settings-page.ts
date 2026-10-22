@@ -21,6 +21,7 @@ import {
   setKey,
 } from '../../egress.ts';
 import { isLocal, originAllowed } from '../../../api/providers.ts';
+import { finishSignIn, OPENROUTER_ID, pendingSignIn, startSignIn } from '../../openrouter.ts';
 import { loadHistories, saveHistories } from '../../freedom-inputs.ts';
 import { parsePriceHistory } from '../../../sim/history.ts';
 import { el } from '../../format.ts';
@@ -242,6 +243,7 @@ export class SettingsPage extends BaseComponent {
     const fill = () => {
       const p = settings.providers.find((x) => x.id === active.value);
       for (const e of this.querySelectorAll<HTMLElement>('.p-detail')) e.hidden = !p;
+      this.$('.openrouter').hidden = p?.id !== OPENROUTER_ID;
       if (!p) return;
       f('endpoint').value = p.endpoint;
       f('model').value = p.model;
@@ -254,6 +256,27 @@ export class SettingsPage extends BaseComponent {
     };
     active.onchange = fill;
     fill();
+    this.$<HTMLButtonElement>('.openrouter-signin').onclick = () =>
+      void startSignIn().catch((err) => msg(card, errText(err), 'bad'));
+    // Back from OpenRouter with a code (ADR 0047): exchange it for this session's key.
+    const pending = pendingSignIn();
+    if (pending) {
+      settings = await loadProviderSettings();
+      active.value = OPENROUTER_ID;
+      fill();
+      msg(card, 'Finishing sign-in with OpenRouter…');
+      try {
+        await finishSignIn(pending);
+        fill();
+        msg(
+          card,
+          'Signed in with OpenRouter. Its key is in memory for this session; the chat can use it now.',
+          'ok'
+        );
+      } catch (err) {
+        msg(card, `Sign-in didn't finish: ${errText(err)}`, 'bad');
+      }
+    }
     form.onsubmit = async (e) => {
       e.preventDefault();
       const p = settings.providers.find((x) => x.id === active.value);
@@ -262,7 +285,7 @@ export class SettingsPage extends BaseComponent {
         if (!originAllowed(endpoint)) {
           msg(
             card,
-            'That endpoint is not allowed. The app may only call api.anthropic.com, api.openai.com, generativelanguage.googleapis.com, or a server on localhost.',
+            'That endpoint is not allowed. The app may only call api.anthropic.com, api.openai.com, generativelanguage.googleapis.com, openrouter.ai, or a server on localhost.',
             'bad'
           );
           return;

@@ -474,6 +474,14 @@ Everything above works with no AI at all. If you want help from an AI model, cho
 under **AI provider (optional)**: Anthropic (Claude), Google Gemini, or any OpenAI-compatible service, including
 one running on your own computer. Paste an API key.
 
+**No key? Sign in with OpenRouter.** Choose **OpenRouter (sign in, no key to copy)** and press
+**Sign in with OpenRouter**. Sign in or sign up there and approve Crux, and you come back to
+Settings. Crux shows you the one-time code it is about to exchange; press **Send** and you're done.
+OpenRouter reaches many models (the default, `openrouter/auto`, lets it choose; type another
+model's name to pick one). You pay OpenRouter for what you use, and can set a spending limit or
+revoke the key on its site. Crux gets no money from this and sees nothing of your OpenRouter
+account. Like any key here, it's forgotten when the app reloads or locks: sign in again then.
+
 **A model on your own computer** needs no key: choose **Local model (llama.cpp, Ollama, LM Studio)**,
 set the endpoint to your server (`http://localhost:8080` for llama.cpp's `llama-server`,
 `http://localhost:11434` for Ollama with the model's name, `http://localhost:1234` for LM Studio)

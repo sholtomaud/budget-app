@@ -812,6 +812,7 @@ All of this is **off by default**. The app is complete without it.
 | FR-API-003 | **Redaction by default.** Payloads never contain account IDs, masked numbers, BSB/account numbers, names of people, addresses or exact balances. Amounts are bucketed or rounded. |
 | FR-API-004 | Every call is logged locally (time, provider, purpose, origin, payload hash, bytes sent, status) and shown in Settings. |
 | FR-API-005 | A Content Security Policy restricts `connect-src` to the app origin plus a static list of provider origins, the same list the egress gate enforces (ADR 0021). |
+| FR-API-006 | **Sign in with OpenRouter** (ADR 0047): OpenRouter is a provider whose key a person can get by signing in, with OAuth PKCE (S256) and no server of ours. The verifier is kept in the tab's sessionStorage for the round trip only and cleared on return; the code returns to the app's root and is exchanged through the egress gate (consent, log); the key is then held like any other (FR-API-001). |
 
 ### 13.2 Uses
 
