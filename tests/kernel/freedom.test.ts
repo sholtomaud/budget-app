@@ -326,7 +326,8 @@ describe('goal metrics (FR-GOAL)', () => {
     expect(soon!.capital!).toBeLessThan(never!.capital!);
     // Nothing locked at the start: no bridge.
     expect(await bridgeFreedom(withSuper('2028-01-01'), sp, local, opts)).toBeNull();
-  });
+    // Two bisections of simulations: ~3 s here, over the 5 s default on a slower machine.
+  }, 30_000);
 
   test('years to freedom and project runway', async () => {
     const s = short();
