@@ -44,6 +44,15 @@ export const DEFAULT_PROVIDERS: ProviderConfig[] = [
     model: 'gpt-4.1',
   },
   {
+    // Sign in with OpenRouter (ADR 0047): no key to copy. OpenAI-compatible at /api/v1.
+    // 'openrouter/auto' lets OpenRouter pick a model; any model id on OpenRouter works.
+    id: 'openrouter',
+    kind: 'openai-compatible',
+    label: 'OpenRouter (sign in, no key to copy)',
+    endpoint: 'https://openrouter.ai/api',
+    model: 'openrouter/auto',
+  },
+  {
     // llama.cpp's llama-server, Ollama (port 11434, name the model), LM Studio (1234)…
     id: 'local',
     kind: 'openai-compatible',
@@ -62,6 +71,7 @@ export const ALLOWED_ORIGINS = [
   'https://api.anthropic.com',
   'https://api.openai.com',
   'https://generativelanguage.googleapis.com',
+  'https://openrouter.ai',
   'http://localhost:*',
   'http://127.0.0.1:*',
 ] as const;

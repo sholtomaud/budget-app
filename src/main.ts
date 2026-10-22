@@ -7,6 +7,7 @@ import './app/components/chat-panel/chat-panel.ts';
 import { applyStoredTheme } from './app/theme.ts';
 import './app/components/lock-screen/lock-screen.ts';
 import { initVault } from './app/vault.ts';
+import { routeSignInReturn } from './app/openrouter.ts';
 
 applyStoredTheme();
 
@@ -22,6 +23,8 @@ if (import.meta.env.DEV) {
 document.body.append(document.createElement('lock-screen'));
 // NFR-STO-002: screens wait for the vault (data.ts) before reading anything.
 void initVault();
+// ADR 0047: back from signing in with OpenRouter, Settings finishes it.
+routeSignInReturn();
 void router.render();
 // ADR 0041: schedules run while the app is open.
 void import('./app/schedules.ts').then((m) => m.startScheduler());

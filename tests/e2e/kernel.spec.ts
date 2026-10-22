@@ -22,7 +22,7 @@ test('the built page carries a CSP that limits connections to its origin and the
     .getAttribute('content');
   // Its own origin, plus only the AI providers the egress gate allows (FR-API-005).
   expect(csp).toContain(
-    "connect-src 'self' https://api.anthropic.com https://api.openai.com https://generativelanguage.googleapis.com http://localhost:* http://127.0.0.1:*;"
+    "connect-src 'self' https://api.anthropic.com https://api.openai.com https://generativelanguage.googleapis.com https://openrouter.ai http://localhost:* http://127.0.0.1:*;"
   );
   expect(csp).toContain("default-src 'self'");
 });

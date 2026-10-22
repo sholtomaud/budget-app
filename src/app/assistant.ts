@@ -173,7 +173,7 @@ export class Assistant {
 
     if (!ap.ok)
       return reply({
-        text: `I can answer common questions on my own, on this device: how likely your plan is to work, why, what would make it work, where your money goes, how sure the forecast is, and what the terms mean. I can also add budget lines, big purchases and categories for you to approve.\n\nFor anything else, an AI provider can help. It's optional: turn one on in Settings. Your key is kept only while the app is open.`,
+        text: `I can answer common questions on my own, on this device: how likely your plan is to work, why, what would make it work, where your money goes, how sure the forecast is, and what the terms mean. I can also add budget lines, big purchases and categories for you to approve.\n\nFor anything else, an AI provider can help. It's optional: turn one on in Settings, where you can also just sign in with OpenRouter (no key to copy). Your key is kept only while the app is open.`,
         links: [{ label: 'Open Settings', path: '/settings' }],
         suggestions: STARTERS,
       });
