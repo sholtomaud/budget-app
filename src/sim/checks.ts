@@ -22,7 +22,8 @@ export type CheckId =
   | 'over-spending'
   | 'credits'
   | 'below-essentials'
-  | 'floor-outdated';
+  | 'floor-outdated'
+  | 'not-counted';
 
 export interface PlanCheck {
   id: CheckId;
@@ -200,7 +201,24 @@ export function checkPlan(setup: FreedomSetup, spending: SpendingInput, asOf: st
     });
   }
 
-  // 8. The floor tier's budget well under what a group actually costs (ADR 0033).
+  // 8. Budget lines that count as nothing after freedom (FR-BUD-004).
+  const tierName = setup.goal.tier.charAt(0).toUpperCase() + setup.goal.tier.slice(1);
+  for (const u of spending.uncounted ?? [])
+    out.push(
+      u.reason === 'period'
+        ? {
+            id: 'not-counted',
+            level: 'problem',
+            text: `The budget line "${u.item}" has a period Crux can't read ("${u.period}"), so it counts as nothing in every plan. Set how often it's paid on the Budget screen.`,
+          }
+        : {
+            id: 'not-counted',
+            level: 'note',
+            text: `"${u.item}" (${categoryName(u.categoryId, []).toLowerCase()}, about ${aud(u.monthly ?? 0)} a month) isn't counted at the ${tierName} tier, so this plan doesn't pay for it after freedom. If you'll still pay it then, set its share at ${tierName} to 100 % on the Budget screen.`,
+          }
+    );
+
+  // 9. The floor tier's budget well under what a group actually costs (ADR 0033).
   for (const o of e?.outdated ?? [])
     out.push({
       id: 'floor-outdated',

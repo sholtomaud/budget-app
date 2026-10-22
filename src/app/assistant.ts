@@ -15,7 +15,9 @@
 import { budgetReview } from './budget-review.ts';
 import {
   glossaryEntry,
+  asksForAI,
   matchIntent,
+  sameMessage,
   STARTERS,
   wantsAI,
   type Intent,
@@ -114,8 +116,6 @@ export const fromInsight = (i: Insight): ChatReply =>
     suggestions: i.suggestions ?? [],
   });
 
-const normal = (q: string) => q.trim().toLowerCase().replace(/\s+/g, ' ');
-
 const contextText = (c: PageContext | null) =>
   c ? `${c.title}${c.detail ? ` · ${c.detail}` : ''}` : undefined;
 
@@ -149,14 +149,24 @@ export class Assistant {
     context: PageContext | null,
     opts: { onActivity?: ActivitySink; signal?: AbortSignal } = {}
   ): Promise<ChatReply> {
-    const intent = matchIntent(question);
     const ap = await activeProvider();
-    // With an AI set up, a long message, or the same question asked again
+    // Asked for the AI by name ("please ask Gemini…"): never Crux's template.
+    const named = asksForAI(question, ap.ok ? ap.provider.label : '');
+    const intent = named ? null : matchIntent(question);
+    // With an AI set up, a long message, or much the same message sent again
     // after Crux's answer, goes to the AI: the template didn't answer it.
-    const again = normal(question) === this.lastBuiltIn;
+    const again = this.lastBuiltIn !== undefined && sameMessage(question, this.lastBuiltIn);
     if (intent && !(ap.ok && (again || wantsAI(question, intent)))) {
-      this.lastBuiltIn = normal(question);
-      return this.builtIn(intent, context, opts.onActivity);
+      this.lastBuiltIn = question;
+      const r = await this.builtIn(intent, context, opts.onActivity);
+      // The AI sees Crux's answers too, so a follow-up to it makes sense.
+      this.session.heard(
+        question,
+        r.proposals.length
+          ? `${r.text}\n(Offered ${r.proposals.length === 1 ? 'a card' : `${r.proposals.length} cards`} to apply or discard.)`
+          : r.text
+      );
+      return r;
     }
     this.lastBuiltIn = undefined;
 

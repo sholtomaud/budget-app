@@ -253,6 +253,21 @@ Rules:
 - This is not financial advice. The figures come from the user's own assumptions. For tax, legal or product decisions, suggest a licensed professional.
 - Never recommend credit, buy-now-pay-later, gambling or speculative products.`;
 
+/**
+ * The system prompt for one provider: the rules, and who the model is. Without
+ * this, a model told only that it is "the advisor inside Crux" says it can't
+ * reach Gemini when it is Gemini, or that nothing leaves the device.
+ */
+export function advisorSystem(provider: string): string {
+  return `${ADVISOR_SYSTEM}
+
+Who you are:
+- You are ${provider}, the AI provider the person turned on in Settings. Crux sends you their messages (with their consent for each request, amounts rounded) and runs your tool calls on their device.
+- When they say "ask ${provider}", "ask the AI", "ask the local model" or "send this to the AI", they mean you: answer the question. Never say you are a built-in or local assistant, or that Crux can't reach an AI or send you something: you are the AI it reached, and what they wrote is already with you.
+- Crux also answers common questions itself, without you. Those exchanges are given to you at the start of a message as "[Earlier in this chat, answered by Crux on the device…]". If the person is asking again, Crux's answer probably missed the point: answer what they actually asked.
+- When the person questions a figure (why is spending only so much?), get the parts from get_plan (tierBudgetByGroupPerMonth, spendingAfterFreedom, bigPurchasesPerMonth, projectIncomePerYear, budgetLinesNotCounted) and explain from them.`;
+}
+
 /** Numbers that look like money or percentages, as values. */
 function figures(text: string): { raw: string; value: number; kind: '$' | '%' }[] {
   const out: { raw: string; value: number; kind: '$' | '%' }[] = [];

@@ -7,8 +7,8 @@
 import { checkToolInput, chatRequest, type Turn } from '../api/llm.ts';
 import { roughAmount } from '../api/redact.ts';
 import {
-  ADVISOR_SYSTEM,
   ADVISOR_TOOLS,
+  advisorSystem,
   unverifiedFigures,
   type AssumptionKey,
 } from '../advisor/tools.ts';
@@ -346,6 +346,21 @@ export async function runTool(
           return {
             spendingAfterFreedomPerMonth: rough(BigInt(Math.round(tier * 100))),
             tierBudgetPerMonth: rough(BigInt(Math.round((tier / Math.max(1e-9, lever)) * 100))),
+            tierBudgetByGroupPerMonth: Object.fromEntries(
+              Object.entries(sp.tier)
+                .filter(([, x]) => x > 0)
+                .map(([g, x]) => [g, rough(BigInt(Math.round((x / Math.max(1e-9, lever)) * 100)))])
+            ),
+            bigPurchasesPerMonth: rough(BigInt(Math.round(sp.capexMonthly * 100))),
+            ...(sp.uncounted?.length
+              ? {
+                  budgetLinesNotCounted: sp.uncounted.map((u) =>
+                    u.reason === 'period'
+                      ? `${u.item}: its period "${u.period}" can't be read, so it counts as nothing`
+                      : `${u.item}: about ${rough(BigInt(Math.round((u.monthly ?? 0) * 100)))} a month, left out of the ${setup.goal.tier} tier (share 0)`
+                  ),
+                }
+              : {}),
             ...(e
               ? {
                   essentialsPerMonth: rough(BigInt(Math.round(e.monthly * 100))),
@@ -567,13 +582,29 @@ export function toolActivity(name: string, input: Record<string, unknown>): [str
 /** Rounds of tool calls in one answer; one more request then asks for the answer itself. */
 export const MAX_TOOL_ROUNDS = 8;
 
+/** Crux's own answers kept for the AI's next turn: at most this many, each cut to this length. */
+const HEARD_MAX = 6;
+const HEARD_CHARS = 1200;
+
 export class AdvisorSession {
   turns: Turn[] = [];
   private toolTexts: string[] = [];
+  /** Exchanges Crux answered on the device since the AI's last turn. */
+  private unheard: string[] = [];
   private readonly view: () => DataView;
 
   constructor(view: () => DataView) {
     this.view = view;
+  }
+
+  /**
+   * An exchange Crux answered itself (no AI). The AI gets it at the start of
+   * its next question, so the conversation it sees is the one on screen.
+   */
+  heard(question: string, answer: string): void {
+    const cut = (s: string) => (s.length > HEARD_CHARS ? `${s.slice(0, HEARD_CHARS)}…` : s);
+    this.unheard.push(`Person: ${cut(question)}\nCrux (on the device): ${cut(answer)}`);
+    if (this.unheard.length > HEARD_MAX) this.unheard.shift();
   }
 
   /**
@@ -591,9 +622,12 @@ export class AdvisorSession {
     const label = ap.provider.label;
     const say = opts.onActivity;
     const mark = this.turns.length;
+    const earlier = this.unheard.length
+      ? `[Earlier in this chat, answered by Crux on the device without you:\n${this.unheard.join('\n\n')}]\n\n`
+      : '';
     this.turns.push({
       role: 'user',
-      text: opts.context ? `[Screen: ${opts.context}]\n${question}` : question,
+      text: `${earlier}${opts.context ? `[Screen: ${opts.context}]\n` : ''}${question}`,
     });
     const sink: ToolSink = { proposals: [], links: [], charts: [] };
     const runIds: string[] = [];
@@ -605,7 +639,7 @@ export class AdvisorSession {
         // so a question never ends on an unanswered tool call.
         const last = n === MAX_TOOL_ROUNDS;
         const request = chatRequest(ap.provider, {
-          system: ADVISOR_SYSTEM,
+          system: advisorSystem(label),
           turns: this.turns,
           tools: ADVISOR_TOOLS,
           ...(last ? { toolChoice: 'none' as const } : {}),
@@ -731,6 +765,7 @@ export class AdvisorSession {
       this.turns.length = mark;
       throw err;
     }
+    this.unheard = [];
     return {
       role: 'advisor',
       text,

@@ -83,6 +83,38 @@ export function deterministicFreedom(s: Scenario, spending: SpendingInput): Dete
   };
 }
 
+/** What the year of spending behind the freedom number is made of (FR-GOAL-024). */
+export interface NeedBreakdown {
+  /** The goal tier's budget a month, before the spending lever. */
+  tierMonthly: number;
+  /** The same, by group, largest first. */
+  byGroup: { group: string; monthly: number }[];
+  /** Spending after freedom as a share of the tier. */
+  lever: number;
+  /** Big purchases, annualised, a month (not scaled by the lever). */
+  capexMonthly: number;
+  /** Project income, a year, taken off. */
+  projectIncome: number;
+  annualNeed: number;
+}
+
+/** `spending` has the lever applied, as for `deterministicFreedom`. */
+export function needBreakdown(s: Scenario, spending: SpendingInput, lever: number): NeedBreakdown {
+  const k = Math.max(1e-9, lever);
+  const byGroup = Object.entries(spending.tier)
+    .map(([group, v]) => ({ group, monthly: v / k }))
+    .filter((g) => g.monthly > 0)
+    .sort((a, b) => b.monthly - a.monthly);
+  return {
+    tierMonthly: byGroup.reduce((a, g) => a + g.monthly, 0),
+    byGroup,
+    lever,
+    capexMonthly: spending.capexMonthly,
+    projectIncome: dollars(s.goal.projectIncome ?? 0n),
+    annualNeed: deterministicFreedom(s, spending).annualNeed,
+  };
+}
+
 export function totalCapital(s: Scenario, scale = 1): number {
   return (
     dollars(s.decisions.bankBuffer) + s.holdings.reduce((a, h) => a + dollars(h.value) * scale, 0)
