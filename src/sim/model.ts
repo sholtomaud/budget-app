@@ -120,6 +120,17 @@ export const DEFAULT_RETURN_MODELS: ReturnModel[] = [
   },
 ];
 
+/** Each kind of holding in words, as the Freedom screen and the AI name them. */
+export const CLASS_LABELS: Record<AssetClass, string> = {
+  cash: 'Cash',
+  term_deposit: 'Term deposit',
+  equity: 'Shares',
+  btc: 'Bitcoin',
+  super: 'Super',
+  property: 'Property',
+  other: 'Other',
+};
+
 export const DEFAULT_MODEL_FOR: Record<AssetClass, string> = {
   cash: 'cash',
   term_deposit: 'term-deposit',

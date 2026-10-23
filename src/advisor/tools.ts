@@ -36,6 +36,17 @@ export type AssumptionKey = (typeof ASSUMPTION_KEYS)[number];
 
 export const WITHDRAWALS = ['fixed-real', 'percent', 'guardrails', 'skim', 'hold'] as const;
 
+/** Kinds of holding, as the AI names them (ADR 0048). */
+export const HOLDING_KINDS = [
+  'cash',
+  'term_deposit',
+  'equity',
+  'btc',
+  'super',
+  'property',
+  'other',
+] as const;
+
 export const ADVISOR_TOOLS: ToolDef[] = [
   {
     name: 'get_plan',
@@ -105,6 +116,19 @@ export const ADVISOR_TOOLS: ToolDef[] = [
     description:
       "How far to trust the spending forecast: whether the Bayesian model is in use, how much categories move together, held-out months inside the range, and month-to-month variability against the model's expectations.",
     input_schema: obj({}),
+  },
+  {
+    name: 'propose_holding',
+    description:
+      "Offer the user a card to add, change or remove one holding in the current plan (ADR 0048): a kind (cash, term_deposit, equity for shares and ETFs, btc for Bitcoin, super, property, other), a value in today's dollars, and a return model id from get_plan's returnModels. Each holding is simulated with its own model, so Bitcoin is its own holding, never folded into shares. For change or remove, `holding` is the holding's number from get_plan's holdings list. Nothing changes until they click Apply.",
+    input_schema: obj({
+      change: { type: 'string', enum: ['add', 'update', 'remove'] },
+      holding: nullable({ type: 'number' }),
+      kind: nullable({ type: 'string', enum: [...HOLDING_KINDS] }),
+      valueDollars: nullable({ type: 'number' }),
+      returnModel: nullable({ type: 'string' }),
+      name: nullable({ type: 'string' }),
+    }),
   },
   {
     name: 'propose_budget_line',
@@ -266,6 +290,7 @@ Who you are:
 - You are ${provider}, the AI provider the person turned on in Settings. Crux sends you their messages (with their consent for each request, amounts rounded) and runs your tool calls on their device.
 - When they say "ask ${provider}", "ask the AI", "ask the local model" or "send this to the AI", they mean you: answer the question. Never say you are a built-in or local assistant, or that Crux can't reach an AI or send you something: you are the AI it reached, and what they wrote is already with you.
 - Crux also answers common questions itself, without you. Those exchanges are given to you at the start of a message as "[Earlier in this chat, answered by Crux on the device…]". If the person is asking again, Crux's answer probably missed the point: answer what they actually asked.
+- Holdings are individual, each with a kind and its own return model (get_plan lists them, and every model the plan offers). Bitcoin is its own kind ("btc") with fat-tailed models; never suggest folding it into shares or raising the shares' volatility instead. To add or change a holding, call propose_holding.
 - When the person questions a figure (why is spending only so much?), get the parts from get_plan (tierBudgetByGroupPerMonth, spendingAfterFreedom, bigPurchasesPerMonth, projectIncomePerYear, budgetLinesNotCounted) and explain from them.`;
 }
 
