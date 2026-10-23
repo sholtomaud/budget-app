@@ -134,6 +134,97 @@ const SELL_RANK: AssetClass[] = [
 
 const lastN = <T>(xs: readonly T[], n: number) => xs.slice(Math.max(0, xs.length - n));
 
+export type HoldingChange =
+  | {
+      change: 'add';
+      assetClass: AssetClass;
+      value: bigint;
+      name?: string;
+      returnModelId?: string;
+      id: string;
+    }
+  | {
+      change: 'update';
+      holdingId: string;
+      assetClass?: AssetClass;
+      value?: bigint;
+      name?: string;
+      returnModelId?: string;
+    }
+  | { change: 'remove'; holdingId: string };
+
+/**
+ * A plan with one holding added, changed or removed (ADR 0048): the sell
+ * order, new savings and `hold` follow, so the plan stays consistent. A
+ * return model the plan doesn't have gives way to the kind's default.
+ */
+export function changeHolding(
+  s: FreedomSetup,
+  c: HoldingChange
+): { ok: true; setup: FreedomSetup; holding?: Holding } | { ok: false; error: string } {
+  const model = (cls: AssetClass, id?: string) =>
+    id && s.returnModels.some((m) => m.id === id) ? id : DEFAULT_MODEL_FOR[cls];
+  if (c.change === 'add') {
+    if (c.value < 0n) return { ok: false, error: 'A holding’s value can’t be below zero.' };
+    const h: Holding = {
+      id: c.id,
+      name: c.name?.trim() || NAMES[c.assetClass],
+      assetClass: c.assetClass,
+      value: c.value,
+      returnModelId: model(c.assetClass, c.returnModelId),
+      owner: 'p1',
+      provenance: 'actual',
+    };
+    const holdings = [...s.holdings, h];
+    const rank = (id: string) =>
+      SELL_RANK.indexOf(holdings.find((x) => x.id === id)?.assetClass ?? 'other');
+    const sellOrder = [...s.decisions.sellOrder, h.id].sort((a, b) => rank(a) - rank(b));
+    return {
+      ok: true,
+      setup: { ...s, holdings, decisions: { ...s.decisions, sellOrder } },
+      holding: h,
+    };
+  }
+  const old = s.holdings.find((x) => x.id === c.holdingId);
+  if (!old) return { ok: false, error: 'There is no such holding in the plan.' };
+  if (c.change === 'remove') {
+    const { [old.id]: _, ...allocation } = s.decisions.allocation;
+    const w = s.decisions.withdrawal;
+    return {
+      ok: true,
+      setup: {
+        ...s,
+        holdings: s.holdings.filter((x) => x.id !== old.id),
+        decisions: {
+          ...s.decisions,
+          sellOrder: s.decisions.sellOrder.filter((id) => id !== old.id),
+          allocation,
+          withdrawal:
+            w.kind === 'hold'
+              ? { ...w, holdingIds: w.holdingIds.filter((id) => id !== old.id) }
+              : w,
+        },
+      },
+    };
+  }
+  if (c.value !== undefined && c.value < 0n)
+    return { ok: false, error: 'A holding’s value can’t be below zero.' };
+  const cls = c.assetClass ?? old.assetClass;
+  const h: Holding = {
+    ...old,
+    assetClass: cls,
+    ...(c.name?.trim() ? { name: c.name.trim() } : {}),
+    ...(c.value !== undefined ? { value: c.value, provenance: 'actual' as const } : {}),
+    returnModelId:
+      c.returnModelId || cls !== old.assetClass ? model(cls, c.returnModelId) : old.returnModelId,
+  };
+  return {
+    ok: true,
+    setup: { ...s, holdings: s.holdings.map((x) => (x.id === old.id ? h : x)) },
+    holding: h,
+  };
+}
+
 /** Average monthly net income from the last 12 complete months (salary and other income, not interest). */
 export function netIncomeMonthly(txns: readonly Txn[]): number {
   const months = new Set(lastN(coveredMonths(txns), 12));

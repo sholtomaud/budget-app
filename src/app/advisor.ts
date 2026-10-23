@@ -15,9 +15,14 @@ import {
 } from '../advisor/tools.ts';
 import type { DataView } from '../data/service.ts';
 import { applyLevers } from '../optimise/levers.ts';
-import { defaultSetup, type FreedomSetup } from '../sim/inputs.ts';
+import {
+  changeHolding,
+  defaultSetup,
+  type FreedomSetup,
+  type HoldingChange,
+} from '../sim/inputs.ts';
 import { deterministicFreedom } from '../sim/metrics.ts';
-import type { WithdrawalStrategy } from '../sim/model.ts';
+import { CLASS_LABELS, type AssetClass, type WithdrawalStrategy } from '../sim/model.ts';
 import { taxProvenance, taxTable } from '../sim/tax.ts';
 import { activityId, elapsed, kb, step, type ActivitySink } from './activity.ts';
 import { activeProvider, sendStream } from './egress.ts';
@@ -396,7 +401,20 @@ export async function runTool(
         takeHomePayPerMonth: rough(setup.decisions.netPayMonthly ?? 0n),
         withdrawal: w.kind === 'percent' ? `percent, ${pct(w.rate)} a year` : w.kind,
         cashInBank: rough(setup.decisions.bankBuffer),
-        holdings: Object.entries(byClass).map(([kind, value]) => ({ kind, value: rough(value) })),
+        // Each holding by number, kind and model: never its name, which may carry an account's (FR-API-003).
+        holdings: setup.holdings.map((h, i) => ({
+          holding: i + 1,
+          kind: h.assetClass,
+          kindName: CLASS_LABELS[h.assetClass],
+          value: rough(h.value),
+          returnModel: h.returnModelId,
+          ...(h.accessibleFrom ? { lockedUntil: h.accessibleFrom.slice(0, 7) } : {}),
+        })),
+        totalsByKind: Object.entries(byClass).map(([kind, value]) => ({
+          kind,
+          value: rough(value),
+        })),
+        returnModels: setup.returnModels.map((m) => ({ id: m.id, label: m.label })),
         tax: setup.taxTable ?? 'off (before tax)',
       });
     }
@@ -488,12 +506,69 @@ export async function runTool(
         note: 'Saved for the user to review on the Scenarios screen.',
       });
     }
+    case 'propose_holding': {
+      const kind = (input.kind as AssetClass | null) ?? undefined;
+      const value =
+        typeof input.valueDollars === 'number'
+          ? BigInt(Math.round(input.valueDollars * 100))
+          : undefined;
+      const model = (input.returnModel as string | null) ?? undefined;
+      const label = (input.name as string | null) ?? undefined;
+      const n = typeof input.holding === 'number' ? Math.round(input.holding) : undefined;
+      const target = n !== undefined ? setup.holdings[n - 1] : undefined;
+      const c: HoldingChange | { error: string } =
+        input.change === 'add'
+          ? kind && value !== undefined
+            ? {
+                change: 'add',
+                assetClass: kind,
+                value,
+                id: `h-ai-${Date.now().toString(36)}`,
+                ...(label ? { name: label } : {}),
+                ...(model ? { returnModelId: model } : {}),
+              }
+            : { error: 'To add a holding, give its kind and valueDollars.' }
+          : !target
+            ? { error: 'Give the holding’s number from get_plan’s holdings list.' }
+            : input.change === 'remove'
+              ? { change: 'remove', holdingId: target.id }
+              : {
+                  change: 'update',
+                  holdingId: target.id,
+                  ...(kind ? { assetClass: kind } : {}),
+                  ...(value !== undefined ? { value } : {}),
+                  ...(label ? { name: label } : {}),
+                  ...(model ? { returnModelId: model } : {}),
+                };
+      if ('error' in c) return JSON.stringify({ error: c.error });
+      const r = changeHolding(setup, c);
+      if (!r.ok) return JSON.stringify({ error: r.error });
+      const h = r.holding;
+      const what =
+        c.change === 'add'
+          ? `Add ${CLASS_LABELS[h!.assetClass]}, about ${rough(h!.value)}, to your plan`
+          : c.change === 'remove'
+            ? `Remove holding ${n} (${CLASS_LABELS[target!.assetClass]}) from your plan`
+            : `Change holding ${n} (${CLASS_LABELS[target!.assetClass]}) in your plan`;
+      const modelLabel = h
+        ? setup.returnModels.find((m) => m.id === h.returnModelId)?.label
+        : undefined;
+      return offered({
+        kind: 'setup',
+        label: what,
+        summary: h
+          ? `${CLASS_LABELS[h.assetClass]}, about ${rough(h.value)}, simulated with ${modelLabel ?? h.returnModelId}`
+          : 'its value no longer counts in the plan',
+        setup: r.setup,
+        from: setup,
+      });
+    }
     case 'explain_assumption': {
       const key = input.key as AssumptionKey;
       const models = new Map(setup.returnModels.map((m) => [m.id, m.label]));
       const t = setup.taxTable ? taxTable(setup.taxTable) : null;
       const text: Record<AssumptionKey, string> = {
-        returns: `Each holding's returns are drawn from its model every simulated month: ${[...new Set(setup.holdings.map((h) => models.get(h.returnModelId) ?? h.returnModelId))].join('; ')}. These are assumptions (labelled assumed), editable on the Freedom screen.`,
+        returns: `Each holding's returns are drawn from its own model every simulated month. In use: ${[...new Set(setup.holdings.map((h) => models.get(h.returnModelId) ?? h.returnModelId))].join('; ')}. Every model the plan offers, for any holding: ${setup.returnModels.map((m) => `${m.id} (${m.label})`).join('; ')}. A price history the person imports in Settings becomes another. These are assumptions (labelled assumed), chosen per holding on the Freedom screen.`,
         tax: t
           ? `Australian ${t.financialYear} resident rates, Medicare levy and the capital gains discount, per person, held constant in today's dollars. Provenance: ${taxProvenance(t)}.`
           : 'Tax is off: results are before tax.',
@@ -545,6 +620,11 @@ export function toolActivity(name: string, input: Record<string, unknown>): [str
       return ['Listing your scenarios…', 'Listed your scenarios'];
     case 'propose_plan':
       return ['Saving a proposed plan to Scenarios…', 'Saved a proposed plan to Scenarios'];
+    case 'propose_holding':
+      return [
+        'Preparing a change to your holdings…',
+        'Prepared a holdings change for you to check',
+      ];
     case 'explain_assumption':
       return ['Looking up an assumption…', 'Looked up an assumption'];
     case 'check_plan':

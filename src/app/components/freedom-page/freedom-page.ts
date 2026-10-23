@@ -34,6 +34,7 @@ import type { DataView } from '../../../data/service.ts';
 import { addMonths } from '../../../lib/dates.ts';
 import { defaultSetup, type FreedomSetup } from '../../../sim/inputs.ts';
 import {
+  CLASS_LABELS,
   DEFAULT_MODEL_FOR,
   type AssetClass,
   type Holding,
@@ -45,15 +46,7 @@ import { setPageDetail } from '../../page-context.ts';
 import template from './freedom-page.html?raw';
 import style from './freedom-page.css?raw';
 
-const CLASSES: [AssetClass, string][] = [
-  ['cash', 'Cash'],
-  ['term_deposit', 'Term deposit'],
-  ['equity', 'Shares'],
-  ['btc', 'Bitcoin'],
-  ['super', 'Super'],
-  ['property', 'Property'],
-  ['other', 'Other'],
-];
+const CLASSES = Object.entries(CLASS_LABELS) as [AssetClass, string][];
 
 const aud = new Intl.NumberFormat('en-AU', {
   style: 'currency',
